@@ -1,5 +1,7 @@
 # support zq, zed or superdb
 
+# TODO: check-in after release to confirm file extension.
+# TODO: support XDG here
 if [ -f "$HOME/.superdb/superkit.sdb" ]; then
   echo "Application is already installed"
   exit 1
