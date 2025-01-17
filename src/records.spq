@@ -11,14 +11,21 @@ op keys(): (
   over this => (this.key[0]) | collect(this)
 )
 
-op merge(): (
-  over this
-  | flatten(this)
-  | over this
-  | yield f"{key[0]}:\"{value}\""
-  | collect(this)
-  | join(this,",")
-  | yield f"\{ {this} }"
+op merge_records(): (
+  string(this)
+  | replace(this, "},{",",")
   | parse_zson(this)
+  | over this
+  | head 1
 )
+
+// # this sort of approach suffers from an illegal left-hand assignment:
+// ❯ zq '[{a:1},{b:{c:333}}] | (over this with obj={} | flatten(this) | obj[key[0]]:=value )'
+
+// # this was a better step from Phil, but doesn't work on nested records
+// over this
+// | over flatten(this)
+// | collect_map(|{key[0]:value}|)
+// | yield parse_zson(replace(string(this), "|", ""))'
+
 
