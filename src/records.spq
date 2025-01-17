@@ -14,9 +14,7 @@ op keys(): (
 op merge_records(): (
   string(this)
   | replace(this, "},{",",")
-  | parse_zson(this)
-  | over this
-  | head 1
+  | parse_zson(this[1:-1])
 )
 
 // # this sort of approach suffers from an illegal left-hand assignment:
