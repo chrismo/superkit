@@ -1,0 +1,24 @@
+// the built-in `fields` function is similar, but puts each field into its own
+// nested array, though it also handles nested keys. This keys operator here
+// attempts to emulate jq's keys, which does not go deep but only lists the
+// top-level ones.
+
+op keys(): (
+  // ... with sorted keys:
+  // over this => (this.key[0]) | sort | collect(this)
+
+  // ... in order:
+  over this => (this.key[0]) | collect(this)
+)
+
+op merge(): (
+  over this
+  | flatten(this)
+  | over this
+  | yield f"{key[0]}:\"{value}\""
+  | collect(this)
+  | join(this,",")
+  | yield f"\{ {this} }"
+  | parse_zson(this)
+)
+
