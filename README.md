@@ -9,10 +9,6 @@ official documentation.
 
 https://github.com/chrismo/superkit/issues
    
-## REUSE MDTEST!!
-
-See c388844903d36c1fcd4cbf81b535813210bc548e in super repo.
-             
 ## Repo Structure
 
 Ops and functions can be in any number of different files, with test files
