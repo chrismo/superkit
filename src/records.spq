@@ -3,7 +3,7 @@
 // attempts to emulate jq's keys, which does not go deep but only lists the
 // top-level ones.
 
-op keys(): (
+op kkeys(): (
   // ... with sorted keys:
   // over this => (this.key[0]) | sort | collect(this)
 
@@ -11,7 +11,7 @@ op keys(): (
   over this => (this.key[0]) | collect(this)
 )
 
-op merge_records(): (
+op kmerge_records(): (
   string(this)
   | replace(this, "},{",",")
   | parse_zson(this[1:-1])
