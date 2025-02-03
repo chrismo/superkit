@@ -1,32 +1,34 @@
 // cannot get above EB with uint64 - sorry "ZB" & "YB" (and beyond...)
 const k_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
 
-op kformat_bytes_u(): (
+op kformat_bytes_u(value): (
   switch (
-    case this == 0 => yield "0 B"
-    default => {k: 1024, data: this}
+    case value == 0 => yield "0 B"
+    default => {k: 1024, data: value}
     | i:=uint64(floor(log(this.data) / log(this.k)))
     | result:=uint64(this.data / pow(this.k, this.i))
     | yield f"{this.result} {k_units[this.i]}"
   )
 )
 
-op kformat_bytes_s(): (
+// TODO: pass the type through for cast function to remove duplication
+op kformat_bytes_s(value): (
   switch (
-    case this == 0 => yield "0 B"
-    default => {k: 1024, data: this}
+    case value == 0 => yield "0 B"
+    default => {k: 1024, data: value}
     | i:=int64(floor(log(abs(this.data)) / log(this.k)))
     | result:=int64(this.data / pow(this.k, this.i))
     | yield f"{this.result} {k_units[this.i]}"
   )
 )
 
-// TODO: take arg OR this
+// TODO: take arg OR this -- cannot do this without optional arguments
+//       arg is the more flexible option, not as super-cool-clean
 // TODO: what do popular languages call this method (Python, Ruby, etc)
 // TODO: doc/blog on putting local variables in records - similar to Go UP first then Down
-op kformat_bytes(): (
+op kformat_bytes(value): (
   switch (
-    case this >= 0 => kformat_bytes_u()
-    case this < 0 => kformat_bytes_s()
+    case value >= 0 => kformat_bytes_u(value)
+    case value < 0 => kformat_bytes_s(value)
   )
 )
