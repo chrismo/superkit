@@ -1,0 +1,27 @@
+// cannot get above EB with uint64 - sorry "ZB" & "YB" (and beyond...)
+const k_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+
+// TODO: remove any needless casts to uint64
+op kformat_bytes_u(): (
+  (this == uint64(0)) ? "0 B" : {k: 1024, data: this}
+    | i:=uint64(floor(log(this.data) / log(this.k)))
+    | result:=uint64(this.data / pow(this.k, this.i))
+    | yield f"{this.result} {k_units[this.i]}"
+)
+
+op kformat_bytes_s(): (
+  (this == 0) ? "0 B" : {k: 1024, data: this}
+    | i:=int64(floor(log(abs(this.data)) / log(this.k)))
+    | result:=int64(this.data / pow(this.k, this.i))
+    | yield f"{this.result} {k_units[this.i]}"
+)
+
+// TODO: take arg OR this
+// TODO: what do popular languages call this method (Python, Ruby, etc)
+// TODO: doc/blog on putting local variables in records - similar to Go UP first then Down
+op kformat_bytes(): (
+  switch (
+    case this >= 0 => kformat_bytes_u()
+    case this < 0 => kformat_bytes_s()
+  )
+)
