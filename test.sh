@@ -13,7 +13,10 @@ function _assert() {
   fi
 }
 
+filter="${1:-}"
 for test_fn in ./src/*-test.sh; do
+  [ -n "$filter" ] && [[ "$test_fn" != *$filter* ]] && continue
+
   # shellcheck disable=SC1090
   source "${test_fn}"
 done
