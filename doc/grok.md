@@ -1,18 +1,31 @@
 # grok
+
+[//]: # (TODO: git branch zq vs. super - see README.md)
       
-_as of super prerelease sha 910e11a7_
+_as of super prerelease v1.18.0-243-g69be184b_
 
 ```mdtest-command
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-222-g55d99d3b
+Version: v1.18.0-243-g69be184b
 ```
 
-The grok function is a great choice for working with strings in a way that can
-rival and surpass the use of more common tools like awk and sed, but with some
-gaps in its documentation and some vague error messages can make it difficult
-to realize.
+## Unit tests in codebase
+
+```mdtest-command
+super -z -c 'yield "1", "foo" | grok("%{INT}", this)' 
+```
+```mdtest-output
+{}
+error({message:"grok(): value does not match pattern",on:"foo"})
+```
+
+## Article
+
+The grok function is a great choice for parsing strings that rivals the use of
+common tools like awk, but due to some gaps in its documentation and some vague
+error messages, it can be difficult to use at first.
 
 The docs do helpfully encourage building out grok patterns incrementally, but
 without knowing some of grok's gotchyas, this can be discouraging.
@@ -73,8 +86,8 @@ super -z -c '
 {prefix:"My name is: ",name:"Muerte"}
 ```
     
-Success again! Ok, that wasn't so bad, but - it's a little arduous to be making
-any claims that I couldn't do better with awk or sed or whatever.
+Success again! Ok, that wasn't so bad, but - it's a little arduous. It doesn't
+feel like I'm getting to use the power of regex in a straightforward manner.
 
 There are two grok undocumented "hacks" that can make a simple job like this
 even simpler.
@@ -106,8 +119,10 @@ super -z -c '
 {name:"Muerte"}
 ```
 
-But, again, if building up incrementally, just the inlined regex will result
-in the vague error message:
+Now that feels clean and simple!        
+
+Just remember, if you're building this up incrementally, and you start with just
+the inlined regex, that'll result in the vague error message:
 
 ```mdtest-command
 super -z -c '
@@ -117,3 +132,4 @@ super -z -c '
 ```mdtest-output
 error({message:"grok(): value does not match pattern",on:"My name is: Muerte!"})
 ```
+                  
