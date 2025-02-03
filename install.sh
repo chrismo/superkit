@@ -10,7 +10,7 @@ mkdir -p "$(dirname "$dst_fn")"
 # TODO: Repo isn't public yet
 #curl -o "$dst_fn" https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main/dist/superkit.spq
 
-cp "$(dirname "${BASH_SOURCE[0]}")/dist/superkit.spq" "$dst_fn"
+cp -v "$(dirname "${BASH_SOURCE[0]}")/dist/superkit.spq" "$dst_fn"
 
 echo "Superkit library installed to $dst_fn"
 echo

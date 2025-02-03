@@ -1,6 +1,8 @@
 # SuperKit
         
 [//]: # (TODO: LICENSE?! Same as superdb probs) 
+               
+[//]: # (TODO: docs for each func/op in superkit - how to write, how to read?) 
 
 The SuperKit library is a collection of common Operators and Functions for the
 `zq`, `zed`, and `super` tools. `zq`/`zed` were renamed to SuperDB after version

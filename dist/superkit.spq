@@ -1,36 +1,29 @@
-// cannot get above EB with uint64 - sorry "ZB" & "YB" (and beyond...)
-const k_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+// cannot get above EB with uint64 - sorry "ZB" & "YB" and beyond...
+const k_bytes_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+const k_bytes_divisor=1024
 
-op kformat_bytes_u(value): (
-  switch (
-    case value == 0 => yield "0 B"
-    default => {k: 1024, data: value}
-    | i:=uint64(floor(log(this.data) / log(this.k)))
-    | result:=uint64(this.data / pow(this.k, this.i))
-    | yield f"{this.result} {k_units[this.i]}"
-  )
+func _k_bytes_unit_index(value): (
+  uint64(floor(log(value) / log(k_bytes_divisor)))
 )
 
-// TODO: pass the type through for cast function to remove duplication
-op kformat_bytes_s(value): (
-  switch (
-    case value == 0 => yield "0 B"
-    default => {k: 1024, data: value}
-    | i:=int64(floor(log(abs(this.data)) / log(this.k)))
-    | result:=int64(this.data / pow(this.k, this.i))
-    | yield f"{this.result} {k_units[this.i]}"
-  )
+func _kformat_nonzero_bytes(value): (
+  f"{uint64(value / pow(k_bytes_divisor, _k_bytes_unit_index(value)))} {k_bytes_units[_k_bytes_unit_index(value)]}"
 )
 
 // TODO: take arg OR this -- cannot do this without optional arguments
 //       arg is the more flexible option, not as super-cool-clean
 // TODO: what do popular languages call this method (Python, Ruby, etc)
+//       - bytes_pretty (a la postgresql: pg_size_pretty)
+//       - bytes_to_human
+//       - bytes_to_human_readable
+//       - format_bytes (most popular? - but sorta generic, doesn't imply prettiness?)
+//       - humanize (could work if we introduced custom types)
+//       - human_readable (same :point-up:)
+//       - numfmt (a bit dense / *nix)
 // TODO: doc/blog on putting local variables in records - similar to Go UP first then Down
-op kformat_bytes(value): (
-  switch (
-    case value >= 0 => kformat_bytes_u(value)
-    case value < 0 => kformat_bytes_s(value)
-  )
+// TODO: func doc
+func kformat_bytes(value): (
+  (value == 0) ? "0 B" : _kformat_nonzero_bytes(value)
 )
 op kversion(): (
   yield "0.1.0"
