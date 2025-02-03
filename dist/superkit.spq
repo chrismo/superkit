@@ -1,0 +1,64 @@
+// cannot get above EB with uint64 - sorry "ZB" & "YB" (and beyond...)
+const k_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+
+op kformat_bytes_u(): (
+  switch (
+    case this == 0 => yield "0 B"
+    default => {k: 1024, data: this}
+    | i:=uint64(floor(log(this.data) / log(this.k)))
+    | result:=uint64(this.data / pow(this.k, this.i))
+    | yield f"{this.result} {k_units[this.i]}"
+  )
+)
+
+op kformat_bytes_s(): (
+  switch (
+    case this == 0 => yield "0 B"
+    default => {k: 1024, data: this}
+    | i:=int64(floor(log(abs(this.data)) / log(this.k)))
+    | result:=int64(this.data / pow(this.k, this.i))
+    | yield f"{this.result} {k_units[this.i]}"
+  )
+)
+
+// TODO: take arg OR this
+// TODO: what do popular languages call this method (Python, Ruby, etc)
+// TODO: doc/blog on putting local variables in records - similar to Go UP first then Down
+op kformat_bytes(): (
+  switch (
+    case this >= 0 => kformat_bytes_u()
+    case this < 0 => kformat_bytes_s()
+  )
+)
+op kversion(): (
+  yield "0.1.0"
+)
+// the built-in `fields` function is similar, but puts each field into its own
+// nested array, though it also handles nested keys. This keys operator here
+// attempts to emulate jq's keys, which does not go deep but only lists the
+// top-level ones.
+
+op kkeys(): (
+  // ... with sorted keys:
+  // over this => (this.key[0]) | sort | collect(this)
+
+  // ... in order:
+  over this => (this.key[0]) | collect(this)
+)
+
+op kmerge_records(): (
+  string(this)
+  | replace(this, "},{",",")
+  | parse_zson(this[1:-1])
+)
+
+// # this sort of approach suffers from an illegal left-hand assignment:
+// ❯ zq '[{a:1},{b:{c:333}}] | (over this with obj={} | flatten(this) | obj[key[0]]:=value )'
+
+// # this was a better step from Phil, but doesn't work on nested records
+// over this
+// | over flatten(this)
+// | collect_map(|{key[0]:value}|)
+// | yield parse_zson(replace(string(this), "|", ""))'
+
+

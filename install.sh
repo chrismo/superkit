@@ -1,10 +1,13 @@
 # support zq, zed or superdb
 
-# TODO: check-in after release to confirm file extension.
 # TODO: support XDG here
-if [ -f "$HOME/.superdb/superkit.sdb" ]; then
+dst_fn="$HOME/.superdb/superkit.spq"
+
+if [ -f "$dst_fn" ]; then
   echo "Application is already installed"
   exit 1
 fi
 
-# just suggest the alias, don't set it up, cuz so many danged shells.
+
+
+# just suggest the alias, don't set it up

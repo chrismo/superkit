@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function _script_dir() {
+  dirname "${BASH_SOURCE[0]}"
+}
+
+function _super() {
+  echo "building super"
+  pushd ../super
+  make clean build install
+  cp ./dist/super /usr/local/bin
+  ls -la /usr/local/bin/super
+  super --version
+  echo "Version: $(git describe --tags --dirty --always)"
+  popd
+}
+
+function superkit() {
+  local -r dist_fn="$(_script_dir)"/dist/superkit.spq
+
+  cat "$(_script_dir)"/src/*.spq > "$dist_fn"
+
+  super -f text -I "$dist_fn" -c "kversion()"
+
+  # TODO: how to install doc contents?
+}
+
+function test() {
+  "$(_script_dir)"/test.sh
+}
+
+function _usage() {
+  grep -E '^function' "${BASH_SOURCE[0]}" | sort
+}
+
+function usage() {
+  _usage | less -FX
+}
+
+if [ $# -eq 0 ]; then
+  test
+  superkit
+else
+  while getopts "ho:" opt; do
+    case $opt in
+    h)
+      usage
+      exit 0
+      ;;
+    o) opt="$OPTARG" ;;
+    \?) # ignore invalid options
+      ;;
+    esac
+  done
+
+  # Remove options processed by getopts, so the remaining args can be handled
+  # positionally.
+  shift $((OPTIND - 1))
+
+  "$@"
+fi
