@@ -1,0 +1,9 @@
+{
+  date:"2025-02-02",
+  version:"0.1.0",
+  items:[
+    "kformat_bytes added to provide human readable data sizes",
+    "kkeys returns keys of a record, similar to jq's fields function",
+    "kmerge_records merges an array of records into a single record"
+  ]
+}

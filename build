@@ -25,6 +25,7 @@ function superkit() {
   super -f text -I "$dist_fn" -c "kversion()"
 
   # TODO: how to install doc contents?
+  # TODO: install tests for example usage
 }
 
 function test() {
