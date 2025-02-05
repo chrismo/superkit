@@ -25,9 +25,6 @@ func _kformat_nonzero_bytes(value): (
 func kformat_bytes(value): (
   (value == 0) ? "0 B" : _kformat_nonzero_bytes(value)
 )
-op kversion(): (
-  yield "0.1.0"
-)
 // the built-in `fields` function is similar, but puts each field into its own
 // nested array, though it also handles nested keys. This keys operator here
 // attempts to emulate jq's keys, which does not go deep but only lists the
@@ -57,3 +54,6 @@ op kmerge_records(): (
 // | yield parse_zson(replace(string(this), "|", ""))'
 
 
+func kversion(): (
+  "0.1.0"
+)
