@@ -12,7 +12,7 @@ function kformat_bytes_test() {
   [ "${input:0:1}" = "-" ] && type="int64"
 
   _assert "$expected" \
-    "$(super -f text -I "$this_dir"/kformat.spq -c "yield $type('$input') | kformat_bytes(this)")"
+    "$(super -f text -I "$this_dir"/format.spq -c "yield $type('$input') | kformat_bytes(this)")"
 }
 
 function kformat_bytes_s_test() {
@@ -20,7 +20,7 @@ function kformat_bytes_s_test() {
   local -r expected="$2"
 
   _assert "$expected" \
-    "$(super -f text -I "$this_dir"/kformat.spq -c "kformat_bytes_s(int64('$input'))")"
+    "$(super -f text -I "$this_dir"/format.spq -c "kformat_bytes_s(int64('$input'))")"
 }
 
 kformat_bytes_test 0 "0 B"
