@@ -34,7 +34,6 @@ pain though? Maybe just research this. I could use git worktrees to help prolly.
 
 [//]: # (TODO: _ALWAYS_ a k prefix? In case of future name collisions?) 
 [//]: # (TODO: Then always a k prefix on the spq files as well?)
-[//]: # (TODO: LICENSE? Same as superdb probs)
 [//]: # (TODO: docs for each func/op in superkit - how to write, how to read?)
 [//]: # (TODO: docs in the doc folder - how to distribute, how to read?)
 
