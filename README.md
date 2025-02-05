@@ -1,10 +1,6 @@
 # SuperKit
-        
-[//]: # (TODO: LICENSE?! Same as superdb probs) 
-               
-[//]: # (TODO: docs for each func/op in superkit - how to write, how to read?) 
 
-The SuperKit library is a collection of common Operators and Functions for the
+The SuperKit library is a collection of common Functions and Operators for the
 `zq`, `zed`, and `super` tools. `zq`/`zed` were renamed to SuperDB after version
 1.18 of `zq`/`zed`.
                             
@@ -15,11 +11,16 @@ https://github.com/chrismo/superkit/issues
    
 ## Repo Structure
 
-Ops and functions can be in any number of different files, with test files
+Functions and ops can be in any number of different files, with test files
 side-by-side.
 
 The release process will produce a single combined file that will be installed
 into the home directory of the user executing the install.sh script.
+              
+## Prefer using functions over operators
+
+Operators cannot be executed in places required to be expressions, so if the
+contents of the op or func can work as a func, make it a func.
 
 ## Multiple Versions
 
@@ -32,4 +33,8 @@ pain though? Maybe just research this. I could use git worktrees to help prolly.
 ## TODO
 
 [//]: # (TODO: _ALWAYS_ a k prefix? In case of future name collisions?) 
-[//]: # (TODO: Then always a k prefix on the spq files as well?) 
+[//]: # (TODO: Then always a k prefix on the spq files as well?)
+[//]: # (TODO: LICENSE? Same as superdb probs)
+[//]: # (TODO: docs for each func/op in superkit - how to write, how to read?)
+[//]: # (TODO: docs in the doc folder - how to distribute, how to read?)
+
