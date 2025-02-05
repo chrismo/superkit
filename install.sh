@@ -1,9 +1,3 @@
-# support zq, zed or superdb
-
-# TODO: support XDG here? it's arguable this isn't user-data ... it's
-# _installed_ by the user, but the data in the library doesn't belong to the
-# user strictly speaking.
-
 dst_fn="$HOME/.superdb/superkit.spq"
 mkdir -p "$(dirname "$dst_fn")"
 
@@ -12,13 +6,16 @@ mkdir -p "$(dirname "$dst_fn")"
 
 cp -v "$(dirname "${BASH_SOURCE[0]}")/dist/superkit.spq" "$dst_fn"
 
-echo "Superkit library installed to $dst_fn"
-echo
-
-# TODO: Run test to output version, to make sure no formatting errors are present?
-
 # just suggest the alias, don't set it up
-echo "Optionally, add this alias to your shell config so superkit is always available."
-echo
-echo "  alias super=\"super -I \$HOME/.superdb/superkit.spq\""
-echo
+cat << EOF
+Superkit library installed to $dst_fn
+
+Optionally, add this alias to your shell config to run super with superkit's
+functions and operators included. To use superkit with super in scripts,
+remember to use the include (-I) option when calling super, aliases are not
+available in scripts by default.
+
+  alias sk=\"super -I \$HOME/.superdb/superkit.spq\"
+
+Superkit Version $(super -f line -I "$dst_fn" -c 'kversion()') is ready!
+EOF
