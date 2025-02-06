@@ -10,18 +10,8 @@ func _kformat_nonzero_bytes(value): (
   f"{uint64(value / pow(k_bytes_divisor, _k_bytes_unit_index(value)))} {k_bytes_units[_k_bytes_unit_index(value)]}"
 )
 
-// TODO: take arg OR this -- cannot do this without optional arguments
-//       arg is the more flexible option, not as super-cool-clean
-// TODO: what do popular languages call this method (Python, Ruby, etc)
-//       - bytes_pretty (a la postgresql: pg_size_pretty)
-//       - bytes_to_human
-//       - bytes_to_human_readable
-//       - format_bytes (most popular? - but sorta generic, doesn't imply prettiness?)
-//       - humanize (could work if we introduced custom types)
-//       - human_readable (same :point-up:)
-//       - numfmt (a bit dense / *nix)
-// TODO: doc/blog on putting local variables in records - similar to Go UP first then Down
-// TODO: func doc
+// {skdoc:{desc:"Returns the size in bytes in human readable format.",
+//        args:[{value:"Must be castable to uint64"}]}}
 func kformat_bytes(value): (
   (value == 0) ? "0 B" : _kformat_nonzero_bytes(value)
 )
