@@ -1,14 +1,14 @@
 # grok
 
 [//]: # (TODO: git branch zq vs. super - see README.md)
-      
-_as of super prerelease v1.18.0-243-g69be184b_
+
+_as of super prerelease v1.18.0-284-gc810226c_
 
 ```mdtest-command
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-243-g69be184b
+Version: v1.18.0-284-gc810226c
 ```
 
 ## Unit tests in codebase

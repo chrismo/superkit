@@ -11,7 +11,8 @@ func _kformat_nonzero_bytes(value): (
 )
 
 // {skdoc:{desc:"Returns the size in bytes in human readable format.",
-//        args:[{value:"Must be castable to uint64"}]}}
+//         args:[{value:"Must be castable to uint64"}],
+//         examples:[{i:"kformat_bytes(1048576)",o:'"1 MB"'}] } }
 func kformat_bytes(value): (
   (value == 0) ? "0 B" : _kformat_nonzero_bytes(value)
 )
