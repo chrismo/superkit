@@ -36,6 +36,8 @@ so `zq` is probably going to stay at 1.18 for a while.
 
 Separate branches seems reasonable. Working on diffs between them might be a
 pain though? Maybe just research this. I could use git worktrees to help prolly.
+
+Another option would be to just tag things. 
              
 ## TODO
 
