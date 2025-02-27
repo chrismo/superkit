@@ -18,3 +18,8 @@ _assert '{a:1,b:{c:3,d:4},e:[{f:6,g:7}]}' \
   "$(zq -z -I "$this_dir"/records.spq '[{a:1},{b:{c:3, d:4}},{e:[{f:6},{g:7}]}] | kmerge_records()')"
 _assert '{a:1,b:{c:{d:2}}}' \
   "$(zq -z -I "$this_dir"/records.spq '[{a:1},{b:{c:{d:2}}}] | kmerge_records()')"
+
+# TODO: this is a fun coincidence from the implementation, but maybe sk could
+# include a separate kmap_to_record() func/op
+_assert '{a:1,b:2}' \
+  "$(zq -z -I "$this_dir"/records.spq '|{"a":1,"b":2}| | kmerge_records()')"
