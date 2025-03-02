@@ -14,8 +14,8 @@ https://github.com/chrismo/superkit/issues
 Functions and ops can be in any number of different files, with test files
 side-by-side.
 
-The release process will produce a single combined file that will be installed
-into the home directory of the user executing the install.sh script.
+The release process produces a single combined file that will be installed into
+the home directory of the user executing the install.sh script.
               
 ### Prefer using functions over operators
 
@@ -32,12 +32,15 @@ to be common or not.
 ## Multiple Versions
 
 Right now `super` is pre-release and the team has a lot of work ahead of them,
-so `zq` is probably going to stay at 1.18 for a while. 
+so `zq` is probably going to stay at 1.18 for a while.
 
 Separate branches seems reasonable. Working on diffs between them might be a
 pain though? Maybe just research this. I could use git worktrees to help prolly.
 
-Another option would be to just tag things. 
+Another option would be to just tag things.
+
+Another option would be to just write the article to handle both, to help
+document improvements or variations over time.
              
 ## TODO
 
