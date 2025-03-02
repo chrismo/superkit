@@ -2,13 +2,13 @@
 
 [//]: # (TODO: git branch zq vs. super - see README.md)
 
-_as of super prerelease v1.18.0-284-gc810226c_
+_as of super prerelease v1.18.0-302-g2f1a9643_
 
 ```mdtest-command
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-284-gc810226c
+Version: v1.18.0-304-g6300fbaf
 ```
 
 ## Unit tests in codebase
@@ -23,9 +23,9 @@ error({message:"grok(): value does not match pattern",on:"foo"})
 
 ## Article
 
-The grok function is a great choice for parsing strings that rivals the use of
-common tools like awk, but due to some gaps in its documentation and some vague
-error messages, it can be difficult to use at first.
+The grok function is a great choice for parsing strings, but due to some gaps in
+its documentation and some vague error messages, it can be difficult to use at
+first.
 
 The docs do helpfully encourage building out grok patterns incrementally, but
 without knowing some of grok's gotchyas, this can be discouraging.

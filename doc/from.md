@@ -1,12 +1,12 @@
 # from
 
-_as of super prerelease v1.18.0-284-gc810226c_
+_as of super prerelease v1.18.0-302-g2f1a9643 and zq 1.18_ 
 
 ```mdtest-command
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-284-gc810226c
+Version: v1.18.0-304-g6300fbaf
 ```
 _and zq 1.18_
 ```mdtest-command
