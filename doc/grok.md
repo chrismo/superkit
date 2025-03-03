@@ -1,7 +1,5 @@
 # grok
 
-[//]: # (TODO: git branch zq vs. super - see README.md)
-
 _as of super prerelease v1.18.0-302-g2f1a9643_
 
 ```mdtest-command
@@ -9,6 +7,13 @@ super --version
 ```
 ```mdtest-output
 Version: v1.18.0-304-g6300fbaf
+```
+_and zq 1.18_
+```mdtest-command
+zq --version
+```
+```mdtest-output
+Version: v1.18.0
 ```
 
 ## Unit tests in codebase
@@ -23,7 +28,7 @@ error({message:"grok(): value does not match pattern",on:"foo"})
 
 ## Article
 
-The grok function is a great choice for parsing strings, but due to some gaps in
+The grok function is a great choice for parsing text, but due to some gaps in
 its documentation and some vague error messages, it can be difficult to use at
 first.
 
@@ -44,7 +49,7 @@ enough right now to not go looking for one, and the regex is pretty simple.
 
 So, I'll define my own pattern in the 3rd arg to grok to handle this:
 ```mdtest-command
-super -z -c '
+zq -z '
   yield "My name is: Muerte!"  
   | grok("%{NAME_PREFIX}", this, "NAME_PREFIX .*: ")'
 ```
@@ -56,17 +61,17 @@ error({message:"grok(): value does not match pattern",on:"My name is: Muerte!"})
 It's a simple regex, it seems like it's accurate, it's hard for me to see what's
 wrong?
 
-The regex is, in fact, fine. The real reason this fails is that the capture
+The regex is fine, in fact. The real reason this fails is that the capture
 pattern is **missing a field name** in which to store the value, not that the
 value doesn't match the pattern. A field name is required in each capture
-pattern (_except ... it isn't. Not really. Keep reading._).
+pattern (_except ... it isn't. Not really. Keep reading._)
 
 We probably made this mistake because we don't really want to capture "My name
 is: " in a field of the record. But, no big deal, we can use the cut operator
 later to remove it.
 
 ```mdtest-command
-super -z -c '
+zq -z '
   yield "My name is: Muerte!"  
   | grok("%{NAME_PREFIX:prefix}", this, "NAME_PREFIX .*: ")'             
 ```
@@ -74,9 +79,22 @@ super -z -c '
 {prefix:"My name is: "}
 ```
                        
-Success! 
+Success!
 
-Next incremental step: the name. That's all that's left.
+Also, the pre-release of `super` has a fix for the nameless capture pattern.
+
+```mdtest-command
+super -z -c '
+  yield "My name is: Muerte!"  
+  | grok("%{NAME_PREFIX}", this, "NAME_PREFIX .*: ")'
+```
+Since there aren't any errors, and no field names assigned, it nows returns any
+empty record.
+```mdtest-output
+{}
+```
+
+For our next incremental step, let's capture the name. That's all that's left.
 ```mdtest-command
 super -z -c '
   yield "My name is: Muerte!"  
@@ -92,8 +110,9 @@ feel like I'm getting to use the power of regex in a straightforward manner.
 There are two grok undocumented "hacks" that can make a simple job like this
 even simpler.
 
-First, not all capture patterns need a field name as long as _**one**_ of them
-has a field name. So we can reduce our last example to be this:
+First, (as seen already with the unnamed capture pattern in `super`), not all
+capture patterns need a field name as long as _**one**_ of them has a field
+name. So we can reduce our last example to be this:
 
 ```mdtest-command
 super -z -c '
@@ -103,9 +122,6 @@ super -z -c '
 ```mdtest-output
 {name:"Muerte"}
 ```
-           
-Of course, this won't work when building up incrementally, given the rule that
-at least one capture pattern must be named.
 
 Second, custom regex patterns can be _inlined_ into the pattern string without
 being a custom named pattern in the 3rd argument at all!
@@ -120,16 +136,3 @@ super -z -c '
 ```
 
 Now that feels clean and simple!        
-
-Just remember, if you're building this up incrementally, and you start with just
-the inlined regex, that'll result in the vague error message:
-
-```mdtest-command
-super -z -c '
-  yield "My name is: Muerte!" 
-  | grok(".*: ", this)'
-```
-```mdtest-output
-error({message:"grok(): value does not match pattern",on:"My name is: Muerte!"})
-```
-                  
