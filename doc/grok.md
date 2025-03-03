@@ -16,18 +16,6 @@ zq --version
 Version: v1.18.0
 ```
 
-## Unit tests in codebase
-
-```mdtest-command
-super -z -c 'yield "1", "foo" | grok("%{INT}", this)' 
-```
-```mdtest-output
-{}
-error({message:"grok(): value does not match pattern",on:"foo"})
-```
-
-## Article
-
 The grok function is a great choice for parsing text, but due to some gaps in
 its documentation and some vague error messages, it can be difficult to use at
 first.
@@ -136,3 +124,13 @@ super -z -c '
 ```
 
 Now that feels clean and simple!        
+
+## Unit tests in codebase
+
+```mdtest-command
+super -z -c 'yield "1", "foo" | grok("%{INT}", this)' 
+```
+```mdtest-output
+{}
+error({message:"grok(): value does not match pattern",on:"foo"})
+```
