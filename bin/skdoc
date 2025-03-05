@@ -28,37 +28,12 @@ function default() {
   # TODO: support docs for sk library of func/ops
   # TODO: support selecting docs if multiple match
 
-  find "$doc_dir" -name "$glob_pattern" |
-    head -n 1 |
-    xargs -I {} _reader {}
+  local -r doc_fn=$(
+    find "$doc_dir" -name "*$glob_pattern*" -type f |
+      sort |
+      head -n 1
+  )
+  _reader "$doc_fn"
 }
 
-function _usage() {
-  grep -E '^function' "${BASH_SOURCE[0]}" | sort
-}
-
-function usage() {
-  _usage | less -FX
-}
-
-if [ $# -eq 0 ]; then
-  default "$@"
-else
-  while getopts "ho:" opt; do
-    case $opt in
-    h)
-      usage
-      exit 0
-      ;;
-    o) opt="$OPTARG" ;;
-    \?) # ignore invalid options
-      ;;
-    esac
-  done
-
-  # Remove options processed by getopts, so the remaining args can be handled
-  # positionally.
-  shift $((OPTIND - 1))
-
-  "$@"
-fi
+default "$@"

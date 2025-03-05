@@ -34,14 +34,22 @@ function default() {
 
 function superkit() {
   # TODO: gotta go with a .tar.gz to bundle everything up
+  local -r dst_dir="$(_script_dir)"/tmp/
 
-  local -r dist_fn="$(_script_dir)"/dist/superkit.spq
+  [ -d "$dst_dir" ] && rm -r "$dst_dir"
 
-  cat "$(_script_dir)"/src/*.spq >"$dist_fn"
+  mkdir "$dst_dir"
+  mkdir "$dst_dir"/bin
+  mkdir "$dst_dir"/lib
 
-  cp -v "$(_script_dir)"/bin/sk* "$(_script_dir)"/dist
+  cat "$(_script_dir)"/src/*.spq >"$dst_dir"/lib/superkit.spq
 
-  super -f text -I "$dist_fn" -c "kversion()"
+  cp -v "$(_script_dir)"/bin/sk* "$dst_dir"/bin/
+
+  mkdir "$dst_dir"/lib/doc
+  cp -v "$(_script_dir)"/doc/* "$dst_dir"/lib/doc/
+
+  tar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
 }
 
 function test() {
@@ -51,12 +59,10 @@ function test() {
 function skgrok() {
   fn="../super/pkg/grok/base.go"
 
-  cp ./bin/skgrok ./dist
-
   super -z -i line -c "
     grep('h.Must')
     | grok('.*h.Must\\\\(\"%{USERNAME:pattern_name}.*?\`%{GREEDYDATA:regex}\`', this)" $fn \
-    >./dist/skgrok_data.jsup
+    >./bin/skgrok_data.jsup
 }
 
 function _usage() {

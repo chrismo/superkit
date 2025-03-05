@@ -20,12 +20,18 @@ function _curl_file() {
 }
 
 # Test plan:
-# - Install on clean OS
-# - Install on OS with existing superkit
-# - Install with redefined XDG_*_HOME
-# - Install without PATH including XDG_BIN_HOME
-# - Install without `super` or `zq` in PATH
+# - clean OS
+# - OS with existing superkit
+# - redefined XDG_*_HOME
+# - no PATH to XDG_BIN_HOME
+# - without `super` or `zq` in PATH
 # - Uninstall in all cases
+
+# skgrok
+# - test matrix of fzf | PAGER | less
+
+# skdoc
+# - test matrix of bat | glow | PAGER | less
 
 # https://specifications.freedesktop.org/basedir-spec/latest/
 declare -r bin_dir=${XDG_BIN_HOME:-$HOME/.local/bin}
@@ -36,20 +42,26 @@ for dir in "$bin_dir" "$lib_dir" "$conf_dir"; do
   _ensure_dir_exists "$dir"
 done
 
-declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main"
+declare dst_dir
+dst_dir=$(mktemp -d)
+echo "$dst_dir"
 
-_curl_file $root_url/dist/superkit.spq "$lib_dir/superkit.spq"
+# Ensure the temporary directory is removed on exit
+#trap 'rm -rf "$dst_dir"' EXIT
 
-_curl_file $root_url/dist/sk "$bin_dir/sk" "0755"
-_curl_file $root_url/dist/skdoc "$bin_dir/skdoc" "0755"
-_curl_file $root_url/dist/skgrok "$bin_dir/skgrok" "0755"
-_curl_file $root_url/dist/skgrok_data.jsup "$bin_dir/skgrok_data.jsup"
+if [ -z "${LOCAL_INSTALL}" ]; then
+  declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main"
+  curl -o "$dst_dir"/superkit.tar.gz $root_url/dist/superkit.tar.gz
+else
+  cp "$(dirname "${BASH_SOURCE[0]}")"/dist/superkit.tar.gz "$dst_dir"/superkit.tar.gz
+fi
 
-# TODO: this is dumb - need to package everything up in a tar.gz
-for fn in from.md grok.md subqueries.md; do
-  _curl_file $root_url/doc/$fn "$lib_dir/doc/$fn"
-done
+mkdir "$dst_dir/superkit/"
+tar -C "$dst_dir/superkit/" -xzvf "$dst_dir"/superkit.tar.gz
 
-echo "Superkit Version $("$bin_dir"/sk -f line -c 'kversion()') is ready!"
+cp -v "$dst_dir"/superkit/bin/* "$bin_dir"
+cp -vR "$dst_dir"/superkit/lib/* "$lib_dir"
+
+echo "SuperKit Version $("$bin_dir"/sk -f line -c 'kversion()') is ready!"
 
 # export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"

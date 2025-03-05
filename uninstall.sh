@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-dst_fn="$HOME/.superdb/superkit.spq"
+# https://specifications.freedesktop.org/basedir-spec/latest/
+declare -r bin_dir=${XDG_BIN_HOME:-$HOME/.local/bin}
+declare -r lib_dir=${XDG_DATA_HOME:-$HOME/.local/share}/superkit
+declare -r conf_dir=${XDG_CONFIG_HOME:-$HOME/.config}/superkit
 
-if [ -f "$dst_fn" ]; then
-  rm "$dst_fn"
-  echo "$dst_fn removed."
-else
-  echo "$dst_fn not found."
-fi
+# TODO: dryrun by default
+
+rm -v "$bin_dir"/sk*
+rm -vrf "$lib_dir"
+rm -vrf "$conf_dir"
