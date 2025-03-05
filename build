@@ -49,6 +49,7 @@ function superkit() {
   mkdir "$dst_dir"/lib/doc
   cp -v "$(_script_dir)"/doc/* "$dst_dir"/lib/doc/
 
+  # TODO: use gtar on mac to avoid xattr issues
   tar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
 }
 
