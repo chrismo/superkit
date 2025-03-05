@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+declare -r doc_dir=${XDG_DATA_HOME:-$HOME/.local/share}/superkit/doc
+
+function _check_command() {
+  command -v "$1" &>/dev/null
+}
+
+function _reader() {
+  local -r doc_fn="$1"
+
+  if _check_command bat; then
+    bat --style=plain --color=always "$doc_fn"
+  elif _check_command glow; then
+    glow "$doc_fn"
+  else
+    local -r pager="${PAGER:-less}"
+
+    $pager -FX "$doc_fn"
+  fi
+}
+
+function default() {
+  local -r glob_pattern="${1:-*}"
+
+  # TODO: support docs for sk library of func/ops
+  # TODO: support selecting docs if multiple match
+
+  find "$doc_dir" -name "$glob_pattern" |
+    head -n 1 |
+    xargs -I {} _reader {}
+}
+
+function _usage() {
+  grep -E '^function' "${BASH_SOURCE[0]}" | sort
+}
+
+function usage() {
+  _usage | less -FX
+}
+
+if [ $# -eq 0 ]; then
+  default "$@"
+else
+  while getopts "ho:" opt; do
+    case $opt in
+    h)
+      usage
+      exit 0
+      ;;
+    o) opt="$OPTARG" ;;
+    \?) # ignore invalid options
+      ;;
+    esac
+  done
+
+  # Remove options processed by getopts, so the remaining args can be handled
+  # positionally.
+  shift $((OPTIND - 1))
+
+  "$@"
+fi

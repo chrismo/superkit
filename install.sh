@@ -1,21 +1,46 @@
-dst_fn="$HOME/.superdb/superkit.spq"
-mkdir -p "$(dirname "$dst_fn")"
+function _ensure_dir_exists() {
+  local -r dirname="$1"
 
-# TODO: Repo isn't public yet
-#curl -o "$dst_fn" https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main/dist/superkit.spq
+  if [ ! -d "$dirname" ]; then
+    install -d -m 0700 "$dirname"
+  fi
+}
 
-cp -v "$(dirname "${BASH_SOURCE[0]}")/dist/superkit.spq" "$dst_fn"
+function _curl_file() {
+  local -r url="$1"
+  local -r dst_fn="$2"
+  local -r chmod="${3:-}"
+
+  mkdir -p "$(dirname "$dst_fn")"
+
+  curl -o "$dst_fn" "$url"
+  if [ -n "$chmod" ]; then
+    chmod "$chmod" "$dst_fn"
+  fi
+}
+
+# https://specifications.freedesktop.org/basedir-spec/latest/
+declare -r bin_dir=${XDG_BIN_HOME:-$HOME/.local/bin}
+declare -r lib_dir=${XDG_DATA_HOME:-$HOME/.local/share}/superkit
+declare -r conf_dir=${XDG_CONFIG_HOME:-$HOME/.config}/superkit
+
+for dir in "$bin_dir" "$lib_dir" "$conf_dir"; do
+  _ensure_dir_exists "$dir"
+done
+
+declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main"
+
+_curl_file $root_url/dist/superkit.spq "$lib_dir/superkit.spq"
+
+_curl_file $root_url/dist/sk "$bin_dir/sk" "0755"
+_curl_file $root_url/dist/skdoc "$bin_dir/skdoc" "0755"
+_curl_file $root_url/dist/skgrok "$bin_dir/skgrok" "0755"
+_curl_file $root_url/dist/skgrok_data.jsup "$bin_dir/skgrok_data.jsup"
+
+# TODO: this is dumb - need to package everything up in a tar.gz
+for fn in from.md grok.md subqueries.md; do
+  _curl_file $root_url/doc/$fn "$lib_dir/doc/$fn"
+done
 
 # just suggest the alias, don't set it up
-cat << EOF
-Superkit library installed to $dst_fn
-
-Optionally, add this alias to your shell config to run super with superkit's
-functions and operators included. To use superkit with super in scripts,
-remember to use the include (-I) option when calling super, aliases are not
-available in scripts by default.
-
-  alias sk=\"super -I \$HOME/.superdb/superkit.spq\"
-
-Superkit Version $(super -f line -I "$dst_fn" -c 'kversion()') is ready!
-EOF
+echo "Superkit Version $(sk -f line -c 'kversion()') is ready!"

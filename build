@@ -12,21 +12,51 @@ function _super() {
   make clean build install
   cp ./dist/super /usr/local/bin
   ls -la /usr/local/bin/super
+
   super --version
+
+  # returns (separated by hyphens):
+  # - latest tag (e.g. v1.18.0)
+  # - number of commits since the tag
+  # - abbreviated commit object prefixed with `g` for git
+  #
+  # The last hash SHOULD match the last commit hash (plus a `g` prefix)
   echo "Version: $(git describe --tags --dirty --always)"
+
   popd
 }
 
+function default() {
+  test
+  skgrok
+  superkit
+}
+
 function superkit() {
+  # TODO: gotta go with a .tar.gz to bundle everything up
+
   local -r dist_fn="$(_script_dir)"/dist/superkit.spq
 
-  cat "$(_script_dir)"/src/*.spq > "$dist_fn"
+  cat "$(_script_dir)"/src/*.spq >"$dist_fn"
+
+  cp -v "$(_script_dir)"/bin/sk* "$(_script_dir)"/dist
 
   super -f text -I "$dist_fn" -c "kversion()"
 }
 
 function test() {
   "$(_script_dir)"/test.sh
+}
+
+function skgrok() {
+  fn="../super/pkg/grok/base.go"
+
+  cp ./bin/skgrok ./dist
+
+  super -z -i line -c "
+    grep('h.Must')
+    | grok('.*h.Must\\\\(\"%{USERNAME:pattern_name}.*?\`%{GREEDYDATA:regex}\`', this)" $fn \
+    >./dist/skgrok_data.jsup
 }
 
 function _usage() {
@@ -38,8 +68,7 @@ function usage() {
 }
 
 if [ $# -eq 0 ]; then
-  test
-  superkit
+  default
 else
   while getopts "ho:" opt; do
     case $opt in

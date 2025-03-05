@@ -1,0 +1,89 @@
+{pattern_name:"USERNAME",regex:"[a-zA-Z0-9._-]+"}
+{pattern_name:"USER",regex:"%{USERNAME}"}
+{pattern_name:"EMAILLOCALPART",regex:"[a-zA-Z][a-zA-Z0-9_.+-=:]+"}
+{pattern_name:"HOSTNAME",regex:"\\b[0-9A-Za-z][0-9A-Za-z-]{0,62}(?:\\.[0-9A-Za-z][0-9A-Za-z-]{0,62})*(\\.?|\\b)"}
+{pattern_name:"EMAILADDRESS",regex:"%{EMAILLOCALPART}@%{HOSTNAME}"}
+{pattern_name:"HTTPDUSER",regex:"%{EMAILADDRESS}|%{USER}"}
+{pattern_name:"INT",regex:"[+-]?(?:[0-9]+)"}
+{pattern_name:"BASE10NUM",regex:"[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+))"}
+{pattern_name:"NUMBER",regex:"%{BASE10NUM}"}
+{pattern_name:"BASE16NUM",regex:"[+-]?(?:0x)?(?:[0-9A-Fa-f]+)"}
+{pattern_name:"BASE16FLOAT",regex:"\\b[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+))\\b"}
+{pattern_name:"POSINT",regex:"\\b[1-9][0-9]*\\b"}
+{pattern_name:"NONNEGINT",regex:"\\b[0-9]+\\b"}
+{pattern_name:"WORD",regex:"\\b\\w+\\b"}
+{pattern_name:"NOTSPACE",regex:"\\S+"}
+{pattern_name:"SPACE",regex:"\\s*"}
+{pattern_name:"DATA",regex:".*?"}
+{pattern_name:"GREEDYDATA",regex:".*"}
+{pattern_name:"QUOTEDSTRING",regex:"(\"(\\\\.|[^\\\\\"]+)+\")|\"\"|('(\\\\.|[^\\\\']+)+')|''|"}
+{pattern_name:"UUID",regex:"[A-Fa-f0-9]{8}-(?:[A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}"}
+{pattern_name:"CISCOMAC",regex:"(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4}"}
+{pattern_name:"WINDOWSMAC",regex:"(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}"}
+{pattern_name:"COMMONMAC",regex:"(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}"}
+{pattern_name:"MAC",regex:"%{CISCOMAC}|%{WINDOWSMAC}|%{COMMONMAC}"}
+{pattern_name:"IPV6",regex:"((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?"}
+{pattern_name:"IPV4",regex:"(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))"}
+{pattern_name:"IP",regex:"%{IPV6}|%{IPV4}"}
+{pattern_name:"IPORHOST",regex:"%{IP}|%{HOSTNAME}"}
+{pattern_name:"HOSTPORT",regex:"%{IPORHOST}:%{POSINT}"}
+{pattern_name:"UNIXPATH",regex:"(/([\\w_%!$@:.,~-]+|\\\\.)*)+"}
+{pattern_name:"TTY",regex:"/dev/(pts|tty([pq])?)(\\w+)?/?(?:[0-9]+)"}
+{pattern_name:"WINPATH",regex:"(?:[A-Za-z]+:|\\\\)(?:\\\\[^\\\\?*]*)+"}
+{pattern_name:"PATH",regex:"%{UNIXPATH}|%{WINPATH}"}
+{pattern_name:"URIPROTO",regex:"[A-Za-z]+(\\+[A-Za-z+]+)?"}
+{pattern_name:"URIHOST",regex:"%{IPORHOST}(?::%{POSINT:port})?"}
+{pattern_name:"URIPATH",regex:"(?:/[A-Za-z0-9$.+!*'(){},~:;=@#%_\\-]*)+"}
+{pattern_name:"URIPARAM",regex:"\\?[A-Za-z0-9$.+!*'|(){},~@#%&/=:;_?\\-\\[\\]<>]*"}
+{pattern_name:"URIPATHPARAM",regex:"%{URIPATH}(?:%{URIPARAM})?"}
+{pattern_name:"URI",regex:"%{URIPROTO}://(?:%{USER}(?::[^@]*)?@)?(?:%{URIHOST})?(?:%{URIPATHPARAM})?"}
+{pattern_name:"MONTH",regex:"\\bJan(?:uary|uar)?|Feb(?:ruary|ruar)?|M(?:a|ä)?r(?:ch|z)?|Apr(?:il)?|Ma(?:y|i)?|Jun(?:e|i)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|O(?:c|k)?t(?:ober)?|Nov(?:ember)?|De(?:c|z)(?:ember)?\\b"}
+{pattern_name:"MONTHNUM",regex:"0?[1-9]|1[0-2]"}
+{pattern_name:"MONTHNUM2",regex:"0[1-9]|1[0-2]"}
+{pattern_name:"MONTHDAY",regex:"(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9]"}
+{pattern_name:"DAY",regex:"Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?"}
+{pattern_name:"YEAR",regex:"(?:\\d\\d){1,2}"}
+{pattern_name:"HOUR",regex:"2[0123]|[01]?[0-9]"}
+{pattern_name:"MINUTE",regex:"[0-5][0-9]"}
+{pattern_name:"SECOND",regex:"(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?"}
+{pattern_name:"TIME",regex:"%{HOUR}:%{MINUTE}:%{SECOND}"}
+{pattern_name:"DATE_US",regex:"%{MONTHNUM}[/-]%{MONTHDAY}[/-]%{YEAR}"}
+{pattern_name:"DATE_EU",regex:"%{MONTHDAY}[./-]%{MONTHNUM}[./-]%{YEAR}"}
+{pattern_name:"DATE_X",regex:"%{YEAR}/%{MONTHNUM2}/%{MONTHDAY}"}
+{pattern_name:"ISO8601_TIMEZONE",regex:"Z|[+-]%{HOUR}(?::?%{MINUTE})"}
+{pattern_name:"ISO8601_SECOND",regex:"%{SECOND}|60"}
+{pattern_name:"DATESTAMP_ISO8601",regex:"%{YEAR}-%{MONTHNUM}-%{MONTHDAY}"}
+{pattern_name:"TIMESTAMP_ISO8601",regex:"%{DATESTAMP_ISO8601}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?"}
+{pattern_name:"DATE",regex:"%{DATE_US}|%{DATE_EU}|%{DATE_X}"}
+{pattern_name:"DATESTAMP",regex:"%{DATE}[- ]%{TIME}"}
+{pattern_name:"TZ",regex:"[A-Z]{3}"}
+{pattern_name:"NUMTZ",regex:"[+-]\\d{4}"}
+{pattern_name:"DATESTAMP_RFC822",regex:"%{DAY} %{MONTH} %{MONTHDAY} %{YEAR} %{TIME} %{TZ}"}
+{pattern_name:"DATESTAMP_RFC2822",regex:"%{DAY}, %{MONTHDAY} %{MONTH} %{YEAR} %{TIME} %{ISO8601_TIMEZONE}"}
+{pattern_name:"DATESTAMP_OTHER",regex:"%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}"}
+{pattern_name:"DATESTAMP_EVENTLOG",regex:"%{YEAR}%{MONTHNUM2}%{MONTHDAY}%{HOUR}%{MINUTE}%{SECOND}"}
+{pattern_name:"HTTPDERROR_DATE",regex:"%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}"}
+{pattern_name:"ANSIC",regex:"%{DAY} %{MONTH} [_123]\\d %{TIME} %{YEAR}\""}
+{pattern_name:"UNIXDATE",regex:"%{DAY} %{MONTH} [_123]\\d %{TIME} %{TZ} %{YEAR}"}
+{pattern_name:"RUBYDATE",regex:"%{DAY} %{MONTH} [0-3]\\d %{TIME} %{NUMTZ} %{YEAR}"}
+{pattern_name:"RFC822Z",regex:"[0-3]\\d %{MONTH} %{YEAR} %{TIME} %{NUMTZ}"}
+{pattern_name:"RFC850",regex:"%{DAY}, [0-3]\\d-%{MONTH}-%{YEAR} %{TIME} %{TZ}"}
+{pattern_name:"RFC1123",regex:"%{DAY}, [0-3]\\d %{MONTH} %{YEAR} %{TIME} %{TZ}"}
+{pattern_name:"RFC1123Z",regex:"%{DAY}, [0-3]\\d %{MONTH} %{YEAR} %{TIME} %{NUMTZ}"}
+{pattern_name:"RFC3339",regex:"%{YEAR}-[01]\\d-[0-3]\\dT%{TIME}%{ISO8601_TIMEZONE}"}
+{pattern_name:"RFC3339NANO",regex:"%{YEAR}-[01]\\d-[0-3]\\dT%{TIME}\\.\\d{9}%{ISO8601_TIMEZONE}"}
+{pattern_name:"KITCHEN",regex:"\\d{1,2}:\\d{2}(AM|PM|am|pm)"}
+{pattern_name:"SYSLOGTIMESTAMP",regex:"%{MONTH} +%{MONTHDAY} %{TIME}"}
+{pattern_name:"PROG",regex:"[\\x21-\\x5a\\x5c\\x5e-\\x7e]+"}
+{pattern_name:"SYSLOGPROG",regex:"%{PROG:program}(?:\\[%{POSINT:pid}\\])?"}
+{pattern_name:"SYSLOGHOST",regex:"%{IPORHOST}"}
+{pattern_name:"SYSLOGFACILITY",regex:"<%{NONNEGINT:facility}.%{NONNEGINT:priority}>"}
+{pattern_name:"HTTPDATE",regex:"%{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT}"}
+{pattern_name:"QS",regex:"%{QUOTEDSTRING}"}
+{pattern_name:"LOGLEVEL",regex:"[Aa]lert|ALERT|[Tt]race|TRACE|[Dd]ebug|DEBUG|[Nn]otice|NOTICE|[Ii]nfo|INFO|[Ww]arn?(?:ing)?|WARN?(?:ING)?|[Ee]rr?(?:or)?|ERR?(?:OR)?|[Cc]rit?(?:ical)?|CRIT?(?:ICAL)?|[Ff]atal|FATAL|[Ss]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?"}
+{pattern_name:"SYSLOGBASE",regex:"%{SYSLOGTIMESTAMP:timestamp} (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:"}
+{pattern_name:"COMMONAPACHELOG",regex:"%{IPORHOST:clientip} %{HTTPDUSER:ident} %{USER:auth} \\[%{HTTPDATE:timestamp}\\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-)"}
+{pattern_name:"COMBINEDAPACHELOG",regex:"%{COMMONAPACHELOG} %{QS:referrer} %{QS:agent}"}
+{pattern_name:"HTTPD20_ERRORLOG",regex:"\\[%{HTTPDERROR_DATE:timestamp}\\] \\[%{LOGLEVEL:loglevel}\\] (?:\\[client %{IPORHOST:clientip}\\] ){0,1}%{GREEDYDATA:errormsg}"}
+{pattern_name:"HTTPD24_ERRORLOG",regex:"\\[%{HTTPDERROR_DATE:timestamp}\\] \\[%{WORD:module}:%{LOGLEVEL:loglevel}\\] \\[pid %{POSINT:pid}:tid %{NUMBER:tid}\\]( \\(%{POSINT:proxy_errorcode}\\)%{DATA:proxy_errormessage}:)?( \\[client %{IPORHOST:client}:%{POSINT:clientport}\\])? %{DATA:errorcode}: %{GREEDYDATA:message}"}
+{pattern_name:"HTTPD_ERRORLOG",regex:"%{HTTPD20_ERRORLOG}|%{HTTPD24_ERRORLOG}"}

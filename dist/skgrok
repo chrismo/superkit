@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function _script_dir() {
+  dirname "${BASH_SOURCE[0]}"
+}
+
+function _check_command() {
+  command -v "$1" &>/dev/null
+}
+
+function _fuzzy_view() {
+  local -r pager="${PAGER:-less}"
+
+  local -r contents=$(cat -)
+
+  if _check_command fzf; then
+    echo "$contents" | fzf
+  else
+    echo "$contents" | $pager
+  fi
+}
+
+function default() {
+  local -r script=$(
+    cat <<-'EOF'
+func pad_right(s, pad_char, target_length): (
+  len(s) < target_length ? pad_right(f'{s}{pad_char}', pad_char, target_length) : s
+)
+
+// left truncates the string to n characters with ellipsis if the string is
+// longer than n. this is also done due to a bug in early versions of super
+// when slicing strings shorter than the target length.
+// https://github.com/brimdata/super/issues/5688
+func left(s, n): (
+  len(s) < n ? s : f'{s[:n]}...'
+)
+
+collect(this)
+| {data: this, max_len:(over this | max(len(pattern_name)) ) }
+| over this.data with max_len => (
+    yield f'{pad_right(this.pattern_name, ' ', (max_len + 1))}{left(this.regex, 60+max_len)}'
+  )
+EOF
+  )
+
+  if _check_command super; then
+    super -f text -c "$script" "$(_script_dir)/skgrok_data.jsup" | _fuzzy_view
+  elif _check_command zq; then
+    zq -f text "$script" "$(_script_dir)/skgrok_data.jsup" | _fuzzy_view
+  else
+    echo "ERROR: Could not find 'super' or 'zq' commands"
+  fi
+}
+
+default "$@"

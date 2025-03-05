@@ -1,21 +1,37 @@
 # SuperKit
 
-The SuperKit library is a collection of common Functions and Operators for the
-`zq`, `zed`, and `super` tools. `zq`/`zed` were renamed to SuperDB after version
-1.18 of `zq`/`zed`.
+The SuperKit library is a collection of common Functions and Operators for
+[SuperDB](https://superdb.org/). These will also work with the last released
+version of `zq` and `zed`, version 1.18.0.
                             
-It also contains additional docs and descriptive tests as a supplement to the
-official documentation.
+SuperKit also contains additional docs and descriptive tests as a supplement to
+the official documentation.
 
 https://github.com/chrismo/superkit/issues
+
+## Installation
+
+To install SuperKit, run the following command:
+
+```sh
+curl -fsS https://raw.githubusercontent.com/chrismo/superkit/main/install.sh | bash
+```
+
+This will install the SuperKit shell scripts (`sk`, `skdoc`, `skgrok`) into the
+XDG bin path, which is usually `~/.local/bin`, and the remaining files into the
+XDG data path, which is usually `~/.local/share/superkit` if you haven't
+redefined the XDG env vars. For more info, see the [XDG Base Directory
+Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+
+# Developing Superkit
    
 ## Repo Structure
 
 Functions and ops can be in any number of different files, with test files
 side-by-side.
 
-The release process produces a single combined file that will be installed into
-the home directory of the user executing the install.sh script.
+The release process produces a single combined file that will be installed as a
+single file to be included automatically by the `sk` script.
               
 ### Prefer using functions over operators
 
@@ -24,50 +40,32 @@ contents of the op or func can work as a func, make it a func.
 
 ### All custom funcs/ops start with `k`
 
-More commonly named ones could possibly collide with enhancements in super in
-the future. Having some without a `k` prefix and some with would likely be
-confusing, and possibly too much time spent deciding what would be more likely
-to be common or not.
+If we didn't do this, then more commonly named ones could possibly collide with
+additions made in SuperDB itself in the future. Having some without a `k` prefix
+and some with would likely be confusing, and I'd rather avoid wasting time
+deciding which items should get the prefix or not. It is a little aesthetically
+unpleasing, but ¯\_(ツ)\_/¯
 
 ## Multiple Versions
 
-Right now `super` is pre-release and the team has a lot of work ahead of them,
-so `zq` is probably going to stay at 1.18 for a while.
+Especially with the supplemental documentation, there are variances between
+`super` and `zq`, but the goal is to encapsulate these into one set of docs,
+rather than versioning SuperKit separately for `super` and `zq`. In the future
+we may need to do this, but for now, we'll try to keep it simple.
 
-Separate branches seems reasonable. Working on diffs between them might be a
-pain though? Maybe just research this. I could use git worktrees to help prolly.
-
-Another option would be to just tag things.
-
-Another option would be to just write the article to handle both, to help
-document improvements or variations over time.
-             
 ## TODO
 
 [//]: # (TODO: docs for each func/op in superkit - how to write, how to read?)
                    
-skdoc tool
+### skdoc tool
 
-parse out docs as comments from the func/op - and tack on the tests to the
-bottom of an .md - or maybe just select ones based on comments as well ... and
-then these docs can go side-by-side with the other pre-written docs. of course
-using super to do all of this.
+parse out sk func/ops docs as comments from the func/op? and tack on the tests
+to the bottom of an .md? or maybe just select ones based on comments as well ...
+and then these docs can go side-by-side with the other pre-written docs.
 
-could also potentially host the original super docs as well.
-
-Gotta figure out install location for skdoc, all the docs
+also want to pull down the original super docs as well to have locally.
 
 # e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
 #       `skdoc` shows all available locally
 #       `skdoc funcs` lists all funcs?
 #       `skdoc ops` lists all ops?
-
-[//]: # (TODO: docs in the doc folder - how to distribute, how to read?)
-
-`glow` is a nice reader ... we could offer to install that, but maybe just go
-with default pager. all the markdown should be generally readable as text.
-
-[//]: # (TODO: skgrok patterns tool that helps you fzf all defined grok patterns - see issues )
-
-rather than parsing the source file, better to write a test or some code that
-can dump out all the patterns in a manner we'd like.
