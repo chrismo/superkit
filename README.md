@@ -23,7 +23,7 @@ XDG data path, which is usually `~/.local/share/superkit` if you haven't
 redefined the XDG env vars. For more info, see the [XDG Base Directory
 Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
-# Developing Superkit
+# Developing SuperKit
    
 ## Repo Structure
 
@@ -33,12 +33,12 @@ side-by-side.
 The release process produces a single combined file that will be installed as a
 single file to be included automatically by the `sk` script.
               
-### Prefer using functions over operators
+## Prefer using functions over operators
 
 Operators cannot be executed in places required to be expressions, so if the
 contents of the op or func can work as a func, make it a func.
 
-### All custom funcs/ops start with `k`
+## All custom funcs/ops start with `k`
 
 If we didn't do this, then more commonly named ones could possibly collide with
 additions made in SuperDB itself in the future. Having some without a `k` prefix
@@ -65,7 +65,7 @@ and then these docs can go side-by-side with the other pre-written docs.
 
 also want to pull down the original super docs as well to have locally.
 
-# e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
-#       `skdoc` shows all available locally
-#       `skdoc funcs` lists all funcs?
-#       `skdoc ops` lists all ops?
+    # e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
+    #       `skdoc` shows all available locally
+    #       `skdoc funcs` lists all funcs?
+    #       `skdoc ops` lists all ops?
