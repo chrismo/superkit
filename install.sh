@@ -19,6 +19,14 @@ function _curl_file() {
   fi
 }
 
+# Test plan:
+# - Install on clean OS
+# - Install on OS with existing superkit
+# - Install with redefined XDG_*_HOME
+# - Install without PATH including XDG_BIN_HOME
+# - Install without `super` or `zq` in PATH
+# - Uninstall in all cases
+
 # https://specifications.freedesktop.org/basedir-spec/latest/
 declare -r bin_dir=${XDG_BIN_HOME:-$HOME/.local/bin}
 declare -r lib_dir=${XDG_DATA_HOME:-$HOME/.local/share}/superkit
@@ -42,5 +50,6 @@ for fn in from.md grok.md subqueries.md; do
   _curl_file $root_url/doc/$fn "$lib_dir/doc/$fn"
 done
 
-# just suggest the alias, don't set it up
-echo "Superkit Version $(sk -f line -c 'kversion()') is ready!"
+echo "Superkit Version $("$bin_dir"/sk -f line -c 'kversion()') is ready!"
+
+# export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
