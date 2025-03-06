@@ -12,7 +12,7 @@ func _kformat_nonzero_bytes(value): (
 
 // {skdoc:{desc:"Returns the size in bytes in human readable format.",
 //         args:[{value:"Must be castable to uint64"}],
-//         examples:[{i:"kformat_bytes(1048576)",o:'"1 MB"'}] } }
+//         examples:[{i:"kformat_bytes(1048576)",o:"'1 MB'"}] } }
 func kformat_bytes(value): (
   (value == 0) ? "0 B" : _kformat_nonzero_bytes(value)
 )
@@ -21,7 +21,7 @@ func kformat_bytes(value): (
 //         args:[{s:"The string to pad"},
 //               {pad_char:"The character to pad with"},
 //               {target_length:"The target length of the string"}],
-//         examples:[{i:"sk_pad_right('abc', ' ', 5)",o:'"abc  "'}] } }
+//         examples:[{i:"sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] } }
 func sk_pad_right(s, pad_char, target_length): (
   len(s) < target_length ? sk_pad_right(f"{s}{pad_char}", pad_char, target_length) : s
 )
