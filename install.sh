@@ -47,11 +47,11 @@ dst_dir=$(mktemp -d)
 echo "$dst_dir"
 
 # Ensure the temporary directory is removed on exit
-#trap 'rm -rf "$dst_dir"' EXIT
+trap 'rm -rf "$dst_dir"' EXIT
 
 if [ -z "${LOCAL_INSTALL}" ]; then
   declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main"
-  curl -o "$dst_dir"/superkit.tar.gz $root_url/dist/superkit.tar.gz
+  curl -s -o "$dst_dir"/superkit.tar.gz $root_url/dist/superkit.tar.gz
 else
   cp "$(dirname "${BASH_SOURCE[0]}")"/dist/superkit.tar.gz "$dst_dir"/superkit.tar.gz
 fi
