@@ -2,26 +2,16 @@
 
 set -euo pipefail
 
-echo "--$(date)--"
+  declare record name spq_fn
 
-# TODO: move this into the src dir as proper sk_ functions with unit tests
-# so it can be re-used in the wild, too.
+for fn in ./src/*spq; do
+  while IFS=$'\n' read -r record; do
+    name=$(echo "$record" | zq -f text 'yield this.name' -)
+    spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
 
-cat ./src/format.spq |
-super -i line -Z -c '
-  const patterns="SKDOC \\{skdoc:.*?\\}func \\w+"
-
-  op parse_skdoc_record(sk_record): (
-    regexp_replace(sk_record, "//", "") // remove comment chars
-    | grok("%{DATA:skdoc}func %{WORD:func_name}", this)
-    | skdoc:=parse_zson(skdoc).skdoc
-    | order(this, <{}>)
+    super -z -I ./src/skdoc.spq -I "$spq_fn" -c "$name()"
+  done < <(
+    super -i line -z -I ./src/skdoc.spq \
+      -c "skdoc_parse_file_contents(this) | filename:='$fn'" "$fn"
   )
-
-  collect(this)               // collect all lines to get the entire file
-  | join(this, "")            // make it all one string
-  | split(this, "{skdoc")[1:] // drop the 0th item before the first occurrence
-  | over this
-  | f"\{skdoc{this}"          // restore text removed by split func
-  | grok(".*?%{SKDOC:skdoc_record}", this, patterns)
-  | parse_skdoc_record(this.skdoc_record)' -
+done

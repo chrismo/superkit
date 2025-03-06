@@ -1,0 +1,10 @@
+type skdoc={name:string,
+            type:string,
+            desc:string,
+            args:[{name:string, desc:string}],
+            examples:[{i:string, o:string}]}
+
+op skdoc_parse_file_contents(file_contents): (
+  grep(/^func skdoc_/, file_contents)
+  | grok("func %{USERNAME:name}.*", this)
+)

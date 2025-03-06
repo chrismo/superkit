@@ -38,17 +38,14 @@ single file to be included automatically by the `sk` script.
 Operators cannot be executed in places required to be expressions, so if the
 contents of the op or func can work as a func, make it a func.
 
-## All custom funcs/ops start with `k`
+## All custom funcs/ops start with `sk_`
 
-If we didn't do this, then more commonly named ones could possibly collide with
-additions made in SuperDB itself in the future. Having some without a `k` prefix
-and some with would likely be confusing, and I'd rather avoid wasting time
-deciding which items should get the prefix or not. It is a little aesthetically
-unpleasing, but ¯\\_(ツ)\_/¯
-
-[//]: # (TODO: should it be `sk` to keep with the `sk` themed bin scripts?) 
-
-[//]: # (TODO: and then... - should it be `sk_`?) 
+There's nothing like namespacing in SuperDB, so we prefix all custom funcs/ops
+this way. If we didn't do this, then more commonly named ones could possibly
+collide with additions made in SuperDB itself in the future. Having some without
+this prefix and some with would likely be confusing, and I'd rather avoid
+wasting time deciding which items should get the prefix or not. It is a little
+aesthetically unpleasing in some cases to have the prefix, but ¯\\_(ツ)\_/¯
 
 ## Multiple Versions
 
