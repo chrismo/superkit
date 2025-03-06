@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-  declare record name spq_fn
+declare record name spq_fn
 
 for fn in ./src/*spq; do
   while IFS=$'\n' read -r record; do

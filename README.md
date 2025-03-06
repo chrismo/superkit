@@ -37,6 +37,10 @@ single file to be included automatically by the `sk` script.
 
 Operators cannot be executed in places required to be expressions, so if the
 contents of the op or func can work as a func, make it a func.
+                    
+## Prefer referencing `this` instead of argument in operators
+
+?? or the opposite?
 
 ## All custom funcs/ops start with `sk_`
 
