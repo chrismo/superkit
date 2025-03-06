@@ -33,7 +33,6 @@ function default() {
 }
 
 function superkit() {
-  # TODO: gotta go with a .tar.gz to bundle everything up
   local -r dst_dir="$(_script_dir)"/tmp/
 
   [ -d "$dst_dir" ] && rm -r "$dst_dir"
@@ -49,8 +48,8 @@ function superkit() {
   mkdir "$dst_dir"/lib/doc
   cp -v "$(_script_dir)"/doc/* "$dst_dir"/lib/doc/
 
-  # TODO: use gtar on mac to avoid xattr issues
-  tar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
+  # install gtar with `brew install gnu-tar` on macOS
+  gtar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
 }
 
 function test() {
