@@ -62,6 +62,6 @@ tar -C "$dst_dir/superkit/" -xzvf "$dst_dir"/superkit.tar.gz
 cp -v "$dst_dir"/superkit/bin/* "$bin_dir"
 cp -vR "$dst_dir"/superkit/lib/* "$lib_dir"
 
-echo "SuperKit Version $("$bin_dir"/sk -f line -c 'kversion()') is ready!"
+echo "SuperKit Version $("$bin_dir"/sk -f line -c 'sk_version()') is ready!"
 
 # export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
