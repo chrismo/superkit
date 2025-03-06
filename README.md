@@ -44,7 +44,11 @@ If we didn't do this, then more commonly named ones could possibly collide with
 additions made in SuperDB itself in the future. Having some without a `k` prefix
 and some with would likely be confusing, and I'd rather avoid wasting time
 deciding which items should get the prefix or not. It is a little aesthetically
-unpleasing, but ¯\_(ツ)\_/¯
+unpleasing, but ¯\\_(ツ)\_/¯
+
+[//]: # (TODO: should it be `sk` to keep with the `sk` themed bin scripts?) 
+
+[//]: # (TODO: and then... - should it be `sk_`?) 
 
 ## Multiple Versions
 
@@ -65,7 +69,3 @@ and then these docs can go side-by-side with the other pre-written docs.
 
 also want to pull down the original super docs as well to have locally.
 
-    # e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
-    #       `skdoc` shows all available locally
-    #       `skdoc funcs` lists all funcs?
-    #       `skdoc ops` lists all ops?

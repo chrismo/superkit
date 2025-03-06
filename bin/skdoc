@@ -28,6 +28,11 @@ function default() {
   # TODO: support docs for sk library of func/ops
   # TODO: support selecting docs if multiple match
 
+  # e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
+  #       `skdoc` shows all available locally
+  #       `skdoc funcs` lists all sk funcs?
+  #       `skdoc ops` lists all sk ops?
+
   local -r doc_fn=$(
     find "$doc_dir" -name "*$glob_pattern*" -type f |
       sort |
