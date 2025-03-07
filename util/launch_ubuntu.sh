@@ -7,18 +7,16 @@ function _script_dir() {
 }
 
 function default() {
+
   docker build -f "$(_script_dir)"/sk-ubuntu.dockerfile \
-    --build-arg install_bat=$install_bat \
-    --build-arg install_fzf=$install_fzf \
-    --build-arg install_glow=$install_glow \
-    --build-arg install_super=$install_super \
-    --build-arg install_zq=$install_zq \
+    $install_bat $install_fzf $install_glow $install_super $install_zq \
     --progress plain \
     -t superkit .
 
   [ "$(docker ps -aq -f name=superkit)" ] && docker rm -f superkit
   docker run --name superkit -it superkit:latest /bin/bash
 }
+
 function _usage() {
   cat <<EOF
 -b  Install bat
@@ -48,11 +46,11 @@ else
       usage
       exit 0
       ;;
-    b) install_bat=true ;;
-    f) install_fzf=true ;;
-    g) install_glow=true ;;
-    s) install_super=true ;;
-    z) install_zq=true ;;
+    b) install_bat="--build-arg install_bat=true" ;;
+    f) install_fzf="--build-arg install_fzf=true" ;;
+    g) install_glow="--build-arg install_glow=true" ;;
+    s) install_super="--build-arg install_super=true" ;;
+    z) install_zq="--build-arg install_zq=true" ;;
     \?) # ignore invalid options
       ;;
     esac
