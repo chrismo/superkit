@@ -59,12 +59,47 @@ Here's an example to show the SuperKit doc on Subqueries:
 ❯ skdoc subqueries
 ```
 
+When an argument is passed to `skdoc`, the text is globbed with asterisks on
+both sides, and opens the first file found with the preferred viewer (again,
+`glow`, then `bat`, then `PAGER` if set, then `less`).
+
 Running `skdoc` without any arguments will show the list of available docs in
 various ways, depending on the installed markdown viewer.
 
 ```shell
 ❯ skdoc
 ```
+
+If `glow` is installed, `glow` opens the root docs dir, and allows you to browse
+and search all the docs from that root. Otherwise, if `fzf` is installed, then
+all docs are listed in a `fzf` menu for selection, and the selected file will be
+opened with the preferred reader (`bat`, `PAGER`, or `less`). Otherwise, without
+`fzf`, all the .md files are listed in the terminal.
+
+### skgrok
+                                                         
+`skgrok` is a small, focused tool, that allows you to search through the built-in
+SuperDB grok patterns. It's best used with `fzf` for interactive searching, but
+will also work with `less` or the `PAGER` env var set to another pager.
+
+`skgrok` takes no arguments currently, and without `fzf` you can, of course,
+pass the output to `grep` or other tools.
+                
+### skops
+
+`skops` is a simple tool that lists a compact one-liner view of all the examples
+of funcs and ops from both of the standard SuperDB docs and the SuperKit
+library. This is useful as a quick reference and is best used with `fzf`
+installed to quickly search through all examples as a reminder of how to use a
+particular func or op. If `fzf` isn't present, the contents are paged out with
+`PAGER` or `less`.
+
+`skops` takes no arguments currently, and without `fzf` you can, of course, pass
+the output to `grep` or other tools.
+
+NOTE: this includes the output from a 1st pass at parsing examples out of the
+SuperDB docs and is largely successful, but there are a fair amounts of errors
+and omissions from the dataset that need to be revisited.
 
 # Developing SuperKit
    
