@@ -1,4 +1,18 @@
 {
+  date:"2025-03-06",
+  version:"0.2.0",
+  items:[
+    "installer based on XDG Base Directory Specification",
+    "all func/ops renamed with sk_ prefix instead of k",
+    "bin scripts added: sk, skdoc, skgrok, skops",
+    "sk: runs super referencing the superkit library",
+    "skdoc: starter tool to browse local docs",
+    "skgrok: custom tool to search built-in grok patterns",
+    "skops: custom tool to search examples of built-in and superkit func/ops",
+    "(this is still a rough WIP repo, so some details aren't included here)",
+  ]
+}
+{
   date:"2025-02-02",
   version:"0.1.0",
   items:[
