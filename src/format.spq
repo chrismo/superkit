@@ -20,8 +20,8 @@ func skdoc_format_bytes(): (
     {name:"sk_format_bytes",
      type:"func",
      desc:"Returns the size in bytes in human readable format.",
-     args:[{value:"Must be castable to uint64"}],
-     examples:[{i:"kformat_bytes(1048576)",o:"'1 MB'"}] }, <skdoc>)
+     args:[{name:"value",desc:"Must be castable to uint64"}],
+     examples:[{i:"sk_format_bytes(1048576)",o:"'1 MB'"}] }, <skdoc>)
 )
 
 func sk_format_bytes(value): (
@@ -33,9 +33,9 @@ func skdoc_pad_right(): (
     {name:"sk_pad_right",
      type:"func",
      desc:"Inserts pad_char to the right of the string until it reaches target_length.",
-     args:[{s:"The string to pad"},
-           {pad_char:"The character to pad with"},
-           {target_length:"The target length of the string"}],
+     args:[{name:"s",desc:"The string to pad"},
+           {name:"pad_char",desc:"The character to pad with"},
+           {name:"target_length",desc:"The target length of the string"}],
      examples:[{i:"sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
 )
 
