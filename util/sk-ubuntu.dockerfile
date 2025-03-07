@@ -77,17 +77,10 @@ EOF
 ARG install_fzf
 ARG install_zq
 
+COPY install-sk.sh /home/devnull/
 
-RUN cat > /home/devnull/install-sk.sh <<EOF
-#!/usr/bin/env bash
-
-branch="${1:-main}"
-
-curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/$branch/install.sh |
-  REPO_BRANCH=$branch bash
-EOF
-
-RUN chmod +x /home/devnull/install-sk.sh
+RUN sudo chown devnull:devnull /home/devnull/install-sk.sh && \
+    sudo chmod +x /home/devnull/install-sk.sh
 
 # this doesn't appear to be working currently:
 # RUN go install github.com/brimdata/super/cmd/super@main

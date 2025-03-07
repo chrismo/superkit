@@ -35,12 +35,22 @@ function superkit() {
   mkdir "$dst_dir"/bin
   mkdir "$dst_dir"/lib
 
+  # build the single superkit library file
   cat "$(_script_dir)"/src/*.spq >"$dst_dir"/lib/superkit.spq
 
+  # copy in all superkit bin scripts
   cp -v "$(_script_dir)"/bin/sk* "$dst_dir"/bin/
 
-  mkdir "$dst_dir"/lib/doc
-  cp -v "$(_script_dir)"/doc/* "$dst_dir"/lib/doc/
+  # copy in superkit's docs
+  mkdir -p "$dst_dir"/lib/doc/superkit
+  cp -v "$(_script_dir)"/doc/* "$dst_dir"/lib/doc/superkit/
+
+  # rsync in super's documentation
+  local -r super_doc_dst_root="$dst_dir"/lib/doc/super
+  mkdir "$super_doc_dst_root"
+
+  ## ... use --dry-run if you need to test changes here
+  rsync -av --relative "$(_script_dir)"/../super/docs/ "$super_doc_dst_root"
 
   # install gtar with `brew install gnu-tar` on macOS
   gtar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
