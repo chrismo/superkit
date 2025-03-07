@@ -29,7 +29,8 @@ function index() {
     local -r pager="${PAGER:-less}"
 
     if _check_command fzf; then
-      find "$doc_dir" -type f -name "*.md" | fzf
+      md_fn=$(find "$doc_dir" -type f -name "*.md" | fzf)
+      _reader "$md_fn"
     else
       find "$doc_dir" -type f -name "*.md" | $pager
     fi
