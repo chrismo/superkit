@@ -58,6 +58,16 @@ Especially with the supplemental documentation, there are variances between
 rather than versioning SuperKit separately for `super` and `zq`. In the future
 we may need to do this, but for now, we'll try to keep it simple.
 
+## Testing Installation Changes on a Branch
+
+Use this command-line instead of the main installation script to test changes on
+a branch:
+
+```sh
+curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-name>/install.sh |
+  REPO_BRANCH=<branch-name> bash
+```
+
 ## TODO
 
 [//]: # (TODO: docs for each func/op in superkit - how to write, how to read?)
