@@ -17,11 +17,54 @@ To install SuperKit, run the following command:
 curl -fsS https://raw.githubusercontent.com/chrismo/superkit/main/install.sh | bash
 ```
 
-This will install the SuperKit shell scripts (`sk`, `skdoc`, `skgrok`) into the
-XDG bin path, which is usually `~/.local/bin`, and the remaining files into the
-XDG data path, which is usually `~/.local/share/superkit` if you haven't
-redefined the XDG env vars. For more info, see the [XDG Base Directory
+This will install the SuperKit shell scripts (`sk`, `skdoc`, `skgrok`, `skops`)
+into the XDG bin path, which is usually `~/.local/bin`, and the remaining files
+into the XDG data path, which is usually `~/.local/share/superkit` if you
+haven't redefined the XDG env vars. For more info, see the [XDG Base Directory
 Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+               
+### sk
+
+`sk` is a shell script that wraps `super` calls automatically including the
+SuperKit library of funcs and ops, of which there are few currently, but
+we're working on it. :) 
+
+```shell
+❯ sk -c '[1,20,300] | over this | sk_format_bytes(this*10000000)'  
+"9 MB"
+"190 MB"
+"2 GB"
+```
+
+### skdoc
+
+`skdoc` is a shell script that searches installed .md documentation for glob
+matches of the search term (more options to come). This includes not only the
+standard docs (`super` only at the moment, `zq` likely to be added in the
+future), but supplemental SuperKit docs on a (small) variety of topics.
+
+`skdoc` will look for a few recommended tools for viewing markdown files in your
+terminal, starting with
+[glow](https://github.com/charmbracelet/glow?tab=readme-ov-file#glow), then
+falling back to
+[bat](https://github.com/sharkdp/bat?tab=readme-ov-file#installation), and
+finally checking the `PAGER` env var or using `less` if `PAGER` isn't set.
+                                                                          
+`glow` is preferred as it has great built-in features to browse, search, and
+view the entire installed directory of documents.
+
+Here's an example to show the SuperKit doc on Subqueries:
+
+```shell
+❯ skdoc subqueries
+```
+
+Running `skdoc` without any arguments will show the list of available docs in
+various ways, depending on the installed markdown viewer.
+
+```shell
+❯ skdoc
+```
 
 # Developing SuperKit
    

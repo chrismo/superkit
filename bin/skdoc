@@ -11,10 +11,10 @@ function _check_command() {
 function _reader() {
   local -r doc_fn="$1"
 
-  if _check_command bat; then
+  if _check_command glow; then
+    glow -p "$doc_fn"
+  elif _check_command bat; then
     bat --style=plain --color=always "$doc_fn"
-  elif _check_command glow; then
-    glow "$doc_fn"
   else
     local -r pager="${PAGER:-less}"
 
@@ -22,23 +22,35 @@ function _reader() {
   fi
 }
 
+function index() {
+  if _check_command glow; then
+    glow -p "$doc_dir"
+  else
+    local -r pager="${PAGER:-less}"
+
+    if _check_command fzf; then
+      find "$doc_dir"/**/*.md -type f | fzf
+    else
+      find "$doc_dir"/**/*.md -type f | $pager
+    fi
+  fi
+}
+
 function default() {
-  local -r glob_pattern="${1:-*}"
+  local -r glob_pattern="${1:-}"
 
-  # TODO: support docs for sk library of func/ops
-  # TODO: support selecting docs if multiple match
+  if [ -z "$glob_pattern" ]; then
+    index
+  else
+    # TODO: support selecting docs if multiple match
 
-  # e.g.: `skdoc grok` shows grok (sk version or original? how to distinguish)
-  #       `skdoc` shows all available locally
-  #       `skdoc funcs` lists all sk funcs?
-  #       `skdoc ops` lists all sk ops?
-
-  local -r doc_fn=$(
-    find "$doc_dir" -name "*$glob_pattern*" -type f |
-      sort |
-      head -n 1
-  )
-  _reader "$doc_fn"
+    local -r doc_fn=$(
+      find "$doc_dir" -name "*$glob_pattern*" -type f |
+        sort |
+        head -n 1
+    )
+    _reader "$doc_fn"
+  fi
 }
 
 default "$@"
