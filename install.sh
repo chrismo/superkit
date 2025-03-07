@@ -29,6 +29,11 @@ function _curl_file() {
 
 # skgrok
 # - test matrix of fzf | PAGER | less
+# -                super | zq
+
+# skops
+# - test matrix of fzf | PAGER | less
+# -                super | zq
 
 # skdoc
 # - test matrix of bat | glow | PAGER | less

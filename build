@@ -26,12 +26,6 @@ function _super() {
   popd
 }
 
-function default() {
-  test
-  skgrok
-  superkit
-}
-
 function superkit() {
   local -r dst_dir="$(_script_dir)"/tmp/
 
@@ -63,6 +57,78 @@ function skgrok() {
     grep('h.Must')
     | grok('.*h.Must\\\\(\"%{USERNAME:pattern_name}.*?\`%{GREEDYDATA:regex}\`', this)" $fn \
     >./bin/skgrok_data.jsup
+}
+
+function _parse_spqs() {
+  local record name spq_fn
+
+  for fn in ./src/*spq; do
+    while IFS=$'\n' read -r record; do
+      name=$(echo "$record" | zq -f text 'yield this.name' -)
+      spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
+
+      super -z -I ./src/skops.spq -I "$spq_fn" -c "$name()"
+    done < <(
+      super -i line -z -I ./src/skops.spq \
+        -c "skdoc_parse_file_contents(this) | filename:='$fn'" "$fn"
+    )
+  done >"$(_script_dir)"/bin/skops.jsup
+}
+
+function _parse_super_mds() {
+  echo "--$(date)--"
+  for fn in "$(_script_dir)"/../super/docs/language/**/*md; do
+    if ! grep -q '```mdtest-spq' "$fn"; then
+      echo >&2 "skipping $fn"
+      continue
+    fi
+
+    echo >&2 "$fn"
+    super -i line -z -c '
+      op parse_spq_test(test_record): (
+        test_record.i:=f"[{join(test_record.inputs, ",")}] | over this | {test_record.spq[0]}",
+        test_record.o:=join(test_record.outputs, " ↵ ")
+      )
+
+      op process_chunk(chunk): (
+        split(chunk, " ↵ ")
+        | over this | where len(this) > 0 | collect(this)
+      )
+
+      op parse_spq_tests(line): (
+        grok(".*?# spq%{DATA:spq}# input%{DATA:inputs}# expected output%{GREEDYDATA:outputs}", line)
+        | spq:=(over [this] | process_chunk(this.spq)),
+          inputs:=(over [this] | process_chunk(this.inputs)),
+          outputs:=(over [this] | process_chunk(this.outputs))
+        | parse_spq_test(this)
+        | cut i,o
+        | collect(this)
+        | {examples: this}
+      )
+
+      collect(this)                      // collect all lines to get the entire file
+      | join(this, " ↵ ")                // make it all one string
+      | split(this, "```mdtest-spq")[1:] // drop the 0th item before the first occurrence
+      | over this
+      | grok("%{DATA:data}```", this)
+      | parse_spq_tests(this.data)
+      ' "$fn" |
+      super -z -c "{name:'$(basename "$fn" ".md")', type:'op', ...this}" -
+
+  done >>"$(_script_dir)"/bin/skops.jsup
+
+}
+
+function skops() {
+  _parse_spqs
+  _parse_super_mds
+}
+
+function default() {
+  test
+  skgrok
+  skops
+  superkit
 }
 
 function _usage() {
