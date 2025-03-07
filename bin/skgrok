@@ -48,9 +48,9 @@ EOF
   )
 
   if _check_command super; then
-    super -f text -c "$script" "$(_script_dir)/skgrok_data.jsup" | _fuzzy_view
+    super -f text -c "$script" "$(_script_dir)/skgrok.jsup" | _fuzzy_view
   elif _check_command zq; then
-    zq -f text "$script" "$(_script_dir)/skgrok_data.jsup" | _fuzzy_view
+    zq -f text "$script" "$(_script_dir)/skgrok.jsup" | _fuzzy_view
   else
     echo "ERROR: Could not find 'super' or 'zq' commands"
     exit 1

@@ -56,7 +56,7 @@ function skgrok() {
   super -z -i line -c "
     grep('h.Must')
     | grok('.*h.Must\\\\(\"%{USERNAME:pattern_name}.*?\`%{GREEDYDATA:regex}\`', this)" $fn \
-    >./bin/skgrok_data.jsup
+    >./bin/skgrok.jsup
 }
 
 function _parse_spqs() {
