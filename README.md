@@ -69,14 +69,8 @@ curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-
 ```
 
 ## TODO
-
-[//]: # (TODO: docs for each func/op in superkit - how to write, how to read?)
                    
 ### skdoc tool
 
-parse out sk func/ops docs as comments from the func/op? and tack on the tests
-to the bottom of an .md? or maybe just select ones based on comments as well ...
-and then these docs can go side-by-side with the other pre-written docs.
-
-also want to pull down the original super docs as well to have locally.
+- want to pull down the original super docs as well to have locally.
 
