@@ -67,16 +67,15 @@ function _parse_spqs() {
       name=$(echo "$record" | zq -f text 'yield this.name' -)
       spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
 
-      super -z -I ./src/skops.spq -I "$spq_fn" -c "$name()"
+      super -z -I ./src/skdoc.spq -I "$spq_fn" -c "$name()"
     done < <(
-      super -i line -z -I ./src/skops.spq \
+      super -i line -z -I ./src/skdoc.spq \
         -c "skdoc_parse_file_contents(this) | filename:='$fn'" "$fn"
     )
   done >"$(_script_dir)"/bin/skops.jsup
 }
 
 function _parse_super_mds() {
-  echo "--$(date)--"
   for fn in "$(_script_dir)"/../super/docs/language/**/*md; do
     if ! grep -q '```mdtest-spq' "$fn"; then
       echo >&2 "skipping $fn"
@@ -116,12 +115,15 @@ function _parse_super_mds() {
       super -z -c "{name:'$(basename "$fn" ".md")', type:'op', ...this}" -
 
   done >>"$(_script_dir)"/bin/skops.jsup
-
 }
 
 function skops() {
   _parse_spqs
   _parse_super_mds
+
+  local -r dst_fn="$(_script_dir)"/bin/skops.jsup
+  super -z -c 'sort' "$dst_fn" > "$dst_fn".sorted
+  mv "$dst_fn".sorted "$dst_fn"
 }
 
 function default() {
