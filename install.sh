@@ -55,8 +55,8 @@ echo "$dst_dir"
 trap 'rm -rf "$dst_dir"' EXIT
 
 if [ -z "${LOCAL_INSTALL}" ]; then
-  declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/main"
-  curl -s -o "$dst_dir"/superkit.tar.gz $root_url/dist/superkit.tar.gz
+  declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/${REPO_BRANCH:-main}"
+  curl -s -o "$dst_dir"/superkit.tar.gz "$root_url"/dist/superkit.tar.gz
 else
   cp "$(dirname "${BASH_SOURCE[0]}")"/dist/superkit.tar.gz "$dst_dir"/superkit.tar.gz
 fi
