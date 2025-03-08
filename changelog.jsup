@@ -1,4 +1,12 @@
 {
+    date: "",
+    version: "0.2.1",
+    super_version: "",
+    items: [
+        ""
+    ]
+}
+{
     date: "2025-03-07",
     version: "0.2.0",
     super_version: "Version: v1.18.0-308-g4ffbd69f",
