@@ -143,5 +143,5 @@ a branch:
 
 ```sh
 curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-name>/install.sh |
-  REPO_BRANCH=<branch-name> bash
+  RELEASE=<pre-release-version> bash
 ```

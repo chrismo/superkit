@@ -10,9 +10,13 @@ function _update_super_version_in_docs() {
   local -r version=$(super --version)
 
   for file in "$(_script_dir)"/doc/*.md; do
-    echo -n >&2 "$file"
+    echo >&2 "$file"
     sed -i '' -E "s/Version: v1\.18\.0-[0-9]+-g.*/$version/g" "$file"
   done
+
+  # 1s, not s, and no trailing -g to do the 1st occurrence
+  sed -i '' -E "1s/super_version: \".*\"/super_version: \"$version\"/" \
+    "$(_script_dir)"/changelog.jsup
 }
 
 function _super() {
@@ -147,6 +151,7 @@ function skops() {
 
 function default() {
   test
+  ./test-doc.sh
   skgrok
   skops
   superkit

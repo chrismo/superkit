@@ -1,12 +1,4 @@
 {
-    date: "",
-    version: "0.2.1",
-    super_version: "",
-    items: [
-        ""
-    ]
-}
-{
     date: "2025-03-07",
     version: "0.2.0",
     super_version: "Version: v1.18.0-308-g4ffbd69f",
@@ -24,6 +16,7 @@
 {
     date: "2025-02-02",
     version: "0.1.0",
+    super_version: "Version: v1.18.0-254-g9196dad4",
     items: [
         "kformat_bytes added to provide human readable data sizes",
         "kkeys returns keys of a record, similar to jq's fields function",
