@@ -145,10 +145,3 @@ a branch:
 curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-name>/install.sh |
   REPO_BRANCH=<branch-name> bash
 ```
-
-## TODO
-                   
-### skdoc tool
-
-- want to pull down the original super docs as well to have locally.
-
