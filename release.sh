@@ -10,13 +10,13 @@ function read_version_from_src() {
   super -f text -I "$(_script_dir)"/src/version.spq -c "yield sk_version()"
 }
 
-function read_tag_from_changelog() {
+function read_version_from_changelog() {
   super -f text -c "yield version | head 1" changelog.jsup
 }
 
 function validate_versions() {
   local -r src_version=$(read_version_from_src)
-  local -r log_version=$(read_tag_from_changelog)
+  local -r log_version=$(read_version_from_changelog)
 
   if [ "$src_version" != "$log_version" ]; then
     echo "Version mismatch between src/version.spq <$src_version> and changelog.jsup <$log_version>"
@@ -24,12 +24,14 @@ function validate_versions() {
   fi
 }
 
-function increment_version() {
+function bump_next_version() {
   local -r current_version=$(read_version_from_src)
   local -r new_version=$(
     super -f text -c "yield '$current_version'
                       | split(this, '.')
-                      | {major: uint32(this[0]), minor: uint32(this[1]), patch: uint32(this[2])}
+                      | {major: uint32(this[0]),
+                         minor: uint32(this[1]),
+                         patch: uint32(this[2])}
                       | patch:=patch+1
                       | f'{major}.{minor}.{patch}'"
   )
@@ -56,10 +58,16 @@ function increment_version() {
   echo "Incremented version from $current_version to $new_version"
 }
 
-function release() {
-  echo 'not ready'
-  exit 1
+function set_install_version() {
+  local -r new_version=$(read_version_from_src)
 
+  sed -i '' -E "s/declare -r version=\"\$\{RELEASE:-.*\}\"/declare -r version=\"\$\{RELEASE:-$new_version\}\"/" \
+    "$(_script_dir)"/install.sh
+
+  echo "Install version set to $new_version"
+}
+
+function release() {
   # TODO: https://github.com/chrismo/superkit/issues/32
 
   # Ensure the GitHub CLI is installed
@@ -69,11 +77,7 @@ function release() {
   fi
 
   local -r repo="chrismo/superkit"
-
-  # TODO: read from changelog
-  # TAG="v$(date +'%Y%m%d%H%M%S')"  # Generate a tag based on the current timestamp
-
-  local -r release_name="Release $(read_tag_from_changelog)"
+  local -r tag=$(read_version_from_changelog)
 
   # shellcheck disable=SC2012
   tar_file=$(ls ./dist/*.tar.gz | sort | tail -n 1) # Get the latest .tar.gz file
@@ -83,12 +87,16 @@ function release() {
     exit 1
   fi
 
-  # TODO: notes from changelog - start with as-is? or format as markdown?
+  local -r notes="
+\`\`\`
+$(super -Z -c "head 1" changelog.jsup)
+\`\`\`
+"
 
-  # Create a new release
-  #gh release create "$TAG" "$tar_file" --repo "$REPO" --title "$release_name" --notes "Automated release for $TAG"
+  gh release create "$tag" "$tar_file" --repo "$repo" \
+    --title "$tag" --notes "$notes"
 
-  echo "Release $release_name created and $tar_file uploaded to GitHub."
+  echo "Release $tag created and $tar_file uploaded to GitHub."
 }
 
 function _usage() {

@@ -54,19 +54,24 @@ echo "$dst_dir"
 # Ensure the temporary directory is removed on exit
 trap 'rm -rf "$dst_dir"' EXIT
 
+declare -r basename="superkit.tag.gz"
+declare -r version="${RELEASE:-0.2.0}"
+
 if [ -z "${LOCAL_INSTALL}" ]; then
-  declare -r root_url="https://raw.githubusercontent.com/chrismo/superkit/refs/heads/${REPO_BRANCH:-main}"
-  curl -s -o "$dst_dir"/superkit.tar.gz "$root_url"/dist/superkit.tar.gz
+  declare -r root_url="https://github.com/chrismo/superkit/releases/download/$version/superkit.tar.gz"
+  curl -s -o "$dst_dir"/$basename "$root_url"/dist/$basename
 else
-  cp "$(dirname "${BASH_SOURCE[0]}")"/dist/superkit.tar.gz "$dst_dir"/superkit.tar.gz
+  cp "$(dirname "${BASH_SOURCE[0]}")"/dist/$basename "$dst_dir"/$basename
 fi
 
 mkdir "$dst_dir/superkit/"
-tar -C "$dst_dir/superkit/" -xzvf "$dst_dir"/superkit.tar.gz
+tar -C "$dst_dir/superkit/" -xzvf "$dst_dir"/$basename
 
 cp -v "$dst_dir"/superkit/bin/* "$bin_dir"
 cp -vR "$dst_dir"/superkit/lib/* "$lib_dir"
 
+# TODO: https://github.com/chrismo/superkit/issues/41
+# TODO: check sk and put up PATH notice if not found
 echo "SuperKit Version $("$bin_dir"/sk -f line -c 'sk_version()') is ready!"
 
 # export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
