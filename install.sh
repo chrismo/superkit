@@ -58,8 +58,9 @@ declare -r basename="superkit.tag.gz"
 declare -r version="${RELEASE:-0.2.0}"
 
 if [ -z "${LOCAL_INSTALL}" ]; then
-  declare -r root_url="https://github.com/chrismo/superkit/releases/download/$version/superkit.tar.gz"
-  curl -s -o "$dst_dir"/$basename "$root_url"/dist/$basename
+  declare -r url="https://github.com/chrismo/superkit/releases/download/$version/superkit.tar.gz"
+  # -L is crucial to follow redirects
+  curl -sL -o "$dst_dir"/$basename "$url"
 else
   cp "$(dirname "${BASH_SOURCE[0]}")"/dist/$basename "$dst_dir"/$basename
 fi
