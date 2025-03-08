@@ -29,6 +29,7 @@ sk_format_bytes_test 1099511627776 "1 TB"
 sk_format_bytes_test 1125899906842620 "1023 TB" # TODO: math says TB->PB point (still TB)
 
 # TODO: Here be inaccuracies ... 0 PB is, well, wrong.
+# TODO: https://github.com/chrismo/superkit/issues/39
 sk_format_bytes_test 1125899906842621 "0 PB"    # START three numbers here going 0 PB weirdly
 sk_format_bytes_test 1125899906842623 "0 PB"    # END   three numbers here going 0 PB weirdly
 sk_format_bytes_test 1125899906842624 "1 PB"    # this is correct, right?
