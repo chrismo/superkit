@@ -6,6 +6,15 @@ function _script_dir() {
   dirname "${BASH_SOURCE[0]}"
 }
 
+function _update_super_version_in_docs() {
+  local -r version=$(super --version)
+
+  for file in "$(_script_dir)"/doc/*.md; do
+    echo -n >&2 "$file"
+    sed -i '' -E "s/Version: v1\.18\.0-[0-9]+-g.*/$version/g" "$file"
+  done
+}
+
 function _super() {
   echo "building super"
   pushd ../super
@@ -132,7 +141,7 @@ function skops() {
   _parse_super_mds
 
   local -r dst_fn="$(_script_dir)"/bin/skops.jsup
-  super -z -c 'sort' "$dst_fn" > "$dst_fn".sorted
+  super -z -c 'sort' "$dst_fn" >"$dst_fn".sorted
   mv "$dst_fn".sorted "$dst_fn"
 }
 

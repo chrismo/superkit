@@ -120,7 +120,7 @@ super -z -c '
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-304-g6300fbaf
+Version: v1.18.0-308-g4ffbd69f
 ```
 _and zq 1.18_
 ```mdtest-command
