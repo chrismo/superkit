@@ -145,3 +145,11 @@ a branch:
 curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-name>/install.sh |
   RELEASE=<pre-release-version> bash
 ```
+
+## Release Process
+
+
+
+### After Release
+
+`./release bump_next_version`
