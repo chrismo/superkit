@@ -1,21 +1,5 @@
 # Subqueries
 
-_as of super prerelease v1.18.0-302-g2f1a9643 and zq 1.18_
-
-```mdtest-command
-super --version
-```
-```mdtest-output
-Version: v1.18.0-304-g6300fbaf
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
-```
-
 While there are many different types of subqueries, this document so far is just
 highlighting some common scenarios that may not have obvious implementations in
 superdb.
@@ -128,4 +112,20 @@ super -z -c '
 ```mdtest-output                  
 {id:1,date:"2025-02-27",foo:3}
 {id:4,date:"2025-02-28",foo:9}
+```
+
+# as of versions
+
+```mdtest-command
+super --version
+```
+```mdtest-output
+Version: v1.18.0-304-g6300fbaf
+```
+_and zq 1.18_
+```mdtest-command
+zq --version
+```
+```mdtest-output
+Version: v1.18.0
 ```

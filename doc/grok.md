@@ -1,21 +1,5 @@
 # grok
 
-_as of super prerelease v1.18.0-302-g2f1a9643_
-
-```mdtest-command
-super --version
-```
-```mdtest-output
-Version: v1.18.0-304-g6300fbaf
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
-```
-
 The grok function is a great choice for parsing text, but due to some gaps in
 its documentation and some vague error messages, it can be difficult to use at
 first.
@@ -133,4 +117,20 @@ super -z -c 'yield "1", "foo" | grok("%{INT}", this)'
 ```mdtest-output
 {}
 error({message:"grok(): value does not match pattern",on:"foo"})
+```
+
+## as of versions
+
+```mdtest-command
+super --version
+```
+```mdtest-output
+Version: v1.18.0-304-g6300fbaf
+```
+_and zq 1.18_
+```mdtest-command
+zq --version
+```
+```mdtest-output
+Version: v1.18.0
 ```

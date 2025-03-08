@@ -1,21 +1,5 @@
 # from
 
-_as of super prerelease v1.18.0-302-g2f1a9643 and zq 1.18_ 
-
-```mdtest-command
-super --version
-```
-```mdtest-output
-Version: v1.18.0-304-g6300fbaf
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
-```
-
 The `super db` subcommand replaces the `zed` CLI command that accompanied `zq`
 through version 1.18.
 
@@ -137,3 +121,19 @@ rm -rf ./test-lake
 ## notes
 
 [GitHub Issue #5660](https://github.com/brimdata/super/issues/5660)
+
+## as of versions
+
+```mdtest-command
+super --version
+```
+```mdtest-output
+Version: v1.18.0-304-g6300fbaf
+```
+_and zq 1.18_
+```mdtest-command
+zq --version
+```
+```mdtest-output
+Version: v1.18.0
+```
