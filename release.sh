@@ -104,6 +104,8 @@ function release() {
   # shellcheck disable=SC2012
   tar_file=$(ls ./dist/*.tar.gz | sort | tail -n 1) # Get the latest .tar.gz file
 
+  # TODO: should also check the freshness of the file in there too.
+  # TODO: -OR- always run build before release.
   if [[ ! -f "$tar_file" ]]; then
     echo "No .tar.gz file found in the dist directory."
     exit 1
@@ -115,8 +117,11 @@ $(super -Z -c "head 1" changelog.jsup)
 \`\`\`
 "
 
+  # make sure --notes is the last option, as it's a multiline string and options
+  # that appear after will break the command.
   gh release create "$tag" "$tar_file" --repo "$repo" \
-    --title "$tag" --notes "$notes" "$pre_release_opt" "$branch_opt"
+    "$pre_release_opt" "$branch_opt" --title "$tag" \
+    --notes "$notes"
 
   echo "Release $tag created and $tar_file uploaded to GitHub."
 }
