@@ -17,7 +17,9 @@ function index_opts() {
 
   case $index in
   glow) echo "-g -f-" ;;
-  fzf) echo "-f -g-" ;;
+  fzf) echo "-f-old -g-" ;;
+  fzf-new) echo "-f-new -g-" ;;
+  fzf-old) echo "-f-old -g-" ;;
   less) echo "-g- -f-" ;;
   esac
 }
@@ -73,8 +75,9 @@ function skgrok() {
 # shellcheck disable=SC2046
 # shellcheck disable=SC2016
 function skops() {
-  echo "skops depends on super or zq, then fzf or \$PAGER -> less"
-  for index in fzf less; do
+  echo "skops depends on super or zq, then fzf (new and old) or \$PAGER -> less"
+  echo "old fzf doesn't support multi-line, new does"
+  for index in fzf-new fzf-old less; do
     for brim in super zq none; do
       ./enabler.sh $(brim_opts "$brim")
       ./enabler.sh $(index_opts "$index")

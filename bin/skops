@@ -15,10 +15,29 @@ function _fuzzy_view() {
 
   local -r contents=$(cat -)
 
+  # 0.53.0 is the version that added multi-line support. 0.56.1 shows the last
+  # significant bug fix for multi-line, and is preferred; --gap was added in
+  # 0.56.0, so - we'll just check for the existence of the --gap command and go
+  # multi-line if it's there, otherwise, nuhp, and stay single-line.
   if _check_command fzf; then
-    echo "$contents" |
-      tr '¶' '\n' | tr '§' '\0' |
-      fzf --read0 --gap --highlight-line --layout reverse
+    if fzf --help | grep -q -- '--gap'; then
+      echo "$contents" |
+        tr '¶' '\n' | tr '§' '\0' |
+        fzf --read0 --gap --highlight-line --layout reverse
+    else
+      # single-line fzf here I think still looks ok with these multi-line
+      # outputs passing --read0 as the NUL delimiter. Each func/op gets a clear
+      # "header" on left of the line, and it's one line per func/op, vs. one
+      # line per example. The trade-off is if there are multiple examples, they
+      # just side scroll off the right edge. But, after selecting a line the
+      # full-multi-line output is shown in the terminal after fzf exits.
+      #
+      # --read0 was released in 0.15.0 in 2016, so I think think it's safe to
+      # presume it's available.
+      echo "$contents" |
+        tr '¶' '\n' | tr '§' '\0' |
+        fzf --read0 --layout reverse
+    fi
   else
     echo "$contents" | $pager
   fi
