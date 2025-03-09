@@ -1,9 +1,11 @@
 {
-    date: "",
+    date: "2025-03-09",
     version: "0.2.1",
-    super_version: "",
+    super_version: "Version: v1.18.0-308-g4ffbd69f",
     items: [
-        ""
+        "infra: new release process, installs from GitHub release asset",
+        "skgrok: with fzf now has multiple line output",
+        "dev: lots of enhancements to testing in docker image"
     ]
 }
 {

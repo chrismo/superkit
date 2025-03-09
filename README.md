@@ -148,7 +148,19 @@ curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-
 
 ## Release Process
 
+### Prep Release
 
+If it's a big enough release, or esp. has installation script changes, make a
+new branch first to work on.
+
+Once work is ready to be considered for release, fill out the changelog.jsup
+record for the new release.
+
+Publish a new PRE-release from the branch:
+
+```shell
+./release.sh pre-release
+```
 
 ### After Release
 
