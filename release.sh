@@ -119,8 +119,9 @@ $(super -Z -c "head 1" changelog.jsup)
 
   # make sure --notes is the last option, as it's a multiline string and options
   # that appear after will break the command.
+  # shellcheck disable=SC2086
   gh release create "$tag" "$tar_file" --repo "$repo" \
-    "$pre_release_opt" "$branch_opt" --title "$tag" \
+    $pre_release_opt $branch_opt --title "$tag" \
     --notes "$notes"
 
   echo "Release $tag created and $tar_file uploaded to GitHub."
