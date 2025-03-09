@@ -67,17 +67,39 @@ function set_install_version() {
   echo "Install version set to $new_version"
 }
 
+function pre-release() {
+  release "-$(git describe --tags --dirty --always)"
+}
+
 function release() {
+  local -r pre_release=${1:-}
+
+  local -r current_branch=$(git rev-parse --abbrev-ref HEAD)
+  if [ -z "$pre_release" ]; then
+    if [ "$current_branch" != "main" ]; then
+      echo "ERROR: Cannot do a normal release from non-main branch: <$current_branch>"
+      exit 1
+    fi
+  else
+    pre_release_opt="--prerelease"
+    branch_opt="--target $current_branch"
+  fi
+
   # TODO: https://github.com/chrismo/superkit/issues/32
 
   # Ensure the GitHub CLI is installed
   if ! command -v gh &>/dev/null; then
-    echo "GitHub CLI (gh) is not installed. Please install it and try again."
+    echo "ERROR: GitHub CLI (gh) is not installed. Please install it and try again."
     exit 1
   fi
 
   local -r repo="chrismo/superkit"
-  local -r tag=$(read_version_from_changelog)
+  local -r tag="$(read_version_from_changelog)$pre_release"
+
+  if echo "$tag" | grep -q "dirty"; then
+    echo "ERROR: The tag cannot include 'dirty'."
+    exit 1
+  fi
 
   # shellcheck disable=SC2012
   tar_file=$(ls ./dist/*.tar.gz | sort | tail -n 1) # Get the latest .tar.gz file
@@ -94,7 +116,7 @@ $(super -Z -c "head 1" changelog.jsup)
 "
 
   gh release create "$tag" "$tar_file" --repo "$repo" \
-    --title "$tag" --notes "$notes"
+    --title "$tag" --notes "$notes" "$pre_release_opt" "$branch_opt"
 
   echo "Release $tag created and $tar_file uploaded to GitHub."
 }
