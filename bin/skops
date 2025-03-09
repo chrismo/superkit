@@ -16,24 +16,21 @@ function _fuzzy_view() {
   local -r contents=$(cat -)
 
   if _check_command fzf; then
-    echo "$contents" | fzf
+    echo "$contents" |
+      tr '¶' '\n' | tr '§' '\0' |
+      fzf --read0 --gap --highlight-line --layout reverse
   else
     echo "$contents" | $pager
   fi
 }
 
 function default() {
-  local -r script=$(
-    cat <<-'EOF'
-over examples
-| f"{i} => {o}"
-EOF
-  )
-
   if _check_command super; then
-    super -f text -c "$script" "$(_script_dir)/skops.jsup" | _fuzzy_view
+    super -f line -I "$(_script_dir)/skops.spq" \
+      -c "skops_multi_line()" "$(_script_dir)/skops.jsup" | _fuzzy_view
   elif _check_command zq; then
-    zq -f text "$script" "$(_script_dir)/skops.jsup" | _fuzzy_view
+    zq -f text -I "$(_script_dir)/skops.spq" \
+      "skops_multi_line()" "$(_script_dir)/skops.jsup" | _fuzzy_view
   else
     echo "ERROR: Could not find 'super' or 'zq' commands"
     exit 1

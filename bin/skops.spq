@@ -1,0 +1,11 @@
+op skops_single_line(): (
+  over examples
+  | yield f"{i} => {o}"
+)
+
+op skops_multi_line(): (
+  yield f"{name}¶¶{(over examples
+                    | yield f'  {i} => {o}'
+                    | collect(this)
+                    | join(this, '¶') )}§"
+)
