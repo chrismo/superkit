@@ -75,23 +75,20 @@ EOF
 
 ARG install_zq
 
+RUN <<EOF
+export ZED_VERSION=v1.18.0 &&
+  export ZED_ARCH=$(sudo dpkg --print-architecture) &&
+  echo https://github.com/brimdata/zed/releases/download/$ZED_VERSION/zed-$ZED_VERSION.linux-$ZED_ARCH.tar.gz
+  curl -OL https://github.com/brimdata/zed/releases/download/$ZED_VERSION/zed-$ZED_VERSION.linux-$ZED_ARCH.tar.gz &&
+  tar xzvf zed-$ZED_VERSION.linux-$ZED_ARCH.tar.gz &&
+  sudo mv -v zed /usr/bin/ &&
+  sudo mv -v zq /usr/bin/ &&
+  rm zed-$ZED_VERSION.linux-$ZED_ARCH.tar.gz
+EOF
+
 COPY install-sk.sh /home/devnull/
-
-# TODO: simpler to just install everything then gimme options to kill some for
-# now until I can figure out conditional docker-ing better. Currently running up
-# against caching weirdness.
-
-RUN cat > remove-glow.sh <<EOF
-  rm ~/.local/bin/glow
-EOF
-
-RUN cat > remove-bat.sh <<EOF
-  rm ~/.local/bin/bat
-EOF
-
-RUN cat > remove-fzf.sh <<EOF
-  sudo rm $(which fzf)
-EOF
+COPY enabler.sh /home/devnull/
+COPY combo-tests.sh /home/devnull/
 
 RUN sudo chown devnull:devnull /home/devnull/*.sh && \
     sudo chmod +x /home/devnull/*.sh
