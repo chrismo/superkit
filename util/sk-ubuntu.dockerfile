@@ -70,7 +70,22 @@ EOF
 ARG install_fzf
 
 RUN <<EOF
+  # with ubuntu jammy, installs a pre-multi-line version. we want both to test
   sudo apt install -y fzf
+EOF
+
+RUN <<EOF
+# To update the tagName, use this command locally:
+# gh release list --repo junegunn/fzf --json isLatest,name,tagName,isPrerelease |
+#   super -z -c "over this
+#                | where isPrerelease == false
+#                | sort name
+#                | tail 1" -
+curl -OL https://github.com/junegunn/fzf/releases/download/v0.60.3/fzf-0.60.3-linux_arm64.tar.gz &&
+  tar xzvf fzf-0.60.3-linux_arm64.tar.gz &&
+  mv fzf fzf-new &&
+  cp $(which fzf) ./fzf-old &&
+  rm fzf-0.60.3-linux_arm64.tar.gz
 EOF
 
 ARG install_zq

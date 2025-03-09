@@ -156,10 +156,20 @@ new branch first to work on.
 Once work is ready to be considered for release, fill out the changelog.jsup
 record for the new release.
 
-Publish a new PRE-release from the branch:
+Publish a new _pre_-release from the branch:
 
 ```shell
 ./release.sh pre-release
+```
+
+To test this release, after util/launch-ubuntu.sh, install the pre-release with
+
+```shell
+./install-sk.sh [branch name] [release version]
+```
+e.g.
+```shell
+./install-sk.sh rel 0.2.1-1f718a7
 ```
 
 ### After Release

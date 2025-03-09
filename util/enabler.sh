@@ -40,10 +40,16 @@ function enabler() {
     enable-bin "/home/devnull/.local/bin/bat"
   fi
 
-  if [ "$fzf" == "-" ]; then
+  if [ "$fzf_old" == "-" ]; then
     disable-bin "/usr/bin/fzf"
-  elif [ "$fzf" == "+" ]; then
-    enable-bin "/usr/bin/fzf"
+  elif [ "$fzf_old" == "+" ]; then
+    sudo cp /home/devnull/fzf-old /usr/bin/fzf
+  fi
+
+  if [ "$fzf_new" == "-" ]; then
+    disable-bin "/usr/bin/fzf"
+  elif [ "$fzf_new" == "+" ]; then
+    sudo cp /home/devnull/fzf-new /usr/bin/fzf
   fi
 
   if [ "$glow" == "-" ]; then
@@ -85,7 +91,8 @@ function usage() {
 }
 
 declare bat=""
-declare fzf=""
+declare fzf_old=""
+declare fzf_new=""
 declare glow=""
 declare super=""
 declare zq=""
@@ -106,11 +113,23 @@ else
     -b-)
       bat="-"
       ;;
+    -f-old)
+      fzf_old="+"
+      ;;
+    -f-old-)
+      fzf_old="-"
+      ;;
+    -f-new)
+      fzf_new="+"
+      ;;
+    -f-new-)
+      fzf_new="-"
+      ;;
     -f)
-      fzf="+"
+      fzf_old="+"
       ;;
     -f-)
-      fzf="-"
+      fzf_old="-"
       ;;
     -g)
       glow="+"
