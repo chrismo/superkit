@@ -39,7 +39,9 @@ function _fuzzy_view() {
         fzf --read0 --layout reverse
     fi
   else
-    echo "$contents" | $pager
+    # Setting LESSCHARSET is irrelevant if PAGER is set to some other program,
+    # but, for now this is fine.
+    echo "$contents" | LESSCHARSET=utf-8 $pager
   fi
 }
 
