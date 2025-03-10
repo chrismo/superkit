@@ -4,6 +4,9 @@ op skops_single_line(): (
 )
 
 op skops_multi_line(): (
+  // ¶ is a newline placeholder. § is a NUL placeholder. zq won't output inlined
+  // newlines correctly (but super will with `-i line`, and neither tool can
+  // parse an inline NUL.
   yield f"{name}¶¶{(over examples
                     | yield f'  {i} => {o}'
                     | collect(this)
