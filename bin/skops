@@ -22,7 +22,7 @@ function _fuzzy_view() {
   if _check_command fzf; then
     if fzf --help | grep -q -- '--gap'; then
       echo "$contents" |
-        sed 's/¶/\n/g' | tr '§' '\0' |
+        sed 's/¶/\n/g' | perl -pe 's/§/\0/g' |
         fzf --read0 --gap --highlight-line --layout reverse
     else
       # single-line fzf here I think still looks ok with these multi-line
@@ -35,7 +35,7 @@ function _fuzzy_view() {
       # --read0 was released in 0.15.0 in 2016, so I think think it's safe to
       # presume it's available.
       echo "$contents" |
-        sed 's/¶/\n/g' | tr '§' '\0' |
+        sed 's/¶/\n/g' | perl -pe 's/§/\0/g' |
         fzf --read0 --layout reverse
     fi
   else

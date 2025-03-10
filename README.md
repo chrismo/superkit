@@ -150,19 +150,23 @@ curl -fsS https://raw.githubusercontent.com/chrismo/superkit/refs/heads/<branch-
 
 ### Prep Release
 
-If it's a big enough release, or esp. has installation script changes, make a
-new branch first to work on.
+If it's a big enough release, or especially if it will have installation script
+changes, make a new branch first to work on.
 
 Once work is ready to be considered for release, fill out the changelog.jsup
 record for the new release.
 
-Publish a new _pre_-release from the branch:
+Do a fresh build! and then publish a new _pre_-release from the branch:
 
 ```shell
+build  
 ./release.sh pre-release
 ```
+                                 
+If you have previous pre-releases, you may want to delete them manually in
+GitHub.
 
-To test this release, after util/launch-ubuntu.sh, install the pre-release with
+To test this release, after util/launch-ubuntu.sh, install the pre-release with:
 
 ```shell
 ./install-sk.sh [branch name] [release version]
@@ -174,4 +178,10 @@ e.g.
 
 ### After Release
 
-`./release bump_next_version`
+To prime changelog.jsup and the version string in the library, run this command.
+This won't change the version in the install.sh script, we don't want that until
+the next version is actually released.
+                                      
+```shell
+./release bump_next_version
+```
