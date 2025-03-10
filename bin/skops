@@ -22,7 +22,7 @@ function _fuzzy_view() {
   if _check_command fzf; then
     if fzf --help | grep -q -- '--gap'; then
       echo "$contents" |
-        tr '¶' '\n' | tr '§' '\0' |
+        sed 's/¶/\n/g' | tr '§' '\0' |
         fzf --read0 --gap --highlight-line --layout reverse
     else
       # single-line fzf here I think still looks ok with these multi-line
@@ -35,7 +35,7 @@ function _fuzzy_view() {
       # --read0 was released in 0.15.0 in 2016, so I think think it's safe to
       # presume it's available.
       echo "$contents" |
-        tr '¶' '\n' | tr '§' '\0' |
+        sed 's/¶/\n/g' | tr '§' '\0' |
         fzf --read0 --layout reverse
     fi
   else
@@ -43,15 +43,27 @@ function _fuzzy_view() {
   fi
 }
 
+function op_name() {
+  # even though older fzf doesn't support multiple lines, the output from
+  # super/zq is still functional with it.
+  if _check_command fzf; then
+    echo "skops_multi_line()"
+  else
+    echo "skops_single_line()"
+  fi
+}
+
 function default() {
+  local -r op_name=$(op_name)
+
   if _check_command super; then
     super -f line -I "$(_script_dir)/skops.spq" \
-      -c "skops_multi_line()" "$(_script_dir)/skops.jsup" | _fuzzy_view
+      -c "$op_name" "$(_script_dir)/skops.jsup" | _fuzzy_view
   elif _check_command zq; then
     zq -f text -I "$(_script_dir)/skops.spq" \
-      "skops_multi_line()" "$(_script_dir)/skops.jsup" | _fuzzy_view
+      "$op_name" "$(_script_dir)/skops.jsup" | _fuzzy_view
   else
-    echo "ERROR: Could not find 'super' or 'zq' commands"
+    echo "ERROR: Could not find 'super' or 'zq' on PATH"
     exit 1
   fi
 }

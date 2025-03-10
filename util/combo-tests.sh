@@ -82,7 +82,7 @@ function skops() {
       ./enabler.sh $(brim_opts "$brim")
       ./enabler.sh $(index_opts "$index")
 
-      echo 'Test `skgrok`'
+      echo 'Test `skops`'
       read -p "Continue? (y/N): " confirm && [[ $confirm == [yY] ]] || return
     done
   done
