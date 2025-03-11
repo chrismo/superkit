@@ -86,6 +86,8 @@ will also work with `less` or the `PAGER` env var set to another pager.
 pass the output to `grep` or other tools.
                 
 ### skops
+                 
+TODO: TEST LIKE THE WIND!!! BEFORE 0.2.1 RELEASE
 
 `skops` is a simple tool that lists a compact view of all the examples of funcs
 and ops from both of the standard SuperDB docs and the SuperKit library. This is

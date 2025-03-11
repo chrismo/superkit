@@ -1,6 +1,7 @@
+// deprecated - multi_line seems fine for any reader
 op skops_single_line(): (
   over examples
-  | yield f"{i} => {o}"
+  | yield f"{name} :: {i} => {o}"
 )
 
 op skops_multi_line(): (
