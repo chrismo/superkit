@@ -65,6 +65,8 @@ function superkit() {
   ## ... use --dry-run if you need to test changes here
   rsync -av --relative "$(_script_dir)"/../super/docs/ "$super_doc_dst_root"
 
+  mkdir "$(_script_dir)"/dist/
+
   # install gtar with `brew install gnu-tar` on macOS
   gtar -czf "$(_script_dir)"/dist/superkit.tar.gz -C "$dst_dir" .
 }
