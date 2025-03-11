@@ -87,19 +87,19 @@ pass the output to `grep` or other tools.
                 
 ### skops
 
-`skops` is a simple tool that lists a compact one-liner view of all the examples
-of funcs and ops from both of the standard SuperDB docs and the SuperKit
-library. This is useful as a quick reference and is best used with `fzf`
-installed to quickly search through all examples as a reminder of how to use a
-particular func or op. If `fzf` isn't present, the contents are paged out with
-`PAGER` or `less`.
+`skops` is a simple tool that lists a compact view of all the examples of funcs
+and ops from both of the standard SuperDB docs and the SuperKit library. This is
+useful as a quick reference and is best used with `fzf` installed to quickly
+search through all examples as a reminder of how to use a particular func or op.
+If `fzf` isn't present, the contents are paged out with `PAGER` or `less`.
+
+If you have version 0.56.0 of `fzf` or later, `skops` will take advantage of its
+multi-line support to show the examples in a more readable format.
+
+![screenshot of fzf multi-line](img/skops-fzf-multi-line.png)
 
 `skops` takes no arguments currently, and without `fzf` you can, of course, pass
 the output to `grep` or other tools.
-
-NOTE: this includes the output from a 1st pass at parsing examples out of the
-SuperDB docs and is largely successful, but there are a fair amounts of errors
-and omissions from the dataset that need to be revisited.
 
 # Developing SuperKit
    
@@ -175,6 +175,31 @@ e.g.
 ```shell
 ./install-sk.sh rel 0.2.1-1f718a7
 ```
+  
+_NOTE: there is a download option for a Draft release, but the download link
+involves a url path segment called "untagged-[sha]" and I dunno what the sha
+represents, it doesn't match the sha in the tag. But this may be better than
+testing from a published pre-release that then may get deleted later?_
+          
+### Make Release
+
+Once the pre-release is tested and ready to go, we're ready to Do It Live.
+
+- Merge the PR to main
+
+- Update the install.sh script to default to the next version number (or do this
+  on branch?)
+
+- Commit and push to `main`.
+
+- Re-run the build and release script.
+
+```shell
+build && ./release
+```
+
+Review the draft release, add the Full Changelog link to the release notes, then
+publish the release.
 
 ### After Release
 
