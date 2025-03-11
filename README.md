@@ -203,7 +203,7 @@ Once the pre-release is tested and ready to go, we're ready to Do It Live.
 - Re-run the build and release script.
 
 ```shell
-build && ./release
+build && ./release release
 ```
 
 Review the draft release, add the Full Changelog link to the release notes, then
