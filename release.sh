@@ -73,6 +73,7 @@ function pre-release() {
 
 function release() {
   local -r pre_release=${1:-}
+  local branch_opt=""
 
   local -r current_branch=$(git rev-parse --abbrev-ref HEAD)
   if [ -z "$pre_release" ]; then
@@ -128,12 +129,18 @@ $latest_changelog
 
   # make sure --notes is the last option, as it's a multiline string and options
   # that appear after will break the command.
+  #
+  # --fail-on-no-commits will fail when pre-releasing from a branch I think?
+  #
+  # --notes-from-tag - "cannot generate release notes from tag 0.2.1-cd52255 as
+  # it does not exist locally"
+  #
   # shellcheck disable=SC2086
-  gh release create "$tag" "$tar_file" --repo "$repo" \
+  gh release create "$tag" "$tar_file" --draft \
     $pre_release_opt $branch_opt --title "$tag" \
     --notes "$notes"
 
-  echo "Release $tag created and $tar_file uploaded to GitHub."
+  echo "Draft release $tag created and $tar_file uploaded to GitHub."
 }
 
 function _usage() {
