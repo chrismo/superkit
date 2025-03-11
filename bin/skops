@@ -41,22 +41,17 @@ function _fuzzy_view() {
   else
     # Setting LESSCHARSET is irrelevant if PAGER is set to some other program,
     # but, for now this is fine.
-    echo "$contents" | LESSCHARSET=utf-8 $pager
-  fi
-}
-
-function op_name() {
-  # even though older fzf doesn't support multiple lines, the output from
-  # super/zq is still functional with it.
-  if _check_command fzf; then
-    echo "skops_multi_line()"
-  else
-    echo "skops_single_line()"
+    #
+    # The perl command is similar to the fzf cases, but here just replaces with
+    # a newline, since the NUL character isn't needed.
+    echo "$contents" |
+      sed 's/¶/\n/g' | perl -pe 's/§/\n/g' |
+      LESSCHARSET=utf-8 $pager
   fi
 }
 
 function default() {
-  local -r op_name=$(op_name)
+  local -r op_name="skops_multi_line()"
 
   if _check_command super; then
     super -f line -I "$(_script_dir)/skops.spq" \

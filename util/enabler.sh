@@ -83,6 +83,11 @@ function _usage() {
   -s- Disable super
   -z  Enable zq
   -z- Disable zq
+
+  -f-old  Enable older fzf version (no multi-line)
+  -f-old  Disable older fzf
+  -f-new  Enable newer fzf (with multi-line)
+  -f-new  Disable newer fzf
 EOF
 }
 
