@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
 function _ensure_dir_exists() {
   local -r dirname="$1"
 
@@ -54,7 +58,7 @@ echo "$dst_dir"
 # Ensure the temporary directory is removed on exit
 trap 'rm -rf "$dst_dir"' EXIT
 
-declare -r basename="superkit.tag.gz"
+declare -r basename="superkit.tar.gz"
 declare -r version="${RELEASE:-0.2.0}"
 
 if [ -z "${LOCAL_INSTALL}" ]; then
@@ -62,7 +66,7 @@ if [ -z "${LOCAL_INSTALL}" ]; then
   # -L is crucial to follow redirects
   curl -sL -o "$dst_dir"/$basename "$url"
 else
-  cp "$(dirname "${BASH_SOURCE[0]}")"/dist/$basename "$dst_dir"/$basename
+  cp -v "$(dirname "${BASH_SOURCE[0]}")"/dist/$basename "$dst_dir"/$basename
 fi
 
 mkdir "$dst_dir/superkit/"

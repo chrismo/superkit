@@ -98,18 +98,13 @@ function _parse_spqs() {
   done >"$(_script_dir)"/bin/skops.jsup
 }
 
-function _parse_super_mds() {
-  for fn in "$(_script_dir)"/../super/docs/language/**/*md; do
-    if ! grep -q '```mdtest-spq' "$fn"; then
-      echo >&2 "skipping $fn"
-      continue
-    fi
+function _parse_md_file() {
+  local -r fn="$1"
 
-    echo >&2 "$fn"
-    super -i line -z -c '
+  super -i line -z -c '
       op parse_spq_test(test_record): (
         test_record.i:=f"[{join(test_record.inputs, ",")}] | over this | {test_record.spq[0]}",
-        test_record.o:=join(test_record.outputs, " ↵ ")
+        test_record.o:=is(test_record.outputs, <null>) ? "" : join(test_record.outputs, " ↵ ")
       )
 
       op process_chunk(chunk): (
@@ -135,7 +130,18 @@ function _parse_super_mds() {
       | grok("%{DATA:data}```", this)
       | parse_spq_tests(this.data)
       ' "$fn" |
-      super -z -c "{name:'$(basename "$fn" ".md")', type:'op', ...this}" -
+    super -z -c "{name:'$(basename "$fn" ".md")', type:'op', ...this}" -
+}
+
+function _parse_super_mds() {
+  for fn in "$(_script_dir)"/../super/docs/language/**/*md; do
+    if ! grep -q '```mdtest-spq' "$fn"; then
+      echo >&2 "skipping $fn"
+      continue
+    fi
+
+    echo >&2 "$fn"
+    _parse_md_file "$fn"
 
   done >>"$(_script_dir)"/bin/skops.jsup
 }
