@@ -59,7 +59,7 @@ echo "$dst_dir"
 trap 'rm -rf "$dst_dir"' EXIT
 
 declare -r basename="superkit.tar.gz"
-declare -r version="${RELEASE:-0.2.0}"
+declare -r version="${RELEASE:-0.2.1}"
 
 if [ -z "${LOCAL_INSTALL:-}" ]; then
   declare -r url="https://github.com/chrismo/superkit/releases/download/$version/superkit.tar.gz"
