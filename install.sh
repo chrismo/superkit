@@ -61,7 +61,7 @@ trap 'rm -rf "$dst_dir"' EXIT
 declare -r basename="superkit.tar.gz"
 declare -r version="${RELEASE:-0.2.0}"
 
-if [ -z "${LOCAL_INSTALL}" ]; then
+if [ -z "${LOCAL_INSTALL:-}" ]; then
   declare -r url="https://github.com/chrismo/superkit/releases/download/$version/superkit.tar.gz"
   # -L is crucial to follow redirects
   curl -sL -o "$dst_dir"/$basename "$url"
