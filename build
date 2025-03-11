@@ -101,6 +101,23 @@ function _parse_spqs() {
 function _parse_md_file() {
   local -r fn="$1"
 
+  # This is an interesting, superfluous use of super to execute this case
+  # statement. :) But - in the spirit of leaning into using it more, imma leave
+  # it, even though it's a bit silly.
+  #
+  # Zooming out one step, the lines between super and bash are very blurred in
+  # this entire method. It might be interesting to try and push this whole thing
+  # into a single execution of super. I may be closer than I realize.
+  local -r type=$(
+    echo "$fn" |
+      super -i line -f text -c "
+        switch (
+          case grep('language/agg',this) => 'agg'
+          case grep('language/func',this) => 'func'
+          case grep('language/oper',this) => 'op'
+        )" -
+  )
+
   super -i line -z -c '
       op parse_spq_test(test_record): (
         test_record.i:=f"[{join(test_record.inputs, ",")}] | over this | {test_record.spq[0]}",
@@ -130,7 +147,7 @@ function _parse_md_file() {
       | grok("%{DATA:data}```", this)
       | parse_spq_tests(this.data)
       ' "$fn" |
-    super -z -c "{name:'$(basename "$fn" ".md")', type:'op', ...this}" -
+    super -z -c "{name:'$(basename "$fn" ".md")', type:'$type', ...this}" -
 }
 
 function _parse_super_mds() {
@@ -141,9 +158,8 @@ function _parse_super_mds() {
     fi
 
     echo >&2 "$fn"
-    _parse_md_file "$fn"
-
-  done >>"$(_script_dir)"/bin/skops.jsup
+    _parse_md_file "$fn" >>"$(_script_dir)"/bin/skops.jsup
+  done
 }
 
 function skops() {
@@ -151,7 +167,7 @@ function skops() {
   _parse_super_mds
 
   local -r dst_fn="$(_script_dir)"/bin/skops.jsup
-  super -z -c 'sort' "$dst_fn" >"$dst_fn".sorted
+  super -z -c 'sort type,name' "$dst_fn" >"$dst_fn".sorted
   mv "$dst_fn".sorted "$dst_fn"
 }
 

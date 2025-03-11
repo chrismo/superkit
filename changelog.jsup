@@ -1,12 +1,12 @@
 {
-    date: "2025-03-10",
+    date: "2025-03-11",
     version: "0.2.1",
     super_version: "Version: v1.18.0-308-g4ffbd69f",
     items: [
         "infra: new release process, installs from GitHub release asset",
-        "infra: TODO: update the date in this file when pushing a release"
-        "skgrok: with fzf now has multiple line output",
-        "skops: examples with empty outputs now parse correctly"
+        "skops: with newer fzf, uses multiple line output support",
+        "skops: examples with empty outputs now parse correctly",
+        "skops: all items are sorted by agg, func, and op",
         "dev: lots of enhancements to testing in docker image"
     ]
 }
