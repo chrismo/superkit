@@ -73,6 +73,7 @@ function pre-release() {
 
 function release() {
   local -r pre_release=${1:-}
+  local pre_release_opt=""
   local branch_opt=""
 
   local -r current_branch=$(git rev-parse --abbrev-ref HEAD)
