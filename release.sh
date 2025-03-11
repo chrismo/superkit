@@ -77,7 +77,7 @@ function release() {
   local -r current_branch=$(git rev-parse --abbrev-ref HEAD)
   if [ -z "$pre_release" ]; then
     if [ "$current_branch" != "main" ]; then
-      echo "ERROR: Cannot do a normal release from non-main branch: <$current_branch>"
+      echo "Cannot do a normal release from non-main branch: <$current_branch>"
       exit 1
     fi
   else
@@ -89,7 +89,7 @@ function release() {
 
   # Ensure the GitHub CLI is installed
   if ! command -v gh &>/dev/null; then
-    echo "ERROR: GitHub CLI (gh) is not installed. Please install it and try again."
+    echo "GitHub CLI (gh) is not installed. Please install it and try again."
     exit 1
   fi
 
@@ -97,7 +97,7 @@ function release() {
   local -r tag="$(read_version_from_changelog)$pre_release"
 
   if echo "$tag" | grep -q "dirty"; then
-    echo "ERROR: The tag cannot include 'dirty'."
+    echo "The tag cannot include 'dirty'."
     exit 1
   fi
 
@@ -111,9 +111,18 @@ function release() {
     exit 1
   fi
 
+  local -r latest_changelog=$(super -Z -c "head 1" changelog.jsup)
+  local -r date=$(echo "$latest_changelog" | super -f text -c 'yield this.date' -)
+  local -r today=$(date +%Y-%m-%d)
+
+  if [ "$date" != "$today" ]; then
+    echo "Changelog date <$date> isn't today <$today>"
+    exit 1
+  fi
+
   local -r notes="
 \`\`\`
-$(super -Z -c "head 1" changelog.jsup)
+$latest_changelog
 \`\`\`
 "
 
