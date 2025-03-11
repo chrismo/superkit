@@ -177,11 +177,19 @@ e.g.
 ```shell
 ./install-sk.sh rel 0.2.1-1f718a7
 ```
-  
-_NOTE: there is a download option for a Draft release, but the download link
-involves a url path segment called "untagged-[sha]" and I dunno what the sha
-represents, it doesn't match the sha in the tag. But this may be better than
-testing from a published pre-release that then may get deleted later?_
+                             
+Or install it locally with util/dcp-install.sh, which will copy over the tarball
+from the dist folder, as well as the install.sh script, and then executes
+install.sh with LOCAL_INSTALL set to true.
+
+```shell
+
+_NOTE: there is a download option for a Draft release, but the download links
+are private and you have to authenticate to download them via the GitHub API
+urls, which more-or-less defeats the purpose of a full install.sh test. So you
+can docker cp superkit.tar.gz into the container if you don't really need to
+test the install script, or publish the release, then delete the release later
+if you need._
           
 ### Make Release
 
@@ -189,8 +197,8 @@ Once the pre-release is tested and ready to go, we're ready to Do It Live.
 
 - Merge the PR to main
 
-- Update the install.sh script to default to the next version number (or do this
-  on branch?)
+- Update the install.sh script to default to the version number of this release
+  (or do this on branch?)
 
 - Commit and push to `main`.
 
