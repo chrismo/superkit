@@ -203,7 +203,7 @@ Once the pre-release is tested and ready to go, we're ready to Do It Live.
 - Re-run the build and release script.
 
 ```shell
-build && ./release release
+build && ./release.sh release
 ```
 
 Review the draft release, add the Full Changelog link to the release notes, then
@@ -216,5 +216,5 @@ This won't change the version in the install.sh script, we don't want that until
 the next version is actually released.
                                       
 ```shell
-./release bump_next_version
+./release.sh bump_next_version
 ```
