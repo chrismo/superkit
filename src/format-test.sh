@@ -11,6 +11,9 @@ function sk_format_bytes_test() {
   type="uint64"
   [ "${input:0:1}" = "-" ] && type="int64"
 
+# TODO: zq versions output the type e.g. <1(uint64) B> - can we kill that?
+#  _assert "$expected" \
+#    "$(zq -f text -I "$this_dir"/format.spq "yield $type('$input') | sk_format_bytes(this)")"
   _assert "$expected" \
     "$(super -f text -I "$this_dir"/format.spq -c "yield $type('$input') | sk_format_bytes(this)")"
 }
