@@ -87,8 +87,6 @@ function release() {
     branch_opt="--target $current_branch"
   fi
 
-  # TODO: https://github.com/chrismo/superkit/issues/32
-
   # Ensure the GitHub CLI is installed
   if ! command -v gh &>/dev/null; then
     echo "GitHub CLI (gh) is not installed. Please install it and try again."
