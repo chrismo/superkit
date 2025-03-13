@@ -27,3 +27,33 @@ op sk_merge_records(): (
 // | yield parse_zson(replace(string(this), "|", ""))'
 
 
+// TODO: move to array.spq
+func skdoc_array_wrap(): (
+  cast(
+    {name:"sk_in_array",
+     type:"func",
+     desc:"Puts value in an array if value isn't an array itself.",
+     args:[{name:"value",value:"any"}],
+     examples:[{i:"sk_in_array(1)",o:"[1]"},
+               {i:"sk_in_array([1])",o:"[1]"}]}, <skdoc>)
+)
+
+func sk_in_array(value): (
+  kind(value) == "array" ? value : [value]
+)
+
+func skdoc_add_ids(): (
+  cast(
+    {name:"sk_add_ids",
+     type:"op",
+     desc:"Prepends an incrementing uint64 id field to each record. Always returns an array.",
+     args:[],
+     examples:[{i:"[{a:3},{b:4}] | sk_add_ids()",o:"[{id:1(uint64),a:3},{id:2(uint64),b:4}]"}] }, <skdoc>)
+)
+
+op sk_add_ids(): (
+  sk_in_array(this)
+  | over this
+  | yield {id: int64(count()), ...this}
+  | collect(this)
+)
