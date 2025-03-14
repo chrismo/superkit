@@ -19,7 +19,7 @@ And we want to select the entries with the largest `foo` for each date.
 
 One way to do this in SQL looks like this:
 
-```sqlite
+```sql
 select id, date, foo
 from data
 where (date, foo) in
@@ -30,7 +30,7 @@ where (date, foo) in
 
 Another way, by joining a derived table:
 
-```sqlite
+```sql
 select *
 from data d
        join
