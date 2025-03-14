@@ -18,13 +18,29 @@ function _assert() {
   fi
 }
 
+function _script_dir() {
+  dirname "${BASH_SOURCE[0]}"
+}
+
+function _src_dir() {
+  echo "$(_script_dir)/src"
+}
+
 function zq_and_super() {
-  local -r include="$1"
+  local -r include_files="$1"
   local -r query="$2"
   local -r expected="$3"
 
-  _assert "$expected" "$(zq -z -I "$include" "$query")"
-  _assert "$expected" "$(super -z -I "$include" -c "$query")"
+  local -r includes=$(
+    super -f line -c "
+      split('$include_files', ',')
+      | over this
+      | f'-I $(_src_dir)/{this}'")
+
+  # shellcheck disable=SC2086
+  _assert "$expected" "$(zq -z $includes "$query")"
+  # shellcheck disable=SC2086
+  _assert "$expected" "$(super -z $includes -c "$query")"
 }
 
 filter="${1:-}"
