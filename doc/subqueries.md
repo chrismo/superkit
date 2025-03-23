@@ -6,6 +6,8 @@ superdb.
 
 ## Correlated Subqueries
 
+[//]: # (TODO: file versions - phil's versions from Slack - NOT versions) 
+
 Let's start with this simple dataset:
 
 ```json lines
