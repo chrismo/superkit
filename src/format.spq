@@ -27,18 +27,3 @@ func skdoc_format_bytes(): (
 func sk_format_bytes(value): (
   (value == 0) ? "0 B" : _sk_format_nonzero_bytes(value)
 )
-
-func skdoc_pad_right(): (
-  cast(
-    {name:"sk_pad_right",
-     type:"func",
-     desc:"Inserts pad_char to the right of the string until it reaches target_length.",
-     args:[{name:"s",desc:"The string to pad"},
-           {name:"pad_char",desc:"The character to pad with"},
-           {name:"target_length",desc:"The target length of the string"}],
-     examples:[{i:"sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
-)
-
-func sk_pad_right(s, pad_char, target_length): (
-  len(s) < target_length ? sk_pad_right(f"{s}{pad_char}", pad_char, target_length) : s
-)

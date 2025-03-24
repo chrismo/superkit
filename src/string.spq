@@ -1,0 +1,60 @@
+op skdoc_slice(): (
+  cast(
+    {name:"sk_slice",
+     type:"func",
+     desc:"Returns a slice of the string passed in, even if indexes are out of range.",
+     args:[{name:"s",desc:"The string to slice."},
+           {name:"start",desc:"Starting index, zero-based, inclusive."},
+           {name:"end",desc:"Ending index, exclusive."}],
+     examples:[{i:"sk_slice('howdy')",o:"'Howdy'"}] }, <skdoc>)
+)
+
+// This isn't necessary with zq, but during early releases of super, the
+// behavior of slice was changed to return an error if the indexes are out of
+// range. There was discussion of possibly returning to the old behavior.
+func sk_slice(s, start, end): (
+  s[sk_clamp(start, -len(s), len(s)):sk_clamp(end, -len(s), len(s))]
+)
+
+op skdoc_capitalize(): (
+  cast(
+    {name:"sk_capitalize",
+     type:"func",
+     desc:"Capitalizes the first character of the string.",
+     args:[{name:"s",desc:"The string to capitalize."}],
+     examples:[{i:"sk_capitalize('howdy')",o:"'Howdy'"}] }, <skdoc>)
+)
+
+func sk_capitalize(s): (
+  f"{upper(sk_slice(s, 0, 1))}{sk_slice(s,1,len(s))}"
+)
+
+op skdoc_titleize(): (
+  cast(
+    {name:"sk_titleize",
+     type:"func",
+     desc:"Splits string by space and capitalizes each word.",
+     args:[{name:"s",desc:"The string to titleize"}],
+     examples:[{i:"sk_titleize('once uPON A TIME')",o:"'Once Upon A Time'"}] }, <skdoc>)
+)
+
+func sk_titleize(s): (
+  // this could smarter, ignoring insignificant words
+  // and such, but that will be a lot more complex.
+  join(map(split(s, " "), sk_capitalize), " ")
+)
+
+func skdoc_pad_right(): (
+  cast(
+    {name:"sk_pad_right",
+     type:"func",
+     desc:"Inserts pad_char to the right of the string until it reaches target_length.",
+     args:[{name:"s",desc:"The string to pad"},
+           {name:"pad_char",desc:"The character to pad with"},
+           {name:"target_length",desc:"The target length of the string"}],
+     examples:[{i:"yield sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
+)
+
+func sk_pad_right(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
+)
