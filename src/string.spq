@@ -1,3 +1,6 @@
+// sk_include integer.spq
+// sk_include integer.spq // to test duplicate includes
+
 op skdoc_slice(): (
   cast(
     {name:"sk_slice",

@@ -1,3 +1,8 @@
+// TODO: this doesn't cause any problems yet because we're not recursively
+// scanning sk_include files for _their_ sk_includes.
+
+// sk_include string.spq // test circular dependencies
+
 op skdoc_clamp(): (
   cast(
     {name:"sk_clamp",
