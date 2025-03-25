@@ -110,6 +110,27 @@ side-by-side.
 
 The release process produces a single combined file that will be installed as a
 single file to be included automatically by the `sk` script.
+
+### Includes between spq files
+
+Currently, for distribution, it's fine to bundle all the .spq files together
+into a single lib file that can be included once. superkit isn't too big yet,
+there are no practical limitations.
+
+This isn't scalable in the long haul, but there's nothing in SuperDB to manage
+includes in .spq files, we can worry about that down the road, if SuperDB ever
+adds tooling for this.
+
+I like keeping things separate in the repo, to help prevent circular
+dependencies, but it's a minor pain to have to include the dependencies in each
+unit test script. As soon as there's a dependency introduced between, e.g.,
+string.spq -> integer.spq, then all the unit tests need that inclusion added,
+even pre-existing ones that would (in theory) still fine without it.
+
+For now, the test script supports `// sk_include` comments in the .spq files and
+will include these referenced files in the test run. It doesn't yet support
+recursive `sk_includes`, but that may be added soon. Just itching one scratch at
+a time right now.
               
 ## Prefer using functions over operators
 
