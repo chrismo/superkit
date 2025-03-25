@@ -1,3 +1,5 @@
+// sk_include array.spq
+
 // the built-in `fields` function is similar, but puts each field into its own
 // nested array, though it also handles nested keys. This keys operator here
 // attempts to emulate jq's keys, which does not go deep but only lists the
@@ -26,4 +28,18 @@ op sk_merge_records(): (
 // | collect_map(|{key[0]:value}|)
 // | yield parse_zson(replace(string(this), "|", ""))'
 
+func skdoc_add_ids(): (
+  cast(
+    {name:"sk_add_ids",
+     type:"op",
+     desc:"Prepends an incrementing uint64 id field to each record. Always returns an array.",
+     args:[],
+     examples:[{i:"[{a:3},{b:4}] | sk_add_ids()",o:"[{id:1(uint64),a:3},{id:2(uint64),b:4}]"}] }, <skdoc>)
+)
 
+op sk_add_ids(): (
+  sk_in_array(this)
+  | over this
+  | yield {id: int64(count()), ...this}
+  | collect(this)
+)

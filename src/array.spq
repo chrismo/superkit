@@ -1,0 +1,13 @@
+func skdoc_in_array(): (
+  cast(
+    {name:"sk_in_array",
+     type:"func",
+     desc:"Puts value in an array if value isn't an array itself.",
+     args:[{name:"value",value:"any"}],
+     examples:[{i:"sk_in_array(1)",o:"[1]"},
+               {i:"sk_in_array([1])",o:"[1]"}]}, <skdoc>)
+)
+
+func sk_in_array(value): (
+  kind(value) == "array" ? value : [value]
+)
