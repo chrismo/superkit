@@ -3,7 +3,16 @@
     version: "0.2.2",
     super_version: "",
     items: [
-        "new: sk_add_ids(), sk_in_array()",
+        "new: sk_add_ids() - prepends an incrementing uint64 id to each record",
+        "new: sk_array_flatten() to flatten arrays of arrays",
+        "new: sk_capitalize() - capitalizes the first character of a string",
+        "new: sk_clamp() - clamps a value between min and max",
+        "new: sk_in_array() - ensures a value is in an array",
+        "new: sk_pad_right() - pads a string to the right with a given character",
+        "new: sk_slice() - returns a slice of a string even if indexes are out of range",
+        "new: sk_titleize() - capitalizes each word in a string",
+        "experimental: sk_include() - allows including other superkit files to share functions and ops",
+        "skdoc: backfill skdocs for sk_keys, sk_merge_records"
     ]
 }
 {

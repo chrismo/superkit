@@ -23,13 +23,13 @@ op skdoc_capitalize(): (
   cast(
     {name:"sk_capitalize",
      type:"func",
-     desc:"Capitalizes the first character of the string.",
+     desc:"Upper the first character of the string, lower the remaining string.",
      args:[{name:"s",desc:"The string to capitalize."}],
-     examples:[{i:"sk_capitalize('howdy')",o:"'Howdy'"}] }, <skdoc>)
+     examples:[{i:"sk_capitalize('hoWDy')",o:"'Howdy'"}] }, <skdoc>)
 )
 
 func sk_capitalize(s): (
-  f"{upper(sk_slice(s, 0, 1))}{sk_slice(s,1,len(s))}"
+  f"{upper(sk_slice(s, 0, 1))}{lower(sk_slice(s,1,len(s)))}"
 )
 
 op skdoc_titleize(): (

@@ -8,3 +8,4 @@ zq_and_super string.spq 'yield "hey you" | sk_capitalize(this)' '"Hey you"'
 
 zq_and_super string.spq 'sk_titleize("hey you")' '"Hey You"'
 zq_and_super string.spq 'sk_titleize("hey  you")' '"Hey  You"'
+zq_and_super string.spq 'sk_titleize("HEY yOu")' '"Hey You"'

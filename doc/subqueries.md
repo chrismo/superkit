@@ -6,7 +6,7 @@ superdb.
 
 ## Correlated Subqueries
 
-[//]: # (TODO: file versions - phil's versions from Slack - NOT versions) 
+[//]: # (TODO: file versions - phil's versions from Slack - NOT versions - issue #54) 
 
 Let's start with this simple dataset:
 
@@ -21,7 +21,7 @@ And we want to select the entries with the largest `foo` for each date.
 
 One way to do this in SQL looks like this:
 
-```sqlite
+```sql
 select id, date, foo
 from data
 where (date, foo) in
@@ -32,7 +32,7 @@ where (date, foo) in
 
 Another way, by joining a derived table:
 
-```sqlite
+```sql
 select *
 from data d
        join
@@ -122,7 +122,7 @@ super -z -c '
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-308-g4ffbd69f
+Version: v1.18.0-348-g4f29a8702
 ```
 _and zq 1.18_
 ```mdtest-command
