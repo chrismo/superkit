@@ -51,6 +51,8 @@ function superkit() {
   # build the single superkit library file
   cat "$(_script_dir)"/src/*.spq >"$dst_dir"/lib/superkit.spq
 
+  _parse_spqs "$dst_dir"/lib/superkit.spq
+
   # copy in all superkit bin scripts
   cp -v "$(_script_dir)"/bin/sk* "$dst_dir"/bin/
 
@@ -85,19 +87,27 @@ function skgrok() {
 }
 
 function _parse_spqs() {
+  local -r dist_fn="$1"
+
+  # we're running this on the concatenated distribution file
+  # for convenience.
+
+  # If we want to distribute individual files in the future,
+  # maybe `sk` command could handle includes. then test.sh
+  # re-uses `sk` command - everything that relies on includes
+  # re-uses `sk` command. I sorta like that.
+
   local record name spq_fn
 
-  for fn in ./src/*spq; do
-    while IFS=$'\n' read -r record; do
-      name=$(echo "$record" | zq -f text 'yield this.name' -)
-      spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
+  while IFS=$'\n' read -r record; do
+    name=$(echo "$record" | zq -f text 'yield this.name' -)
+    spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
 
-      super -z -I ./src/skdoc.spq -I "$spq_fn" -c "$name()"
-    done < <(
-      super -i line -z -I ./src/skdoc.spq \
-        -c "skdoc_parse_file_contents(this) | filename:='$fn'" "$fn"
-    )
-  done >"$(_script_dir)"/bin/skops.jsup
+    super -z -I "$dist_fn" -c "$name()"
+  done < <(
+    super -i line -z -I ./src/skdoc.spq \
+      -c "skdoc_parse_file_contents(this)" "$dist_fn"
+  ) >>"$(_script_dir)"/bin/skops.jsup
 }
 
 function _parse_md_file() {
@@ -165,10 +175,11 @@ function _parse_super_mds() {
 }
 
 function skops() {
-  _parse_spqs
-  _parse_super_mds
-
   local -r dst_fn="$(_script_dir)"/bin/skops.jsup
+  [[ -e $dst_fn ]] && rm "$dst_fn"
+
+  # _parse_spqs # do this later now
+  _parse_super_mds
   super -z -c 'sort type,name' "$dst_fn" >"$dst_fn".sorted
   mv "$dst_fn".sorted "$dst_fn"
 }

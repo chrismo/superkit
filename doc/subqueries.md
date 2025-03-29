@@ -6,7 +6,7 @@ superdb.
 
 ## Correlated Subqueries
 
-[//]: # (TODO: file versions - phil's versions from Slack - NOT versions) 
+[//]: # (TODO: file versions - phil's versions from Slack - NOT versions - issue #54) 
 
 Let's start with this simple dataset:
 
@@ -122,7 +122,7 @@ super -z -c '
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-308-g4ffbd69f
+Version: v1.18.0-348-g4f29a8702
 ```
 _and zq 1.18_
 ```mdtest-command

@@ -5,12 +5,31 @@
 // attempts to emulate jq's keys, which does not go deep but only lists the
 // top-level ones.
 
+func skdoc_keys(): (
+  cast(
+    {name:"sk_keys",
+     type:"op",
+     desc:"Returns the keys of the top-level fields in a record. This does not go deep into nested records.",
+     args:[],
+     examples:[{i:"{a:1,b:{c:333}} | sk_keys()",o:"['a','b']"},
+               {i:"{x:10,y:20,z:30} | sk_keys()",o:"['x','y','z']"}] }, <skdoc>)
+)
+
 op sk_keys(): (
   // ... with sorted keys:
   // over this => (this.key[0]) | sort | collect(this)
 
   // ... in order:
   over this => (this.key[0]) | collect(this)
+)
+
+func skdoc_merge_records(): (
+  cast(
+    {name:"sk_merge_records",
+     type:"op",
+     desc:"Merges an array of records into a single record by combining the fields. If there are duplicate keys, the last one wins.",
+     args:[],
+     examples:[{i:"[{a:1},{b:{c:333}}] | sk_merge_records()",o:"{a:1,b:{c:333}}"}] }, <skdoc>)
 )
 
 op sk_merge_records(): (

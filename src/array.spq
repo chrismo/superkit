@@ -11,3 +11,21 @@ func skdoc_in_array(): (
 func sk_in_array(value): (
   kind(value) == "array" ? value : [value]
 )
+
+func skdoc_array_flatten(): (
+  cast(
+    {name:"sk_array_flatten",
+     type:"op",
+     desc:"Flattens an array of arrays into a single array.",
+     args:[],
+     examples:[{i:"[1,2,[3,4],5] | sk_array_flatten()",o:"[1,2,3,4,5]"},
+               {i:"[[1,2],[3,4]] | sk_array_flatten()",o:"[1,2,3,4]"}]}, <skdoc>)
+)
+
+op sk_array_flatten(): (
+  string(this)
+  | this[1:-1]
+  | replace(this,'[','')
+  | replace(this, ']','')
+  | parse_zson(f'[{this}]')
+)
