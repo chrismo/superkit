@@ -19,3 +19,35 @@ op skdoc_clamp(): (
 func sk_clamp(i, min, max): (
     i < min ? min : i > max ? max : i
 )
+
+func skdoc_min(): (
+  cast(
+    {name:"sk_min",
+     type:"func",
+     desc:"Returns the minimum of two values.",
+     args:[{name:"a",desc:"The first value."},
+           {name:"b",desc:"The second value."}],
+     examples:[{i:"sk_min(1, 2)",o:"1"},
+               {i:"sk_min(3, 2)",o:"2"},
+               {i:"sk_min(2, 2)",o:"2"}]}, <skdoc>)
+)
+
+func sk_min(a, b): (
+  a < b ? a : b
+)
+
+func skdoc_max(): (
+  cast(
+    {name:"sk_max",
+     type:"func",
+     desc:"Returns the maximum of two values.",
+     args:[{name:"a",desc:"The first value."},
+           {name:"b",desc:"The second value."}],
+     examples:[{i:"sk_max(1, 2)",o:"2"},
+               {i:"sk_max(3, 2)",o:"3"},
+               {i:"sk_max(2, 2)",o:"2"}]}, <skdoc>)
+)
+
+func sk_max(a, b): (
+  a > b ? a : b
+)

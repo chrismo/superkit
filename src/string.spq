@@ -47,6 +47,21 @@ func sk_titleize(s): (
   join(map(split(s, " "), sk_capitalize), " ")
 )
 
+func skdoc_pad_left(): (
+  cast(
+    {name:"sk_pad_left",
+     type:"func",
+     desc:"Inserts pad_char to the left of the string until it reaches target_length.",
+     args:[{name:"s",desc:"The string to pad"},
+           {name:"pad_char",desc:"The character to pad with"},
+           {name:"target_length",desc:"The target length of the string"}],
+     examples:[{i:"yield sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, <skdoc>)
+)
+
+func sk_pad_left(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_left(f'{pad_char}{s}', pad_char, target_length) : s
+)
+
 func skdoc_pad_right(): (
   cast(
     {name:"sk_pad_right",
