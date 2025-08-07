@@ -1,6 +1,8 @@
 # Upgrading zq to super
 
-_This is an agentic document tested with Claude._
+_This is an agentic document tested with Claude. It is not 
+100% complete, and has some opinionated sections from the
+author, but covers many of the cases required as of July 2025._
 
 We use an asdf custom plugin to manage superdb pre-releases.
 
