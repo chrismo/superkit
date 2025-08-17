@@ -136,6 +136,13 @@ a time right now.
 
 Operators cannot be executed in places required to be expressions, so if the
 contents of the op or func can work as a func, make it a func.
+
+If you can still return a single value, you can use lateral expressions (or the 
+"parenthetical ops hack") inside a func.
+
+See also [this draft of a doc from
+Phil](https://gist.github.com/philrz/b93f65538eb9e82e178a787988bfad5c) on User
+Defined Functions and Operators.
                     
 ## Prefer referencing `this` instead of argument in operators
 
