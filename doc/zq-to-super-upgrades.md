@@ -2,13 +2,13 @@
 
 _This is an agentic document tested with Claude. It is not 
 100% complete, and has some opinionated sections from the
-author, but covers many of the cases required as of July 2025._
+author, but covers many of the cases required as of Aug 2025._
 
 We use an asdf custom plugin to manage superdb pre-releases.
 
 Here are all the major language upgrades that need to be made.
 
-This reflects changes as of `0.50725` according to the custom asdf
+This reflects changes as of `0.50815` according to the custom asdf
 superdb plugin we use for pre-releases.
 
 ## yield -> values
@@ -116,6 +116,23 @@ be the same.
 `over a with b => (...)` is now `unnest {b,a} into (...)` and will have
 behavioral changes! `this` inside the parens used to be just `a` with `zq`
 but now `this` inside the parens with `super` is the record `{b,a}`.  
+
+## grep and regexp changes
+
+As of this change ([PR 6115](https://github.com/brimdata/super/pull/6115)) on
+Aug 15, 2025:
+
+- inline regexp (`/.../`) is no longer a supported syntax and must be strings
+- globs are no longer supported in the `grep` function
+- `this` is no longer implied, it must be passed in the 2nd argument.
+
+```zq
+zq -z -c "grep(a*b,s)" -
+```
+
+```super
+super -s -c "grep('a.*b',s)" -
+```
 
 ## Formatting changes
 
