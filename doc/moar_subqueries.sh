@@ -109,3 +109,24 @@ time super -S -c "
   where win = true
     and ts > root() - 1d
 "
+
+time super -S -c "
+  func root(): ( time('2025-08-17') )
+
+  SELECT
+    COUNT(CASE WHEN game_type = 'r' THEN 1 ELSE NULL END) AS r_wins_total,
+    COUNT(CASE WHEN game_type = 'c' THEN 1 ELSE NULL END) AS c_wins_total,
+    COUNT(CASE WHEN game_type = 'b' THEN 1 ELSE NULL END) AS b_wins_total,
+    COUNT() AS total_total
+  where win = true
+
+  UNION ALL
+
+  SELECT
+    COUNT(CASE WHEN game_type = 'r' THEN 1 ELSE NULL END) AS r_wins_total,
+    COUNT(CASE WHEN game_type = 'c' THEN 1 ELSE NULL END) AS c_wins_total,
+    COUNT(CASE WHEN game_type = 'b' THEN 1 ELSE NULL END) AS b_wins_total,
+    COUNT() AS total_total
+  where win = true
+    and ts > root() - 1d
+" ./moar_subqueries.sup
