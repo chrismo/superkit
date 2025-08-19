@@ -39,6 +39,7 @@ echo '........'
 # super -j -c "shapes" ./moarr_subquerses.sup
 echo '-'
 
+# This takes more user time, because threads maybe?
 time super -s -c "
   func root(): ( time('2025-08-17') )
 
@@ -118,6 +119,7 @@ time super -S -c "
     COUNT(CASE WHEN game_type = 'c' THEN 1 ELSE NULL END) AS c_wins_total,
     COUNT(CASE WHEN game_type = 'b' THEN 1 ELSE NULL END) AS b_wins_total,
     COUNT() AS total_total
+  from './moar_subqueries.sup'
   where win = true
 
   UNION ALL
@@ -127,6 +129,7 @@ time super -S -c "
     COUNT(CASE WHEN game_type = 'c' THEN 1 ELSE NULL END) AS c_wins_total,
     COUNT(CASE WHEN game_type = 'b' THEN 1 ELSE NULL END) AS b_wins_total,
     COUNT() AS total_total
+  from './moar_subqueries.sup'
   where win = true
     and ts > root() - 1d
-" ./moar_subqueries.sup
+"
