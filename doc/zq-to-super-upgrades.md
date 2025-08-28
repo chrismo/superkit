@@ -36,35 +36,35 @@ it, if one was used.
 
 DO NOT make the following upgrade:
 
-```zq
+```bash
 zq -j $input_file
 ```
 This zq command is merely reformatting the input file to compact
 (single-line) JSON. 
 
-```super
+```bash
 super -c -j $input_file # illegal!!
 ```
 This is illegal! Because there's no command string passed with the `-c`
 switch. The correct transformation is:
 
-```super
+```bash
 super -j $input_file # good! :) 
 ```
 
 ### DO NOT FORGET that -c must have the command string immediately follow it
 
-```zq
+```bash
 echo "$json" | zq -f text 'yield this.KmsKeyId' -
 ```
 
 Must become
-```super
+```bash
 echo "$json" | super -f line -c 'values this.KmsKeyId' -
 ```
 
 NOT THIS:
-```super
+```bash
 echo "$json" | super -c -f line 'values this.KmsKeyId' - # illegal!
 ```
 This is illegal!
@@ -98,11 +98,11 @@ Simple uses of over are simple to change without behavioral change:
                             
 These are identical:
 
-```zq
+```bash
 yield [1,2,3] | over this
 ```
 
-```super
+```bash
 values [1,2,3] | unnest this
 ```
 
@@ -126,35 +126,136 @@ Aug 15, 2025:
 - globs are no longer supported in the `grep` function
 - `this` is no longer implied, it must be passed in the 2nd argument.
 
-```zq
-zq -z -c "grep(a*b,s)" -
+```bash
+# NO LONGER WORKS IN SUPER
+echo '{"s":"alphabet"}' | zq -z "grep(/a*b/,s)" -
 ```
 
-```super
-super -s -c "grep('a.*b',s)" -
+```bash
+# THE CORRECT WAY TO DO IT NOW. CORRECT. GOOD.
+echo '{"s":"alphabet"}' | super -s -c "grep('a.*b',s)" -
+```
+       
+```bash
+# THIS WAY NO LONGER WORKS IN SUPER.
+zq -z "yield ['a','b'] | grep(/b/)"       
+["a","b"]
+```
+   
+```bash
+# MISSING SECOND ARGUMENT IS BAD.
+super -s -c "values ['a','b'] | grep('b')"
+too few arguments at line 1, column 20:
+values ['a','b'] | grep('b')
+                   ~~~~~~~~~\
+```
+   
+```bash
+# CORRECT. GOOD.
+super -s -c "values ['a','b'] | grep('b', this)"
+["a","b"]
+```
+               
+## Changes to implied `this` arguments 
+                                   
+As of [5075037c](https://github.com/brimdata/super/commit/5075037c) on Aug 27, 2025:
+
+`is` and `nest_dotted` no longer take an implied `this` as a first argument.
+They now must receive `this` explicitly as their 1st argument.
+
+This is a similar change as to `grep` above.
+
+`shape` and `cast` also will be changed in a similar fashion SOON.
+           
+```bash
+# THIS NO LONGER WORKS. BAD.
+zq -z "yield 2 | is(<int64>)"
+2
 ```
 
-## Formatting changes
+```bash
+# THIS SHOWS THE ERROR WHEN INCORRECT.
+super -s -c "values 2 | is(<int64>)"
+too few arguments at line 1, column 12:
+values 2 | is(<int64>)
+~~~~~~~~~~~
+```
+                                      
+```bash
+# CORRECT. GOOD.
+super -s -c "values 2 | is(this, <int64>)"
+2
+```
+
+`nest_dotted` is the same.
+
+[//]: # (TODO: NEED EXAMPLES) 
+ 
+## Cast changes
+                                        
+As of [ec1c5eee](https://github.com/brimdata/super/commit/ec1c5eee) on Aug 28, 2025:
+
+zq used to support casting with a direct "function" style syntax like this:
+
+```bash
+zq -z "{a:time('2025-08-28T12:00:00Z')}" 
+```
+...where `time` could be any primitive type (e.g. `string`, `int64`, `uint64`,
+etc.) or custom type.
+
+But that's no longer supported.
+                             
+```bash
+# BAD. INCORRECT.
+super -s -c "{a:time('2025-08-28T12:00:00Z')}"      
+no such function at line 1, column 4:
+{a:time('2025-08-28T12:00:00Z')}
+```
+                 
+You have to cast by other means:
+
+```bash
+# CORRECT. GOOD. THIS IS THE PREFERRED UPGRADE METHOD.
+super -s -c "{a:'2025-08-28T12:00:00Z'::time}" 
+{a:2025-08-28T12:00:00Z}
+```
+                                      
+```bash
+# this is legal, but not preferred. do not use.
+super -s -c "{a:cast('2025-08-28T12:00:00Z', <time>)}"
+{a:2025-08-28T12:00:00Z}
+```
+                                      
+```bash
+# this is legal, but not preferred. do not use.
+super -s -c "{a:CAST('2025-08-28T12:00:00Z' AS time)}"
+{a:2025-08-28T12:00:00Z}
+```
+
+## chrismo Preferred Formatting Changes
 
 This is just a matter of preference. I want all multi-line command
 strings to go from this:
                        
-```zq
+```bash
 zq -j 'over this
        | cut Id,Name' -
 ```
 
 To this:
-```super
-super -j -c '
+```bash
+super -j -c "
   over this
   | cut Id,Name
-' -
+" -
 ```
+                            
+Double-quotes should always be used, since single-quoted strings are legal
+with SuperDB.
 
-The command string should have the opening quote or double-quote end the
-1st line, then the command string contents should start on a new line,
-just 2 space indented from the parent `super` binary.
+The command string should have the opening double-quote end the 1st line, then
+the command string contents should start on a new line, just 2 space indented
+from the parent `super` binary.
 
-The closing quote or double-quote should be on its own line,
-left-aligned in the same column os the `super` binary at the very start.
+The closing double-quote should be on its own line, left-aligned in the same
+column os the `super` binary at the very start.
