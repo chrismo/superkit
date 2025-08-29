@@ -43,13 +43,13 @@ This zq command is merely reformatting the input file to compact
 (single-line) JSON. 
 
 ```bash
-super -c -j $input_file # illegal!!
+super -c -j $input_file # ILLEGAL!!
 ```
 This is illegal! Because there's no command string passed with the `-c`
 switch. The correct transformation is:
 
 ```bash
-super -j $input_file # good! :) 
+super -j $input_file # GOOD! :) 
 ```
 
 ### DO NOT FORGET that -c must have the command string immediately follow it
@@ -65,7 +65,7 @@ echo "$json" | super -f line -c 'values this.KmsKeyId' -
 
 NOT THIS:
 ```bash
-echo "$json" | super -c -f line 'values this.KmsKeyId' - # illegal!
+echo "$json" | super -c -f line 'values this.KmsKeyId' - # ILLEGAL!
 ```
 This is illegal!
 
@@ -158,7 +158,8 @@ super -s -c "values ['a','b'] | grep('b', this)"
                
 ## Changes to implied `this` arguments 
                                    
-As of [5075037c](https://github.com/brimdata/super/commit/5075037c) on Aug 27, 2025:
+As of [5075037c](https://github.com/brimdata/super/commit/5075037c) on Aug 27,
+2025:
 
 `is` and `nest_dotted` no longer take an implied `this` as a first argument.
 They now must receive `this` explicitly as their 1st argument.
