@@ -196,6 +196,9 @@ super -s -c "values 2 | is(this, <int64>)"
                                         
 As of [ec1c5eee](https://github.com/brimdata/super/commit/ec1c5eee) on Aug 28, 2025:
 
+([4e6d4921](https://github.com/brimdata/super/commit/4e6d4921) on Aug 29, 2025
+includes a CAST related bug fix)
+
 zq used to support casting with a direct "function" style syntax like this:
 
 ```bash
@@ -232,6 +235,26 @@ super -s -c "{a:cast('2025-08-28T12:00:00Z', <time>)}"
 super -s -c "{a:CAST('2025-08-28T12:00:00Z' AS time)}"
 {a:2025-08-28T12:00:00Z}
 ```
+
+## User Defined Syntax Changes
+
+https://github.com/brimdata/super/commit/a90585f6
+
+The new syntax for op declarations is:
+
+     op name arg, arg, ... : ( ... )
+
+and invoking an operator is now:
+
+    call name arg, arg, ...
+
+with a short-cut where you can drop the "call" keyword:
+
+    name arg, arg, ...
+
+https://github.com/brimdata/super/commit/aab15e0d
+
+`func` is now just `fn` - a simple rename.
 
 ## chrismo Preferred Formatting Changes
 
