@@ -30,7 +30,7 @@ super-structured data model.
 
 ### SuperDB Binary
 - The binary is `super` (not `superdb`)
-- Common flags: 
+- Common flags:
   - `-c` for command/query
   - `-j` for JSON output
   - `-J` for pretty JSON
@@ -48,14 +48,14 @@ super-structured data model.
 ### Critical Rules
 1. **Trailing dash**: ONLY use `-` at the end of a super command when piping
    stdin. Never use it without stdin or super returns empty.
-   - Bad: `super -j -c "values {token: \"$token\"}" -` (no stdin)
-   - Good: `super -j -c "values {token: \"$token\"}"` (no stdin, no dash)
-   - Good: `echo "$data" | super -j -c "query" -` (has stdin, has dash)
+  - Bad: `super -j -c "values {token: \"$token\"}" -` (no stdin)
+  - Good: `super -j -c "values {token: \"$token\"}"` (no stdin, no dash)
+  - Good: `echo "$data" | super -j -c "query" -` (has stdin, has dash)
 
 2. **Syntax differences from JavaScript**:
-   - Use `values` instead of `yield`
-   - Use `unnest` instead of `over`
-   - Type casting: `int64(myvar)` requires `-f line` for clean output
+  - Use `values` instead of `yield`
+  - Use `unnest` instead of `over`
+  - Type casting: `cast(myvar, <int64>)` may require either `-s` or `-f line` for clean output.
 
 ## Language Syntax Reference
 
@@ -296,7 +296,7 @@ output: |
 super -s data.json
 
 # Filter and transform
-echo '{"a":1,"b":2}' | super -c "put c:=a+b | drop a" -
+echo '{"a":1,"b":2}' | super -s -c "put c:=a+b | drop a" -
 
 # Type conversion with clean output
 super -f line -c "int64(123.45)"
@@ -304,16 +304,16 @@ super -f line -c "int64(123.45)"
 
 ### Complex Pipelines
 ```bash
-# Search, filter, and aggregate
-super -c '
+# Search, filter, and aggregate - return JSON
+super -j -c '
   search "error" 
   | where severity > 3
   | aggregate count:=count() by type
   | sort -count
 ' logs.json
 
-# Fork operation with parallel branches
-super -c '
+# Fork operation with parallel branches - return SuperJSON text
+super -s -c '
   from data.json
   | fork
     ( where type=="A" | put tag:="alpha" )
@@ -324,11 +324,11 @@ super -c '
 
 ### Data Type Handling
 ```bash
-# Mixed-type arrays
-echo '[1, "foo", 2.3, true]' | super -c "unnest this" -
+# Mixed-type arrays - return pretty-printed JSON
+echo '[1, "foo", 2.3, true]' | super -J -c "unnest this" -
 
-# Type switching
-super -c '
+# Type switching - return pretty-printed SuperJSON
+super -S -c '
   switch
     case typeof(value) == "int64" ( put category:="number" )
     case typeof(value) == "string" ( put category:="text" )
@@ -340,10 +340,10 @@ super -c '
 Traditional SQL syntax works seamlessly with SuperDB:
 ```bash
 # Traditional SELECT queries
-super -c "SELECT * FROM users WHERE age > 21" users.json
+super -s -c "SELECT * FROM users WHERE age > 21" users.json
 
 # CTEs (Common Table Expressions)
-super -c "
+super -s -c "
 WITH recent_orders AS (
   SELECT customer_id, order_date, total
   FROM orders 
@@ -361,7 +361,7 @@ WHERE ct.yearly_total > 1000;
 " orders.json
 
 # Window functions
-super -c "
+super -s -c "
 SELECT 
   name, 
   salary, 
@@ -371,25 +371,25 @@ FROM employees
 " employees.json
 
 # Mixed SQL and pipe syntax
-super -c "
+super -s -c "
 SELECT name, processed_date
 FROM ( from logs.json | ? 'error' | put processed_date:=now() )
 WHERE processed_date IS NOT NULL
 ORDER BY processed_date DESC;
 " logs.json
 ```
-        
+
 ### Tips
 
 - Merge together `super` calls whenever you can.
-**Not as Good**
+  **Not as Good**
 ```bash
-_current_tasks "| where done==true" | super -c "count()" -
+_current_tasks "| where done==true" | super -s -c "count()" -
 ```
 
 **Better**
 ```bash
-_current_tasks | super -c "where done==true | count()" -
+_current_tasks | super -s -c "where done==true | count()" -
 ```
 
 ## Append-Only Storage Patterns
@@ -485,25 +485,25 @@ put formatted:=strftime("%Y-%m-%d", ts)
 ### Common Issues and Solutions
 
 1. **Empty Results**
-   - Check for a trailing `-` without stdin
-   - Check for no trailing `-` with stdin (sometimes you get output anyway but this is usually wrong!)
-   - Verify field names match exactly (case-sensitive)
-   - Check type mismatches in comparisons
+  - Check for a trailing `-` without stdin
+  - Check for no trailing `-` with stdin (sometimes you get output anyway but this is usually wrong!)
+  - Verify field names match exactly (case-sensitive)
+  - Check type mismatches in comparisons
 
 2. **Type Errors**
-   - Use `typeof()` to inspect types
-   - Cast explicitly: `int64()`, `string()`, `float64()`
-   - Use `-f line` for clean numeric output
+  - Use `typeof()` to inspect types
+  - Cast explicitly: `int64()`, `string()`, `float64()`
+  - Use `-f line` for clean numeric output
 
 3. **Performance Issues**
-   - Use `head` early in pipeline to limit data
-   - Aggregate before sorting when possible
-   - Use vectorized operations (vector: true in tests)
+  - Use `head` early in pipeline to limit data
+  - Aggregate before sorting when possible
+  - Use vectorized operations (vector: true in tests)
 
 4. **Complex Queries**
-   - Break into smaller pipelines for debugging
-   - Use `super -c "values this"` to inspect intermediate data
-   - Add `| head 5` to preview results during development
+  - Break into smaller pipelines for debugging
+  - Use `super -s -c "values this"` to inspect intermediate data
+  - Add `| head 5` to preview results during development
 
 ### Debugging Commands
 ```bash
@@ -610,14 +610,14 @@ SuperDB supports f-string interpolation for formatting output:
 | values f'🎉 {prefix}: {string(count)} {grid_type} wins!'
 ```
 
-**Important:** 
+**Important:**
 - Numbers must be converted to strings using `string()` function
 - F-strings use single quotes with `f'...'` prefix
 - Variables are referenced with `{variable_name}` syntax
 
 ### Avoid jq syntax
 
-There's very little jq syntax that is valid in SuperDB. 
+There's very little jq syntax that is valid in SuperDB.
 
 - Do not use ` // 0 ` - this is only valid in jq, not in SuperDB. You can use coalesce instead.
 
@@ -627,7 +627,7 @@ There's very little jq syntax that is valid in SuperDB.
 
 **ALWAYS follow these quoting rules when SuperDB is called from bash:**
 
-- **ALWAYS use double quotes for the `-c` parameter**: `super -c "..."`
+- **ALWAYS use double quotes for the `-c` parameter**: `super -s -c "..."`
 - **ALWAYS use single quotes inside SuperDB queries**: `{type:10, content:'$variable'}`
 - **NEVER escape double quotes inside SuperDB** - use single quotes instead
 - This allows bash interpolation while avoiding quote escaping issues
@@ -660,16 +660,16 @@ super -j -c "
 
 **Key points:**
 - `unnest this` - converts array to stream of elements
-- `where this is not null` - filters elements (note: use `is not null`, not `!= null`)  
+- `where this is not null` - filters elements (note: use `is not null`, not `!= null`)
 - `collect(this)` - reassembles stream back into array
 
 **Wrong approaches:**
 ```bash
 # WRONG: where doesn't work directly on arrays
-super -c "[1,null,2] | where this != null"
+super -s -c "[1,null,2] | where this != null"
 
 # WRONG: incorrect null comparison syntax
-super -c "unnest this | where this != null"
+super -s -c "unnest this | where this != null"
 ```
 
 ## Building Conditional JSON Arrays (Robust Pattern)
@@ -747,7 +747,7 @@ _get_full_stats |
 **Advanced crosstab patterns:**
 ```bash
 # Multiple grouping levels with subcategories
-super -c "
+super -s -c "
   SELECT 
     category,
     subcategory,
@@ -759,7 +759,7 @@ super -c "
 " data.json
 
 # Time-based crosstabs
-super -c "
+super -s -c "
   SELECT 
     product_name,
     SUM(CASE WHEN date_part('month', order_date) = 1 THEN sales ELSE 0 END) as jan_sales,
@@ -771,6 +771,24 @@ super -c "
 
 **Benefits of SuperDB crosstabs:**
 - **Readable output**: Creates human-friendly summary tables
-- **Flexible aggregation**: Mix SUM, COUNT, AVG with conditional logic  
+- **Flexible aggregation**: Mix SUM, COUNT, AVG with conditional logic
 - **PostgreSQL compatibility**: Standard SQL CASE expressions
 - **Pipeline integration**: Works seamlessly with pipe syntax and external tools
+
+## Ensuring an integer output to do integer Bash operations
+
+`_current_records` in this case has the `-s` flag set. The `cast` call is
+essential to convert the count() type of `::uint64` to `int64` so it will
+output as a pure number without any markup.
+
+```bash
+# THIS IS CORRECT
+attempt_count=$(_current_records "<words_overfill_attempt>" "
+| where puzzle_id==$puzzle_id and archive==false
+| cast(count(this), <int64>)" "$attempts_file")
+
+echo $((attempt_count + 1)) # THIS IS CORRECT AND WILL WORK
+```
+
+You might be tempted to pipe this to another super command ` | super -f line -c
+"values this" -` but that would be superfluous. THIS IS WRONG/UNNECESSARY.
