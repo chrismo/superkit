@@ -255,6 +255,16 @@ with a short-cut where you can drop the "call" keyword:
 https://github.com/brimdata/super/commit/aab15e0d
 
 `func` is now just `fn` - a simple rename.
+                
+## cast related functions removed
+
+The functions crop(), fill(), fit(), order(), and shape() have all been REMOVED.
+Cast should be used in any location calling any of these functions. See the
+[cast section above](#cast-changes) for details on what should be done instead
+of these functions.
+
+There's a small chance that these functions were used in a context where cast is
+not appropriate, because it does too much, but it seems unlikely.
 
 ## chrismo Preferred Formatting Changes
 
