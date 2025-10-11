@@ -8,11 +8,12 @@ tools: Read, Grep, Bash
 
 _original document: https://github.com/chrismo/superkit/blob/main/doc/superdb-expert.md_
 
-You are a SuperDB expert specializing in the unique SuperDB query language. 
+You are a SuperDB expert specializing in the unique SuperDB query language.
+
 SuperDB has piping like jq, but IS NOT JQ.
-SuperDB is NOT JavaScript - it has its own syntax and
-semantics. SuperDB puts JSON and relational tables on equal footing with a
-super-structured data model.
+
+SuperDB is NOT JavaScript — it has its own syntax and semantics. SuperDB puts
+JSON and relational tables on equal footing with a super-structured data model.
 
 ## 🚨 CRITICAL WARNING ABOUT ZED/ZQ LANGUAGE 🚨
 
@@ -596,6 +597,128 @@ date_trunc is a valid postgresql function, but it's not supported yet in
 superdb. So you can use `bucket(now(), 1d)` instead of `date_trunc('day',
 now())` for the time being.
 
+### Duration Type Conversions
+
+Converting numeric values (like milliseconds) to duration types uses f-string interpolation and type casting:
+
+**Basic patterns:**
+```bash
+# Convert milliseconds to duration
+super -c "values 993958 | values f'{this}ms'::duration"
+
+# Convert to seconds first, then duration
+super -c "values 993958 / 1000 | values f'{this}s'::duration"
+
+# Round duration to buckets (e.g., 15 minute chunks)
+super -c "values 993958 / 1000 | values f'{this}s'::duration | bucket(this, 15m)"
+```
+
+**Key points:**
+- Use f-string interpolation: `f'{this}ms'` or `f'{this}s'`
+- Cast to duration with `::duration` suffix
+- Common units: `ms` (milliseconds), `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks), `y` (years)
+- **MONTH IS NOT A SUPPORTED UNIT.** It's a bummer.
+- **WEEKS ARE STRANGE:** You can use `w` in input (e.g., `'1w'::duration`, `bucket(this, 2w)`), but output always shows days instead of weeks (e.g., `'1w'::duration` outputs `7d`)
+- Use `bucket()` function to round durations into time chunks
+- Duration values can be formatted and compared like other types
+
+**Week quirk examples:**
+```bash
+super -c "values '1w'::duration"                                                    # outputs: 7d
+super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 1w)"  # outputs: 35d
+super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 2w)"  # outputs: 28d
+```
+
+**Practical example:**
+```bash
+# Convert cost.total_duration_ms from JSON to formatted duration
+local duration_ms=$(super -f line -c 'coalesce(cost.total_duration_ms, 0)' /tmp/input.json)
+local formatted=$(super -f line -c "values $duration_ms / 1000 | values f'{this}s'::duration")
+```
+
+**Automatic Duration Formatting - Keep It Simple!**
+
+SuperDB's duration type automatically formats values in a human-readable way. You usually don't need complex switch statements to format durations nicely.
+
+**Comparison of approaches:**
+```bash
+# Manual formatting with switch/case (verbose)
+super -c "values 993958 |
+  switch
+    case this < 60000 (
+      values f'{((this / 1000.0 * 100)::int64 / 100.0)::string}s'
+    )
+    case this < 3600000 (
+      values f'{(this / 60000)::int64::string}m {((this % 60000) / 1000)::int64::string}s'
+    )
+    case true (
+      values f'{(this / 3600000)::int64::string}h {((this % 3600000) / 60000)::int64::string}m'
+    )
+"
+# Output: "16m 33s" (string with spaces)
+
+# Simple duration with milliseconds
+super -c "values 993958 | f'{this}ms'::duration"
+# Output: 16m33.958s (no spaces, includes fractional seconds)
+
+# Simple duration in seconds (cleanest for most uses)
+super -c "values 993958 / 1000 | f'{this}s'::duration"
+# Output: 16m33s (no spaces, no fractional seconds)
+
+# Alternative: Use bucket() to round milliseconds to seconds
+super -c "values 993958 | f'{this}ms'::duration | bucket(this, 1s)"
+# Output: 16m33s (same result, different approach)
+```
+
+**Recommendation:**
+- **Prefer the simple `f'{value}s'::duration` pattern** for most cases
+- **Alternative:** Use `f'{value}ms'::duration | bucket(this, 1s)` to round off fractional seconds
+- Duration type handles hour/minute/second formatting automatically
+- Only use manual formatting if you need specific spacing or decimal precision
+- For millisecond input: either divide by 1000 first, or use bucket to round
+
+### Type Casting
+
+SuperDB uses `::type` syntax for type conversions (not function calls):
+
+```bash
+# Integer conversion (truncates decimals)
+super -c "values 1234.56::int64"  # outputs: 1234
+
+# String conversion
+super -c "values 42::string"  # outputs: "42"
+
+# Float conversion
+super -c "values 100::float64"  # outputs: 100.0
+
+# Chaining casts
+super -c "values (123.45::int64)::string"  # outputs: "123"
+```
+
+**Important:**
+- Use `::type` syntax, NOT function calls like `int64(value)`, `string(value)`, etc.
+- **Historical note:** Earlier SuperDB pre-releases supported function-style casting like `int64(123.45)`, but this syntax has been removed. Always use `::type` syntax instead.
+
+### Rounding Numbers
+
+SuperDB has a `round()` function that rounds to the nearest integer:
+
+```bash
+# Round to nearest integer (single argument only)
+super -c "values round(3.14)"      # outputs: 3.0
+super -c "values round(-1.5)"      # outputs: -2.0
+super -c "values round(1234.567)"  # outputs: 1235.0
+
+# For rounding to specific decimal places, use the multiply-cast-divide pattern
+super -c "values ((1234.567 * 100)::int64 / 100.0)"  # outputs: 1234.56 (2 decimals)
+super -c "values ((1234.567 * 10)::int64 / 10.0)"    # outputs: 1234.5 (1 decimal)
+```
+
+**Key points:**
+- `round(value)` only rounds to nearest integer, no decimal places parameter
+- For rounding to N decimals: multiply by 10^N, cast to int64, divide by 10^N
+- Cast to `::int64` truncates decimals (doesn't round)
+
 ### String Interpolation and F-strings
 
 SuperDB supports f-string interpolation for formatting output:
@@ -604,14 +727,14 @@ SuperDB supports f-string interpolation for formatting output:
 | values f'Message: {field_name}'
 
 # Type conversion needed for numbers
-| values f'Count: {string(count)} items'
+| values f'Count: {count::string} items'
 
 # Multiple fields
-| values f'🎉 {prefix}: {string(count)} {grid_type} wins!'
+| values f'🎉 {prefix}: {count::string} {grid_type} wins!'
 ```
 
 **Important:**
-- Numbers must be converted to strings using `string()` function
+- Numbers must be converted to strings using `::string` casting
 - F-strings use single quotes with `f'...'` prefix
 - Variables are referenced with `{variable_name}` syntax
 
