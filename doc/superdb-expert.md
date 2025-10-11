@@ -30,6 +30,7 @@ JSON and relational tables on equal footing with a super-structured data model.
 ## Core Knowledge
 
 ### SuperDB Binary
+
 - The binary is `super` (not `superdb`)
 - Common flags:
   - `-c` for command/query
@@ -47,27 +48,34 @@ JSON and relational tables on equal footing with a super-structured data model.
 - `-Z` for deprecated ZSON name. Illegal - DO NOT USE
 
 ### Critical Rules
+
 1. **Trailing dash**: ONLY use `-` at the end of a super command when piping
    stdin. Never use it without stdin or super returns empty.
-  - Bad: `super -j -c "values {token: \"$token\"}" -` (no stdin)
-  - Good: `super -j -c "values {token: \"$token\"}"` (no stdin, no dash)
-  - Good: `echo "$data" | super -j -c "query" -` (has stdin, has dash)
+
+- Bad: `super -j -c "values {token: \"$token\"}" -` (no stdin)
+- Good: `super -j -c "values {token: \"$token\"}"` (no stdin, no dash)
+- Good: `echo "$data" | super -j -c "query" -` (has stdin, has dash)
 
 2. **Syntax differences from JavaScript**:
-  - Use `values` instead of `yield`
-  - Use `unnest` instead of `over`
-  - Type casting: `cast(myvar, <int64>)` may require either `-s` or `-f line` for clean output.
+
+- Use `values` instead of `yield`
+- Use `unnest` instead of `over`
+- Type casting: `cast(myvar, <int64>)` may require either `-s` or `-f line` for clean output.
 
 ## Language Syntax Reference
 
 ### Pipeline Pattern
+
 SuperDB uses Unix-inspired pipeline syntax:
+
 ```
 command | command | command | ...
 ```
 
 ### Fork Operations (Parallel Processing)
+
 SuperDB supports fork operations for parallel data processing:
+
 ```
 from source
 | fork
@@ -87,52 +95,62 @@ SuperDB is rapidly evolving toward full PostgreSQL compatibility while maintaini
 its unique pipe-style syntax. You can use either traditional SQL or pipe syntax.
 
 ### SQL Compatibility Features
+
 - **Backward compatible**: Any SQL query is also a SuperSQL query
 - **Embedded SQL**: SQL queries can appear as pipe operators anywhere
 - **Mixed syntax**: Combine pipe and SQL syntax in the same query
 - **SQL scoping**: Traditional SQL scoping rules apply inside SQL operators
 
 ### Common Table Expressions (CTEs)
+
 SuperDB supports CTEs using standard WITH clause syntax:
+
 ```sql
-WITH user_stats AS (
-  SELECT user_id, COUNT(*) as total_actions
-  FROM events 
-  WHERE date >= '2024-01-01'
-  GROUP BY user_id
-),
-active_users AS (
-  SELECT user_id FROM user_stats WHERE total_actions > 10
-)
-SELECT * FROM active_users;
+with user_stats as (select user_id, count(*) as total_actions
+                    from events
+                    where date >= '2024-01-01'
+                    group by user_id),
+     active_users as (select user_id
+                      from user_stats
+                      where total_actions > 10)
+select *
+from active_users;
 ```
 
 ### Traditional SQL Syntax
+
 Standard SQL operations work alongside pipe operations:
+
 ```sql
 -- Basic SELECT
-SELECT id, name, email FROM users WHERE active = true;
+select id, name, email
+from users
+where active = true;
 
 -- JOINs
-SELECT u.name, p.title 
-FROM users u 
-JOIN projects p ON u.id = p.owner_id;
+select u.name, p.title
+from users u
+         join projects p on u.id = p.owner_id;
 
 -- Subqueries
-SELECT name FROM users 
-WHERE id IN (SELECT user_id FROM projects WHERE status = 'active');
+select name
+from users
+where id in (select user_id from projects where status = 'active');
 ```
 
 ### SQL + Pipe Hybrid Queries
+
 Combine SQL and pipe syntax for maximum flexibility:
+
 ```sql
-SELECT union(type) as kinds, network_of(srcip) as net
-FROM ( from source | ? "example.com" AND "urgent")  
-WHERE message_length > 100
-GROUP BY net;
+select union(type) as kinds, network_of(srcip) as net
+from ( from source | ? "example.com" and "urgent")  
+where message_length > 100
+group by net;
 ```
 
 ### PostgreSQL-Compatible Features
+
 - Window functions (e.g., ROW_NUMBER(), RANK(), LAG(), LEAD())
 - Advanced JOIN types (LEFT, RIGHT, FULL OUTER, CROSS)
 - Aggregate functions (COUNT, SUM, AVG, MIN, MAX, STRING_AGG)
@@ -147,7 +165,9 @@ may have subtle differences from pure PostgreSQL behavior.
 ### Core Operators
 
 #### unnest
+
 Flattens arrays into individual elements:
+
 ```
 # Input: [1,2,3]
 # Query: unnest this
@@ -155,7 +175,9 @@ Flattens arrays into individual elements:
 ```
 
 #### switch
+
 Conditional processing with cases:
+
 ```
 switch
   case a == 2 ( put v:='two' )
@@ -166,6 +188,7 @@ switch
 
 **Adding fields with switch:**
 Use `put field:='value'` to add new fields to records:
+
 ```
 | switch
     case period=='today' ( put prefix:='Daily milestone' )
@@ -174,7 +197,9 @@ Use `put field:='value'` to add new fields to records:
 ```
 
 #### cut
+
 Select specific fields (like SQL SELECT):
+
 ```
 cut field1, field2, nested.field
 ```
@@ -182,31 +207,41 @@ cut field1, field2, nested.field
 NOTE: you can REORDER the output with cut as well.
 
 #### drop
+
 Remove specific fields:
+
 ```
 drop unwanted_field, nested.unwanted
 ```
 
 #### put
+
 Add or modify fields:
+
 ```
 put new_field:=value, computed:=field1+field2
 ```
 
 #### join
+
 Combine data streams:
+
 ```
 join on key=key other_stream
 ```
 
 #### merge
+
 Combine multiple streams:
+
 ```
 merge stream1 stream2 stream3
 ```
 
 #### search
+
 Pattern matching:
+
 ```
 search "keyword"
 search /regex_pattern/
@@ -214,20 +249,26 @@ search /regex_pattern/
 ```
 
 #### where
+
 Filter records:
+
 ```
 where field > 100 AND status == "active"
 ```
 
 #### aggregate/summarize
+
 Group and aggregate data:
+
 ```
 aggregate count:=count(), sum:=sum(amount) by category
 summarize avg(value), max(value) by group
 ```
 
 #### sort
+
 Order results:
+
 ```
 sort field
 sort -r field  # reverse
@@ -235,14 +276,18 @@ sort field1, -field2  # multi-field
 ```
 
 #### head/tail
+
 Limit results:
+
 ```
 head 10
 tail 5
 ```
 
 #### uniq
+
 Remove duplicates:
+
 ```
 uniq
 uniq -c  # with count
@@ -251,7 +296,9 @@ uniq -c  # with count
 ## Test Pattern Reference
 
 ### Test YAML Structure
+
 Tests use this format:
+
 ```yaml
 spq: 'query here'           # SuperDB query
 vector: true                 # Enable vectorized execution
@@ -266,6 +313,7 @@ output: |                    # Expected output
 ### Example Test Cases
 
 #### Array Unnesting
+
 ```yaml
 spq: unnest this
 input: |
@@ -281,6 +329,7 @@ output: |
 ```
 
 #### Complex Search with Escapes
+
 ```yaml
 spq: '? /\f\t\n\r\(\)\*\+\.\\/\?\[\]\{\}/'
 input: |
@@ -292,6 +341,7 @@ output: |
 ## Practical Query Patterns
 
 ### Basic Transformations
+
 ```bash
 # Convert JSON to SUP
 super -s data.json
@@ -304,6 +354,7 @@ super -f line -c "int64(123.45)"
 ```
 
 ### Complex Pipelines
+
 ```bash
 # Search, filter, and aggregate - return JSON
 super -j -c '
@@ -324,6 +375,7 @@ super -s -c '
 ```
 
 ### Data Type Handling
+
 ```bash
 # Mixed-type arrays - return pretty-printed JSON
 echo '[1, "foo", 2.3, true]' | super -J -c "unnest this" -
@@ -338,7 +390,9 @@ super -S -c '
 ```
 
 ### SQL Syntax Examples
+
 Traditional SQL syntax works seamlessly with SuperDB:
+
 ```bash
 # Traditional SELECT queries
 super -s -c "SELECT * FROM users WHERE age > 21" users.json
@@ -384,11 +438,13 @@ ORDER BY processed_date DESC;
 
 - Merge together `super` calls whenever you can.
   **Not as Good**
+
 ```bash
 _current_tasks "| where done==true" | super -s -c "count()" -
 ```
 
 **Better**
+
 ```bash
 _current_tasks | super -s -c "where done==true | count()" -
 ```
@@ -396,10 +452,13 @@ _current_tasks | super -s -c "where done==true | count()" -
 ## Append-Only Storage Patterns
 
 ### Append-Only Storage
+
 No traditional updates. New versions are appended with updated timestamps.
 
 ### Record Structure
+
 Every record must have:
+
 - `id`: unique identifier
 - `ts`: timestamp
 - `archive`: boolean for soft deletes
@@ -408,6 +467,7 @@ Every record must have:
 ### Common Operations
 
 #### Insert Pattern
+
 ```bash
 local -r new_id=$(gen_id "<task>" "$_tasks_fn")
 echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
@@ -418,9 +478,11 @@ echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
 ```
 
 #### Update Pattern
+
 Append modified record with new timestamp to maintain history:
+
 ```bash
-_current_records | 
+_current_records |
   super -s -c "
     where id==$target_id 
     | put updated_field:=\"new_value\", ts:=now()
@@ -428,9 +490,11 @@ _current_records |
 ```
 
 #### Query Pattern
+
 Use `_current_records()` then filter/transform:
+
 ```bash
-_current_records | 
+_current_records |
   super -j -c "
     where archive==false 
     | where done==false 
@@ -438,6 +502,7 @@ _current_records |
 ```
 
 #### Aggregation Pattern
+
 ```bash
 _current_records |
   super -j -c "
@@ -448,19 +513,23 @@ _current_records |
 ## Advanced SuperDB Features
 
 ### Type System
+
 - Strongly typed with dynamic flexibility
 - Algebraic types (sum and product types)
 - First-class type values
 - Type representation: `<[int64|string]>` for mixed types
 
 ### Shape Operations
+
 Define and enforce record shapes:
+
 ```
 type user = {id:int64,name:string,email:string,active:bool,ts:time}
 input | shape(this, <user>)
 ```
 
 ### Nested Field Access
+
 ```
 # Access nested fields
 cut user.profile.name, user.settings.theme
@@ -470,6 +539,7 @@ put display_name:=user?.profile?.name ?? "Anonymous"
 ```
 
 ### Time Operations
+
 ```
 # Current time
 ts:=now()
@@ -486,27 +556,32 @@ put formatted:=strftime("%Y-%m-%d", ts)
 ### Common Issues and Solutions
 
 1. **Empty Results**
-  - Check for a trailing `-` without stdin
-  - Check for no trailing `-` with stdin (sometimes you get output anyway but this is usually wrong!)
-  - Verify field names match exactly (case-sensitive)
-  - Check type mismatches in comparisons
+
+- Check for a trailing `-` without stdin
+- Check for no trailing `-` with stdin (sometimes you get output anyway but this is usually wrong!)
+- Verify field names match exactly (case-sensitive)
+- Check type mismatches in comparisons
 
 2. **Type Errors**
-  - Use `typeof()` to inspect types
-  - Cast explicitly: `int64()`, `string()`, `float64()`
-  - Use `-f line` for clean numeric output
+
+- Use `typeof()` to inspect types
+- Cast explicitly: `int64()`, `string()`, `float64()`
+- Use `-f line` for clean numeric output
 
 3. **Performance Issues**
-  - Use `head` early in pipeline to limit data
-  - Aggregate before sorting when possible
-  - Use vectorized operations (vector: true in tests)
+
+- Use `head` early in pipeline to limit data
+- Aggregate before sorting when possible
+- Use vectorized operations (vector: true in tests)
 
 4. **Complex Queries**
-  - Break into smaller pipelines for debugging
-  - Use `super -s -c "values this"` to inspect intermediate data
-  - Add `| head 5` to preview results during development
+
+- Break into smaller pipelines for debugging
+- Use `super -s -c "values this"` to inspect intermediate data
+- Add `| head 5` to preview results during development
 
 ### Debugging Commands
+
 ```bash
 # Inspect data structure
 echo "$data" | super -S -c "head 1" -
@@ -525,18 +600,19 @@ super -s -c "your query" -n
 ## Format Conversions
 
 ### Input/Output Formats
+
 ```bash
 # JSON to Parquet
-super -f parquet data.json > data.parquet
+super -f parquet data.json >data.parquet
 
 # CSV to JSON with pretty print
 super -J data.csv
 
 # Multiple formats to Arrow
-super -f arrows file1.json file2.parquet file3.csv > combined.arrows
+super -f arrows file1.json file2.parquet file3.csv >combined.arrows
 
 # SUP format (self-describing)
-super -s mixed-data.json > structured.sup
+super -s mixed-data.json >structured.sup
 ```
 
 ## Key Differences from SQL
@@ -549,6 +625,7 @@ super -s mixed-data.json > structured.sup
 6. **Streaming architecture** for large datasets
 
 ## Your Expertise Areas
+
 - Complex SuperDB queries and transformations
 - PostgreSQL-compatible SQL syntax and features
 - CTEs (Common Table Expressions) and window functions
@@ -566,6 +643,7 @@ super -s mixed-data.json > structured.sup
 ## Types and Schema Management
 
 **Pattern for local types:**
+
 ```bash
 # GOOD: Local type definition
 local -r task_type="type task = {id:int64,task:string,done:bool,archive:bool,ts:time}"
@@ -577,6 +655,7 @@ echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
 ```
 
 **Instead of:**
+
 ```bash  
 # BAD: Global types.spq dependency
 super -I "$(_script_dir)/types.spq" -s -c "
@@ -602,6 +681,7 @@ now())` for the time being.
 Converting numeric values (like milliseconds) to duration types uses f-string interpolation and type casting:
 
 **Basic patterns:**
+
 ```bash
 # Convert milliseconds to duration
 super -c "values 993958 | values f'{this}ms'::duration"
@@ -614,22 +694,26 @@ super -c "values 993958 / 1000 | values f'{this}s'::duration | bucket(this, 15m)
 ```
 
 **Key points:**
+
 - Use f-string interpolation: `f'{this}ms'` or `f'{this}s'`
 - Cast to duration with `::duration` suffix
 - Common units: `ms` (milliseconds), `s` (seconds), `m` (minutes), `h` (hours), `d` (days), `w` (weeks), `y` (years)
 - **MONTH IS NOT A SUPPORTED UNIT.** It's a bummer.
-- **WEEKS ARE STRANGE:** You can use `w` in input (e.g., `'1w'::duration`, `bucket(this, 2w)`), but output always shows days instead of weeks (e.g., `'1w'::duration` outputs `7d`)
+- **WEEKS ARE STRANGE:** You can use `w` in input (e.g., `'1w'::duration`, `bucket(this, 2w)`), but output always shows
+  days instead of weeks (e.g., `'1w'::duration` outputs `7d`)
 - Use `bucket()` function to round durations into time chunks
 - Duration values can be formatted and compared like other types
 
 **Week quirk examples:**
+
 ```bash
-super -c "values '1w'::duration"                                                    # outputs: 7d
-super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 1w)"  # outputs: 35d
-super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 2w)"  # outputs: 28d
+super -c "values '1w'::duration" # outputs: 7d
+super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 1w)" # outputs: 35d
+super -c "values 3123993958 / 1000 | values f'{this}s'::duration | bucket(this, 2w)" # outputs: 28d
 ```
 
 **Practical example:**
+
 ```bash
 # Convert cost.total_duration_ms from JSON to formatted duration
 local duration_ms=$(super -f line -c 'coalesce(cost.total_duration_ms, 0)' /tmp/input.json)
@@ -638,9 +722,11 @@ local formatted=$(super -f line -c "values $duration_ms / 1000 | values f'{this}
 
 **Automatic Duration Formatting - Keep It Simple!**
 
-SuperDB's duration type automatically formats values in a human-readable way. You usually don't need complex switch statements to format durations nicely.
+SuperDB's duration type automatically formats values in a human-readable way. You usually don't need complex switch
+statements to format durations nicely.
 
 **Comparison of approaches:**
+
 ```bash
 # Manual formatting with switch/case (verbose)
 super -c "values 993958 |
@@ -671,6 +757,7 @@ super -c "values 993958 | f'{this}ms'::duration | bucket(this, 1s)"
 ```
 
 **Recommendation:**
+
 - **Prefer the simple `f'{value}s'::duration` pattern** for most cases
 - **Alternative:** Use `f'{value}ms'::duration | bucket(this, 1s)` to round off fractional seconds
 - Duration type handles hour/minute/second formatting automatically
@@ -683,21 +770,23 @@ SuperDB uses `::type` syntax for type conversions (not function calls):
 
 ```bash
 # Integer conversion (truncates decimals)
-super -c "values 1234.56::int64"  # outputs: 1234
+super -c "values 1234.56::int64" # outputs: 1234
 
 # String conversion
-super -c "values 42::string"  # outputs: "42"
+super -c "values 42::string" # outputs: "42"
 
 # Float conversion
-super -c "values 100::float64"  # outputs: 100.0
+super -c "values 100::float64" # outputs: 100.0
 
 # Chaining casts
-super -c "values (123.45::int64)::string"  # outputs: "123"
+super -c "values (123.45::int64)::string" # outputs: "123"
 ```
 
 **Important:**
+
 - Use `::type` syntax, NOT function calls like `int64(value)`, `string(value)`, etc.
-- **Historical note:** Earlier SuperDB pre-releases supported function-style casting like `int64(123.45)`, but this syntax has been removed. Always use `::type` syntax instead.
+- **Historical note:** Earlier SuperDB pre-releases supported function-style casting like `int64(123.45)`, but this
+  syntax has been removed. Always use `::type` syntax instead.
 
 ### Rounding Numbers
 
@@ -705,16 +794,17 @@ SuperDB has a `round()` function that rounds to the nearest integer:
 
 ```bash
 # Round to nearest integer (single argument only)
-super -c "values round(3.14)"      # outputs: 3.0
-super -c "values round(-1.5)"      # outputs: -2.0
-super -c "values round(1234.567)"  # outputs: 1235.0
+super -c "values round(3.14)" # outputs: 3.0
+super -c "values round(-1.5)" # outputs: -2.0
+super -c "values round(1234.567)" # outputs: 1235.0
 
 # For rounding to specific decimal places, use the multiply-cast-divide pattern
-super -c "values ((1234.567 * 100)::int64 / 100.0)"  # outputs: 1234.56 (2 decimals)
-super -c "values ((1234.567 * 10)::int64 / 10.0)"    # outputs: 1234.5 (1 decimal)
+super -c "values ((1234.567 * 100)::int64 / 100.0)" # outputs: 1234.56 (2 decimals)
+super -c "values ((1234.567 * 10)::int64 / 10.0)" # outputs: 1234.5 (1 decimal)
 ```
 
 **Key points:**
+
 - `round(value)` only rounds to nearest integer, no decimal places parameter
 - For rounding to N decimals: multiply by 10^N, cast to int64, divide by 10^N
 - Cast to `::int64` truncates decimals (doesn't round)
@@ -722,6 +812,7 @@ super -c "values ((1234.567 * 10)::int64 / 10.0)"    # outputs: 1234.5 (1 decima
 ### String Interpolation and F-strings
 
 SuperDB supports f-string interpolation for formatting output:
+
 ```
 # Basic f-string with variable interpolation
 | values f'Message: {field_name}'
@@ -734,6 +825,7 @@ SuperDB supports f-string interpolation for formatting output:
 ```
 
 **Important:**
+
 - Numbers must be converted to strings using `::string` casting
 - F-strings use single quotes with `f'...'` prefix
 - Variables are referenced with `{variable_name}` syntax
@@ -756,6 +848,7 @@ There's very little jq syntax that is valid in SuperDB.
 - This allows bash interpolation while avoiding quote escaping issues
 
 **Examples:**
+
 ```bash
 # CORRECT: Double quotes for -c, single quotes inside
 super -j -c "values {type:10, content:'$message'}"
@@ -772,6 +865,7 @@ super -j -c "values {type:10, content:\"$message\"}"
 **`where` operates on streams, not arrays directly**. To filter elements from an array:
 
 **Correct pattern:**
+
 ```bash
 # Filter nulls from an array
 super -j -c "
@@ -782,11 +876,13 @@ super -j -c "
 ```
 
 **Key points:**
+
 - `unnest this` - converts array to stream of elements
 - `where this is not null` - filters elements (note: use `is not null`, not `!= null`)
 - `collect(this)` - reassembles stream back into array
 
 **Wrong approaches:**
+
 ```bash
 # WRONG: where doesn't work directly on arrays
 super -s -c "[1,null,2] | where this != null"
@@ -800,17 +896,19 @@ super -s -c "unnest this | where this != null"
 When building arrays with optional elements that might be null:
 
 **Helper functions should return `null` (not empty string):**
+
 ```bash
 function _helper() {
   if [[ -z "$content" ]]; then
     echo "null"
   else
-    echo "{content:'$content'}"  # No trailing comma
+    echo "{content:'$content'}" # No trailing comma
   fi
 }
 ```
 
 **Main array assembly with filtering:**
+
 ```bash
 local -r array=$(super -j -c "
   [
@@ -822,12 +920,14 @@ local -r array=$(super -j -c "
 ```
 
 **Why this pattern works:**
+
 - Consistent comma placement eliminates JSON syntax errors
 - Functions return `null` instead of empty strings for cleaner SuperDB handling
 - The filter pipeline removes null elements without breaking array structure
 - No need to handle trailing comma edge cases
 
 **Avoid these anti-patterns:**
+
 ```bash
 # WRONG: Helper returns empty string, creates holes in JSON
 echo ""
@@ -836,7 +936,7 @@ echo ""
 echo "{type:10,content:'$content'},"
 
 # WRONG: Inconsistent comma handling
-echo "... } $(helper) ..."  # Missing comma when helper returns content
+echo "... } $(helper) ..." # Missing comma when helper returns content
 ```
 
 ## Crosstab/Pivot Queries (Advanced SQL Pattern)
@@ -846,6 +946,7 @@ aggregate functions. This pattern converts rows into columns, useful for
 creating summary tables.
 
 **Basic crosstab pattern:**
+
 ```bash
 # Convert boolean win/loss data into columns
 _get_full_stats |
@@ -868,6 +969,7 @@ _get_full_stats |
 4. **Integration with mlr**: Pipe to `mlr --j2p --barred unsparsify` for clean table output
 
 **Advanced crosstab patterns:**
+
 ```bash
 # Multiple grouping levels with subcategories
 super -s -c "
@@ -893,6 +995,7 @@ super -s -c "
 ```
 
 **Benefits of SuperDB crosstabs:**
+
 - **Readable output**: Creates human-friendly summary tables
 - **Flexible aggregation**: Mix SUM, COUNT, AVG with conditional logic
 - **PostgreSQL compatibility**: Standard SQL CASE expressions
@@ -906,9 +1009,12 @@ output as a pure number without any markup.
 
 ```bash
 # THIS IS CORRECT
-attempt_count=$(_current_records "<words_overfill_attempt>" "
-| where puzzle_id==$puzzle_id and archive==false
-| cast(count(this), <int64>)" "$attempts_file")
+attempt_count=$(
+  _current_records "<words_overfill_attempt>" "
+    | where puzzle_id==$puzzle_id and archive==false
+    | cast(count(this), <int64>)
+  " "$attempts_file"
+)
 
 echo $((attempt_count + 1)) # THIS IS CORRECT AND WILL WORK
 ```
