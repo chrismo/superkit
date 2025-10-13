@@ -1021,3 +1021,120 @@ echo $((attempt_count + 1)) # THIS IS CORRECT AND WILL WORK
 
 You might be tempted to pipe this to another super command ` | super -f line -c
 "values this" -` but that would be superfluous. THIS IS WRONG/UNNECESSARY.
+
+## Aggregate Functions: Expression vs Operator Context
+
+Aggregate functions in SuperDB work in two fundamentally different ways.
+**Expression context** produces output for each input (incremental), while
+**operator context** produces a single summary.
+
+Reference: https://superdb.org/book/super-sql/expressions/aggregates.html
+
+### Expression Context: Incremental Output
+
+Produces one output per input, maintaining state across the stream. Use for
+running totals, sequential IDs, or accumulating values. May prevent
+parallelization.
+
+```bash
+# Running sum (accumulates with each input)
+echo '{"amount":10}
+{"amount":20}
+{"amount":30}' |
+  super -j -c "put running_total:=sum(amount)" -
+
+# Output:
+{"amount":10,"running_total":10}
+{"amount":20,"running_total":30}
+{"amount":30,"running_total":60}
+
+# Growing array (collects all previous values)
+echo '"a"
+"b"
+"c"' |
+  super -j -c "values {items:union(this)}" -
+
+# Output:
+{"items":["a"]}
+{"items":["a","b"]}
+{"items":["a","b","c"]}
+```
+
+### Aggregate Operator Context: Summary Output
+
+With **`aggregate`** (or `summarize`), produces a single output summarizing all
+inputs. Better performance, can be parallelized. Use for totals and statistics.
+
+```bash
+# Single summary across all records
+echo '{"x":1}
+{"x":2}
+{"x":3}' |
+  super -j -c "aggregate total:=count(), sum_x:=sum(x)" -
+
+# Output:
+{"total":3,"sum_x":6}
+
+# Group by category
+echo '{"category":"A","amount":10}
+{"category":"B","amount":20}
+{"category":"A","amount":15}' |
+  super -j -c "aggregate total:=sum(amount) by category | sort category" -
+
+# Output:
+{"category":"A","total":25}
+{"category":"B","total":20}
+
+# Multiple aggregates with grouping
+echo '{"category":"food","amount":10}
+{"category":"travel","amount":50}
+{"category":"food","amount":15}' |
+  super -j -c "aggregate count:=count(), total:=sum(amount), avg:=avg(amount) by category | sort category" -
+
+# Output:
+{"category":"food","count":2,"total":25,"avg":12.5}
+{"category":"travel","count":1,"total":50,"avg":50}
+```
+
+### Common Functions
+
+`count()`, `sum()`, `avg()`, `min()`, `max()`, `union()` (array),
+`string_agg(text, ',')`, `count_distinct()`
+
+```bash
+# Expression: Running balance (one output per input)
+echo '{"transaction":"deposit","amount":100}
+{"transaction":"withdrawal","amount":-30}
+{"transaction":"deposit","amount":50}' |
+  super -j -c "put balance:=sum(amount)" -
+
+# Output:
+{"transaction":"deposit","amount":100,"balance":100}
+{"transaction":"withdrawal","amount":-30,"balance":70}
+{"transaction":"deposit","amount":50,"balance":120}
+
+# Operator: Account summary (one output per group)
+echo '{"type":"checking","amount":100}
+{"type":"savings","amount":500}
+{"type":"checking","amount":50}' |
+  super -j -c "aggregate balance:=sum(amount) by type | sort type" -
+
+# Output:
+{"type":"checking","balance":150}
+{"type":"savings","balance":500}
+
+# SQL syntax works too
+echo '{"category":"A","amount":10}
+{"category":"B","amount":20}
+{"category":"A","amount":15}' |
+  super -j -c "
+    SELECT category, COUNT(*) as count, SUM(amount) as total
+    FROM -
+    GROUP BY category
+    ORDER BY category
+  " -
+
+# Output:
+{"category":"A","count":2,"total":25}
+{"category":"B","count":1,"total":20}
+```
