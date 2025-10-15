@@ -540,6 +540,11 @@ put display_name:=user?.profile?.name ?? "Anonymous"
 
 ### Time Operations
 
+**Type representation:**
+
+- `time`: signed 64-bit integer as nanoseconds from epoch
+- `duration`: signed 64-bit integer as nanoseconds
+
 ```
 # Current time
 ts:=now()
