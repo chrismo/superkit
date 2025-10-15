@@ -201,7 +201,7 @@ Use `put field:='value'` to add new fields to records:
 Select specific fields (like SQL SELECT):
 
 ```
-cut field1, field2, nested.field
+cut field1, field2, nested.field, new_name:=old_name
 ```
 
 NOTE: you can REORDER the output with cut as well.
@@ -228,14 +228,6 @@ Combine data streams:
 
 ```
 join on key=key other_stream
-```
-
-#### merge
-
-Combine multiple streams:
-
-```
-merge stream1 stream2 stream3
 ```
 
 #### search
@@ -434,10 +426,28 @@ ORDER BY processed_date DESC;
 " logs.json
 ```
 
+```bash
+echo '{"id":1,"name":"foo"}
+{"id":2,"name":"bar"}' > people.json
+
+echo '{id:1,person_id:1,exercise:"tango"}
+{id:2,person_id:1,exercise:"typing"}
+{id:3,person_id:2,exercise:"jogging"}
+{id:4,person_id:2,exercise:"cooking"}' > exercises.sup
+
+# joins supported: left, right, inner, outer, anti
+super -c "
+  select * from people.json people
+  join exercises.sup exercises
+  on people.id=exercises.person_id
+"
+```
+
 ### Tips
 
 - Merge together `super` calls whenever you can.
-  **Not as Good**
+
+**Not as Good**
 
 ```bash
 _current_tasks "| where done==true" | super -s -c "count()" -
@@ -665,22 +675,6 @@ super -s mixed-data.json >structured.sup
 5. **Type-aware operations** with automatic handling
 6. **Streaming architecture** for large datasets
 
-## Your Expertise Areas
-
-- Complex SuperDB queries and transformations
-- PostgreSQL-compatible SQL syntax and features
-- CTEs (Common Table Expressions) and window functions
-- Traditional SQL and pipe syntax hybrid queries
-- Data migration scripts between formats
-- Query optimization for large datasets
-- Type definitions and shape validation
-- Debugging empty results (usually trailing dash issues)
-- Working with append-only data patterns
-- Mixed-type data processing
-- Fork operations for parallel processing
-- SQL-to-SuperDB migration strategies
-- Test case creation and validation
-
 ## Types and Schema Management
 
 **Pattern for local types:**
@@ -761,41 +755,10 @@ local duration_ms=$(super -f line -c 'coalesce(cost.total_duration_ms, 0)' /tmp/
 local formatted=$(super -f line -c "values $duration_ms / 1000 | values f'{this}s'::duration")
 ```
 
-**Automatic Duration Formatting - Keep It Simple!**
+**Automatic Duration Formatting — Keep It Simple!**
 
 SuperDB's duration type automatically formats values in a human-readable way. You usually don't need complex switch
 statements to format durations nicely.
-
-**Comparison of approaches:**
-
-```bash
-# Manual formatting with switch/case (verbose)
-super -c "values 993958 |
-  switch
-    case this < 60000 (
-      values f'{((this / 1000.0 * 100)::int64 / 100.0)::string}s'
-    )
-    case this < 3600000 (
-      values f'{(this / 60000)::int64::string}m {((this % 60000) / 1000)::int64::string}s'
-    )
-    case true (
-      values f'{(this / 3600000)::int64::string}h {((this % 3600000) / 60000)::int64::string}m'
-    )
-"
-# Output: "16m 33s" (string with spaces)
-
-# Simple duration with milliseconds
-super -c "values 993958 | f'{this}ms'::duration"
-# Output: 16m33.958s (no spaces, includes fractional seconds)
-
-# Simple duration in seconds (cleanest for most uses)
-super -c "values 993958 / 1000 | f'{this}s'::duration"
-# Output: 16m33s (no spaces, no fractional seconds)
-
-# Alternative: Use bucket() to round milliseconds to seconds
-super -c "values 993958 | f'{this}ms'::duration | bucket(this, 1s)"
-# Output: 16m33s (same result, different approach)
-```
 
 **Recommendation:**
 
@@ -932,54 +895,6 @@ super -s -c "[1,null,2] | where this != null"
 super -s -c "unnest this | where this != null"
 ```
 
-## Building Conditional JSON Arrays (Robust Pattern)
-
-When building arrays with optional elements that might be null:
-
-**Helper functions should return `null` (not empty string):**
-
-```bash
-function _helper() {
-  if [[ -z "$content" ]]; then
-    echo "null"
-  else
-    echo "{content:'$content'}" # No trailing comma
-  fi
-}
-```
-
-**Main array assembly with filtering:**
-
-```bash
-local -r array=$(super -j -c "
-  [
-    {type:1, content:'always present'},
-    $(_helper "$optional1"),  # Comma after each element
-    $(_helper "$optional2"),
-    $(_helper "$optional3")
-  ] | unnest this | where this is not null | collect(this)")
-```
-
-**Why this pattern works:**
-
-- Consistent comma placement eliminates JSON syntax errors
-- Functions return `null` instead of empty strings for cleaner SuperDB handling
-- The filter pipeline removes null elements without breaking array structure
-- No need to handle trailing comma edge cases
-
-**Avoid these anti-patterns:**
-
-```bash
-# WRONG: Helper returns empty string, creates holes in JSON
-echo ""
-
-# WRONG: Helper includes trailing comma, creates syntax errors
-echo "{type:10,content:'$content'},"
-
-# WRONG: Inconsistent comma handling
-echo "... } $(helper) ..." # Missing comma when helper returns content
-```
-
 ## Crosstab/Pivot Queries (Advanced SQL Pattern)
 
 SuperDB supports powerful crosstab queries using CASE expressions within
@@ -1051,11 +966,11 @@ output as a pure number without any markup.
 ```bash
 # THIS IS CORRECT
 attempt_count=$(
-  _current_records "<words_overfill_attempt>" "
-    | where puzzle_id==$puzzle_id and archive==false
+  _current_records "<foo>" "
+    | where id==$id and archive==false
     | count(this)
     | this::int64 -- very important to cast SEPARATE from the count aggregation
-  " "$attempts_file"
+  " "$foo_file"
 )
 
 echo $((attempt_count + 1)) # THIS IS CORRECT AND WILL WORK
