@@ -551,6 +551,42 @@ where ts > 2024-01-01T00:00:00Z
 put formatted:=strftime("%Y-%m-%d", ts)
 ```
 
+### Grok Pattern Parsing
+
+Parse unstructured strings into structured records using predefined grok patterns:
+
+```bash
+# Parse log line with predefined patterns
+grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}", log_line)
+
+# Common pattern examples
+grok("%{IP:client_ip} %{WORD:method} %{URIPATH:path}", access_log)
+grok("%{NUMBER:duration:float} %{WORD:unit}", "123.45 seconds")
+
+# With custom pattern definitions (third argument)
+grok("%{CUSTOM:field}", input_string, "CUSTOM \\d{3}-\\d{4}")
+```
+
+Returns a record with named fields extracted from the input string.
+
+**Using with raw text files:**
+
+```bash
+# Parse log file line-by-line
+super -i line -s -c 'put parsed:=grok("%{TIMESTAMP_ISO8601:ts} %{LOGLEVEL:level} %{GREEDYDATA:msg}", this)' app.log
+
+# Filter parsed results
+super -i line -j -c 'grok("%{IP:ip} %{NUMBER:status:int} %{NUMBER:bytes:int}", this) | where status >= 400' access.log
+```
+
+**Using with structured data:**
+
+```bash
+# Parse string field from JSON records (no -i line needed)
+echo '{"raw_log":"2024-01-15 ERROR Database connection failed"}' |
+  super -j -c 'put parsed:=grok("%{TIMESTAMP_ISO8601:ts} %{LOGLEVEL:level} %{GREEDYDATA:msg}", raw_log)' -
+```
+
 ## Debugging Tips
 
 ### Common Issues and Solutions
@@ -1012,7 +1048,8 @@ output as a pure number without any markup.
 attempt_count=$(
   _current_records "<words_overfill_attempt>" "
     | where puzzle_id==$puzzle_id and archive==false
-    | cast(count(this), <int64>)
+    | count(this)
+    | this::int64 -- very important to cast SEPARATE from the count aggregation
   " "$attempts_file"
 )
 
