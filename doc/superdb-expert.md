@@ -435,11 +435,20 @@ echo '{id:1,person_id:1,exercise:"tango"}
 {id:3,person_id:2,exercise:"jogging"}
 {id:4,person_id:2,exercise:"cooking"}' > exercises.sup
 
-# joins supported: left, right, inner, outer, anti
+# joins supported: left, right, inner, full outer, anti
 super -c "
   select * from people.json people
   join exercises.sup exercises
   on people.id=exercises.person_id
+"
+
+# where ... is null not supported yet
+# unless coalesce used in the select clause
+super -c "
+  select * from people.json people
+  left join exercises.sup exercises
+  on people.id=exercises.person_id
+  where is_error(exercises.exercise) 
 "
 ```
 

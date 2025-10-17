@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export ASDF_SUPERDB_VERSION=0.50327
+
 function _script_dir() {
   dirname "${BASH_SOURCE[0]}"
 }

@@ -8,7 +8,7 @@ function default() {
 
   pushd ../super
   # -v for verbose output
-  go test -tags=kit ./mdtest -mdfilter="$filter"
+  go test -v -tags=kit ./mdtest -mdfilter="$filter"
   popd
 }
 
