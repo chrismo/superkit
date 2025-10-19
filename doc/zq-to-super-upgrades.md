@@ -1,5 +1,8 @@
 # Upgrading zq to super
 
+_published as part of
+[superkit](https://github.com/chrismo/superkit/blob/main/doc/zq-to-super-upgrades.md)_
+
 Oct 19, 2025 — SuperDB Version 0.51016 (pre-release) 
 
 This is a custom pre-release version used by the community-contributed [asdf
