@@ -385,11 +385,13 @@ super -S -c '
 
 Traditional SQL syntax works seamlessly with SuperDB:
 
+#### Traditional SELECT queries
 ```bash
-# Traditional SELECT queries
 super -s -c "SELECT * FROM users WHERE age > 21" users.json
+```
 
-# CTEs (Common Table Expressions)
+#### CTEs (Common Table Expressions)
+```bash
 super -s -c "
 WITH recent_orders AS (
   SELECT customer_id, order_date, total
@@ -406,8 +408,10 @@ FROM customers c
 JOIN customer_totals ct ON c.id = ct.customer_id
 WHERE ct.yearly_total > 1000;
 " orders.json
+```
 
-# Window functions
+#### Window functions
+```bash
 super -s -c "
 SELECT 
   name, 
@@ -416,8 +420,10 @@ SELECT
   LAG(salary) OVER (ORDER BY salary) as prev_salary
 FROM employees
 " employees.json
+```
 
-# Mixed SQL and pipe syntax
+#### Mixed SQL and pipe syntax
+```bash
 super -s -c "
 SELECT name, processed_date
 FROM ( from logs.json | ? 'error' | put processed_date:=now() )
@@ -425,7 +431,8 @@ WHERE processed_date IS NOT NULL
 ORDER BY processed_date DESC;
 " logs.json
 ```
-
+                               
+#### Joins
 ```bash
 echo '{"id":1,"name":"foo"}
 {"id":2,"name":"bar"}' > people.json
@@ -451,6 +458,14 @@ super -c "
   where is_error(exercises.exercise) 
 "
 ```
+              
+#### WHERE Clause Tips
+                                     
+##### Negation
+
+`where !(this in $json)` is invalid!
+
+`where not (this in $json)` is valid!
 
 ### Tips
 
