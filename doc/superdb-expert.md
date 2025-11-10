@@ -626,6 +626,22 @@ echo '{"raw_log":"2024-01-15 ERROR Database connection failed"}' |
   super -j -c 'put parsed:=grok("%{TIMESTAMP_ISO8601:ts} %{LOGLEVEL:level} %{GREEDYDATA:msg}", raw_log)' -
 ```
 
+### Array and Record Concatenation
+
+Use the spread operator.
+
+```bash
+super -s -c "{a:[], b:[]} | [...a, ...b]" # => []
+super -s -c "{a:[1], b:[]} | [...a, ...b]" # => [1]
+super -s -c "{a:[1], b:[2,3]} | [...a, ...b]" # => [1,2,3]
+```
+
+```bash
+super -s -c "{a:{}, b:{}} | [...a, ...b]" # => {}
+super -s -c "{a:{c:1}, b:{}} | [...a, ...b]" # => {c:1}
+super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
+```
+
 ## Debugging Tips
 
 ### Common Issues and Solutions
