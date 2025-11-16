@@ -904,6 +904,44 @@ super -j -c 'values {type:10, content:"$message"}'
 super -j -c "values {type:10, content:\"$message\"}"
 ```
 
+## Reading Multiple Variables into Bash from SuperDB
+
+**Efficient pattern for extracting multiple fields into separate bash variables:**
+
+```bash
+# Use tab-separated values with IFS to protect spaces in values
+IFS=$'\t' read -r name title <<<"$(
+  echo '{"Name":"David Lloyd George","Title":"Prime Minister"}' |
+    super -f line -c "[Name,Title] | join(this, '\t')" -
+)"
+
+echo "$title" : "$name"
+# Output: Prime Minister : David Lloyd George
+```
+
+**Key points:**
+
+- `IFS=$'\t'` sets the Internal Field Separator to tab, protecting spaces within values
+- `read -r name title` assigns fields to separate variables in order
+- `[Name,Title] | join(this, '\t')` creates array, then joins its members into a string with tab delimiters
+- Use `-f line` for clean output without type decorators
+- `<<<` bash here-string passes the command output to `read`
+
+**Alternative: If values contain no spaces:**
+
+```bash
+# Can use default IFS (space, tab, and newline) when values are simple
+read -r id status <<<"$(
+  echo '{"id":"12345","status":"active"}' |
+    super -f line -c "[id,status] | join(this, ' ')" -
+)"
+```
+
+**Important:**
+
+- Prefer tab separator for robustness (values may contain spaces)
+- Order of variables in `read` must match order in SuperDB array
+
 ## SuperDB Array Filtering (Critical Pattern)
 
 **`where` operates on streams, not arrays directly**. To filter elements from an array:
