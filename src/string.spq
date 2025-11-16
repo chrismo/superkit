@@ -76,3 +76,32 @@ func skdoc_pad_right(): (
 func sk_pad_right(s, pad_char, target_length): (
   len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
 )
+
+op skdoc_urldecode(): (
+  -- TODO
+)
+
+-- URL Decoder for SuperDB
+-- Usage: super -I urldecode.spq -s -c 'values urldecode(this)' - <<< '"%2Ftavern%20test"'
+-- Or inline the definitions in your query
+
+-- Helper operator to decode a single segment after splitting on %
+-- If the segment starts with valid 2-char hex, converts it to the character
+-- Otherwise returns the segment as-is
+op sk_decode_seg s: (
+  len(s) == 0
+    ? s
+    : (is_error(hex(s[1:3]))
+        ? s
+        : hex(s[1:3])::string + s[3:])
+)
+
+-- Main URL decoder operator
+-- Splits on %, decodes each hex-encoded segment, and joins back together
+op sk_urldecode url: (
+  split(url, "%")
+    | unnest this
+    | decode_seg this
+    | collect(this)
+    | join(this, "")
+)
