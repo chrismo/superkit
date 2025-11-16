@@ -3,7 +3,7 @@
 _published as part of
 [superkit](https://github.com/chrismo/superkit/blob/main/doc/zq-to-super-upgrades.md)_
 
-Oct 19, 2025 — SuperDB Version 0.51016 (pre-release) 
+Oct 31, 2025 — SuperDB Version 0.51031 (pre-release) 
 
 This is a custom pre-release version used by the community-contributed [asdf
 plugin](https://github.com/chrismo/asdf-superdb).
@@ -332,7 +332,7 @@ super -s -c "[3,2,1] | { a: ( [unnest this | values this] ) }"
 {a:[3,2,1]}
 ```
 
-## cast related functions removed
+### cast related functions removed
 
 The functions crop(), fill(), fit(), order(), and shape() have all been REMOVED.
 Cast should be used in any location calling any of these functions. See the
@@ -341,6 +341,11 @@ of these functions.
 
 There's a small chance that these functions were used in a context where cast is
 not appropriate, because it does too much, but it seems unlikely.
+
+### ::-cast and cast-as to use only types not expressions
+
+As of 0.51029, the `::-cast` and `cast-as` operators now only accept types, not
+the result of an expression.
 
 ## chrismo Preferred Formatting Changes
 
