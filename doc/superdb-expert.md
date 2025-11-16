@@ -909,38 +909,49 @@ super -j -c "values {type:10, content:\"$message\"}"
 **Efficient pattern for extracting multiple fields into separate bash variables:**
 
 ```bash
-# Use tab-separated values with IFS to protect spaces in values
-IFS=$'\t' read -r name title <<<"$(
-  echo '{"Name":"David Lloyd George","Title":"Prime Minister"}' |
-    super -f line -c "[Name,Title] | join(this, '\t')" -
+# Use pipe-separated values with IFS to protect spaces in values AND retain any empty fields.
+# If the delimiter is ever IN a returned field, a new delimiter will need to be used.
+IFS='|' read -r name nickname title <<<"$(
+  echo '{"Name":"David Lloyd George","Nickname":"","Title":"Prime Minister"}' |
+    super -f line -c "[Name,Nickname,Title] | join(this, '|')" -
 )"
 
-echo "$title" : "$name"
-# Output: Prime Minister : David Lloyd George
+echo "$title" : "$nickname" : "$name"
+# => Prime Minister : : David Lloyd George
 ```
 
 **Key points:**
 
-- `IFS=$'\t'` sets the Internal Field Separator to tab, protecting spaces within values
-- `read -r name title` assigns fields to separate variables in order
-- `[Name,Title] | join(this, '\t')` creates array, then joins its members into a string with tab delimiters
+- `IFS='|'` sets the Internal Field Separator to tab, protecting spaces within values
+- `read -r name nickname title` assigns fields to separate variables in order
+- `[Name,Nickname,Title] | join(this, '|')` creates array, then joins its members into a string with | delimiters
 - Use `-f line` for clean output without type decorators
 - `<<<` bash here-string passes the command output to `read`
 
-**Alternative: If values contain no spaces:**
-
-```bash
-# Can use default IFS (space, tab, and newline) when values are simple
-read -r id status <<<"$(
-  echo '{"id":"12345","status":"active"}' |
-    super -f line -c "[id,status] | join(this, ' ')" -
-)"
-```
-
 **Important:**
 
-- Prefer tab separator for robustness (values may contain spaces)
+- Prefer pipe separator for robustness (values may contain spaces, some fields may be empty)
 - Order of variables in `read` must match order in SuperDB array
+
+**Alternative: Newlines as Delimiters:**
+
+```bash
+mapfile -t values <<<"$(
+  echo '
+    {"InstanceId":"i-05b132aa000f0afa0",
+     "InstanceType":"t4g.teeny"}
+  ' |
+    super -f line -c "values InstanceId,InstanceType" -
+)"
+
+# this is still performant
+instance_id="${values[0]}"
+instance_type="${values[1]}"
+
+echo "$instance_id" : "$instance_type"
+```
+
+
 
 ## SuperDB Array Filtering (Critical Pattern)
 
