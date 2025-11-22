@@ -9,7 +9,23 @@ the official documentation.
 
 https://github.com/chrismo/superkit/issues
 
-## Installation
+## SuperDB Installation
+
+As of Nov 2025, the [Brim Data Homebrew
+Tap](https://github.com/brimdata/homebrew-tap) has the tip version of
+pre-releases of SuperDB. See their [install instructions
+here](https://superdb.org/getting-started/install).
+
+I also maintain an [asdf plugin for
+SuperDB](https://github.com/chrismo/asdf-superdb) pre-release builds. Pre-built
+binaries installed by that plugin are hosted here:
+https://github.com/chrismo/superdb-builds/.
+
+## SuperKit Installation
+                    
+_NOTE: As of Nov 2025, SuperKit is VERY behind-the-times, and only works with
+either zq 1.18.0 or the 0.50327 pre-release build of SuperDB. There are some
+standalone AI Coding Agent documents that are up-to-date._
 
 To install SuperKit, run the following command:
 
