@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:superdb.org)"
+      "WebFetch(domain:superdb.org)",
+      "Bash(./test-doc.sh:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
