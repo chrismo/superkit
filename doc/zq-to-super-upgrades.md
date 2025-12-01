@@ -347,6 +347,20 @@ not appropriate, because it does too much, but it seems unlikely.
 As of 0.51029, the `::-cast` and `cast-as` operators now only accept types, not
 the result of an expression.
 
+## `FROM` and `from` are different now
+
+This is only a breaking change for earlier superdb builds, but in [PR 
+#6405 | Dec 1st 2025](https://github.com/brimdata/super/pull/6405):
+
+> This commit cleanly separates the syntax of the pipe-operator "from" and the SQL
+> FROM clause. This means that table aliases are no longer allowed with pipe from
+> (even though they were ignored). Also, a relational FROM is no longer possible
+> without a SELECT clause (required a "SELECT *" to do a straight relational join).
+
+So this means commands like `super -c 'from ( from a )'` now must be `super -c '
+select * from ( select * from a )'`, and something like `super -s -c "from (values 
+(1),(2),(3))"` must be `super -s -c "select * from (values (1),(2),(3))"`
+
 ## chrismo Preferred Formatting Changes
 
 This is just a matter of preference. I want all multi-line command
