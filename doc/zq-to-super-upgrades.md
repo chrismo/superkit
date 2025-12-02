@@ -347,6 +347,47 @@ not appropriate, because it does too much, but it seems unlikely.
 As of 0.51029, the `::-cast` and `cast-as` operators now only accept types, not
 the result of an expression.
 
+## No more streaming aggregation functions
+
+As of [PR 6355](https://github.com/brimdata/super/pull/6355), streaming
+aggregations (per-record cumulative state) are removed. You'll see this error:
+
+```
+call to aggregate function in non-aggregate context at line 1, column 48:
+values {v:10},{v:20},{v:30} | put running_sum:=sum(v)
+                                               ~~~~~~
+```
+
+**Row numbering** has a replacement via the `count` operator:
+
+```bash
+-- OLD: put row_num:=count(this)
+-- NEW:
+super -s -c 'values {a:1},{b:2},{c:3} | count {row,...this}'
+{row:1::uint64,a:1}
+{row:2::uint64,b:2}
+{row:3::uint64,c:3}
+```
+
+**Other aggregations** (`sum`, `avg`, `min`, `max`, `collect`) have no per-record
+replacement. Use `aggregate` or `summarize`, but they collapse all records:
+
+```bash
+super -s -c 'values {v:10},{v:20},{v:30} | aggregate total:=sum(v)'
+{total:60}
+```
+
+**No replacement exists** for progressive patterns like streaming `collect`:
+
+```bash
+-- OLD (no longer works): yield 1,2,3 | yield collect(this)
+-- produced: [1], [1,2], [1,2,3]
+```
+
+Note: Grouped aggregation (`collect(x) by key`) still works - only streaming
+(per-record cumulative) aggregation was removed.
+
+
 ## `FROM` and `from` are different now
 
 This is only a breaking change for earlier superdb builds, but in [PR 
