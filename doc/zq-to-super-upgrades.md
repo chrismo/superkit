@@ -295,12 +295,12 @@ https://github.com/brimdata/super/commit/aab15e0d
 
 **OLD:**
 ```bash
-func myfunction(x): x + 1
+func myfunction(x): ( x + 1 )
 ```
 
 **NEW:**
 ```bash
-fn myfunction(x): x + 1
+fn myfunction(x): ( x + 1 )
 ```
 
 ## lateral subqueries that produce multiple results must be array wrapped
