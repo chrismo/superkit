@@ -3,7 +3,10 @@
     "allow": [
       "WebFetch(domain:superdb.org)",
       "Bash(./test-doc.sh:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(seq:*)",
+      "Bash(super -c:*)",
+      "Bash(super:*)"
     ],
     "deny": [],
     "ask": []
