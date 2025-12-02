@@ -94,6 +94,42 @@ This largely shows in `[...]` slice nomenclature on strings and arrays.
 Anytime you see `[0:2]` it should be changed to `[1:3]`. Or `[:2]` ->
 `[:3]`. Negative indexes have NOT changed. So `[0:-1]` -> `[1:-1]`.
 
+## zero-based indexing restored with pragma support
+
+As of [PR 6348](https://github.com/brimdata/super/pull/6348) on Nov 10, 2025,
+0-based indexing has been restored as the default, with a pragma system allowing
+you to switch between indexing conventions.
+
+This reverses the earlier 1-based indexing change. The default is now 0-based,
+but you can use `pragma index_base = 1` for SQL-style 1-based indexing in
+contexts where that's preferred.
+
+```bash
+-- 0-based indexing is now the default
+super -s -c "values ['a','b','c'][0]"
+"a"
+```
+
+```bash
+-- Use pragma for 1-based indexing (SQL-style)
+super -s -c "
+pragma index_base = 1
+values ['a','b','c'][1]
+"
+"a"
+```
+
+```bash
+-- With 1-based indexing, index 0 returns missing
+super -s -c "
+pragma index_base = 1
+values ['a','b','c'][0]
+"
+error("missing")
+```
+
+The pragma affects slicing and functions like `SUBSTRING()` within its scope.
+
 ## over -> unnest
 
 Simple uses of over are simple to change without behavioral change:
