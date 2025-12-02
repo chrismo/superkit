@@ -100,10 +100,3 @@ super --version
 ```mdtest-output
 Version: v0.0.0-20250930170057-3b76fa645ee8
 ```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
-```
