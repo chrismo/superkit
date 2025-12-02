@@ -1,11 +1,13 @@
-# Parsing PGN Files
+# Chess Tiebreaks
 
 PGN (Portable Game Notation) is a plain text format for recording chess games.
 Each game has metadata in bracketed lines like `[White "LastName, FirstName"]`
 followed by the moves. Here we'll parse a tournament's PGN file to find players
 who faced each other more than once (indicating tie-break games).
 
-The data comes from the Tata Steel Masters 2024 broadcast on Lichess.
+The data comes from the Tata Steel Masters 2024 broadcast on Lichess, the
+[tie-break games can be seen
+here](https://lichess.org/broadcast/tata-steel-masters-2024/tiebreaks/L43YRQWv#boards).
 
 ## The Complete Solution
 
@@ -111,7 +113,7 @@ perspective.
 `where count > 1` filters to only matchups that happened more than once -
 these are the tie-break games.
 
-## Nested Unnest Example
+## Nested `unnest ... into` Example
 
 Here's a minimal dataset to demonstrate this next technique, based on similar
 data we were just working with. Four players in a single round-robin (6 games),
