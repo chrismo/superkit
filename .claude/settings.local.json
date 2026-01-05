@@ -6,7 +6,9 @@
       "WebFetch(domain:github.com)",
       "Bash(seq:*)",
       "Bash(super -c:*)",
-      "Bash(super:*)"
+      "Bash(super:*)",
+      "Bash(ASDF_SUPERDB_VERSION=0.51231 super:*)",
+      "Bash(ASDF_SUPERDB_VERSION=0.50930 super:*)"
     ],
     "deny": [],
     "ask": []

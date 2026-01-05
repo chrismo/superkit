@@ -3,115 +3,154 @@
 _published as part of
 [superkit](https://github.com/chrismo/superkit/blob/main/doc/zq-to-super-upgrades.md)_
 
-Oct 31, 2025 — SuperDB Version 0.51031 (pre-release) 
+Jan 5, 2026 — SuperDB Version 0.51231 (pre-release)
 
-This is a custom pre-release version used by the community-contributed [asdf
-plugin](https://github.com/chrismo/asdf-superdb).
+This document is designed for AI assistants performing automated upgrades of zq
+scripts to SuperDB. It covers all breaking changes between zq and the current
+SuperDB release.
 
-This is an agentic document tested with Claude. It is not 100% complete, and has
-some opinionated sections from the author.
+## Quick Reference
 
-Here are all the major language upgrades that need to be made.
+| Category   | zq               | super                       |
+|------------|------------------|-----------------------------|
+| Keyword    | `yield`          | `values`                    |
+| Function   | `parse_zson`     | `parse_sup`                 |
+| Function   | `func`           | `fn`                        |
+| Operator   | `over`           | `unnest`                    |
+| Switch     | `-z` / `-Z`      | `-s` / `-S`                 |
+| Switch     | `-f text`        | `-f line`                   |
+| Switch     | (implicit)       | `-c` required before query  |
+| Comments   | `//`             | `--` or `/* */`             |
+| Regexp     | `/pattern/`      | `'pattern'` (string)        |
+| Cast       | `type(value)`    | `value::type`               |
+| Agg filter | `count() where x`| `count() filter (x)`        |
 
-## yield -> values
+## CLI Changes
 
-This is a very simple keyword upgrade without any behavioral changes.
+### The `-c` switch is now required
 
-Anywhere the keyword `yield` appears in a zq query, replace it with `values`.
+`super` requires a `-c` switch before any query string. `zq` accepted the query
+string as a positional argument.
 
-## parse_zson -> parse_sup
-
-Simple replacement: `parse_zson` for `parse_sup`
-
-## comments
-
-`zq` used `//` for single line comments. `super` now uses PostgreSQL
-compatible comments. `--` for single line `/* ... */` for multi-line.
-
-## `-c [cmd]` switch
-
-`super` requires a `-c [cmd]` switch before the command string. `zq`
-didn't require a switch, it just accepted the command string passed to
-it, if one was used.
-
-### While MOST uses of zq/super have a command string, it is NOT required.
-
-DO NOT make the following upgrade:
-
+**OLD:**
 ```bash
-zq -j $input_file
-```
-This zq command is merely reformatting the input file to compact
-(single-line) JSON.
-
-```bash
-super -c -j $input_file # ILLEGAL!!
-```
-This is illegal! Because there's no command string passed with the `-c`
-switch. The correct transformation is:
-
-```bash
-super -j $input_file # GOOD! :) 
+echo '{"a":1}' | zq 'yield a' -
 ```
 
-### DO NOT FORGET that -c must have the command string immediately follow it
-
+**NEW:**
 ```bash
-echo "$json" | zq -f text 'yield this.KmsKeyId' -
+echo '{"a":1}' | super -c 'values a' -
 ```
 
-Must become
+### The `-c` switch must immediately precede the query string
+
+The query must come directly after `-c`. Other flags go before `-c`.
+
+**CORRECT:**
 ```bash
-echo "$json" | super -f line -c 'values this.KmsKeyId' -
+echo '{"a":1}' | super -s -c 'values a' -
 ```
 
-NOT THIS:
+**INCORRECT:**
 ```bash
-echo "$json" | super -c -f line 'values this.KmsKeyId' - # ILLEGAL!
+-- This is ILLEGAL - flags cannot go between -c and the query
+echo '{"a":1}' | super -c -s 'values a' -
 ```
-This is illegal!
 
-## -f text => -f line
+### When there is no query, do NOT use `-c`
 
-`-f text` is no longer an option, and should just be replaced with `-f line`
+If you're just reformatting data without a query, omit `-c` entirely.
 
-## -z switch -> -s
+**OLD:**
+```bash
+zq -j input.json
+```
 
-simple replace: `-z` -> `-s` and capitalized version too: `-Z` -> `-S`
+**NEW:**
+```bash
+super -j input.json
+```
 
-## `-c [cmd]` should be the LAST switch in the commands.
+**INCORRECT:**
+```bash
+-- This is ILLEGAL - -c requires a query string to follow it
+super -c -j input.json
+```
 
-`-c [cmd]` should come last! All other switches in front of it.
+### Output format switches
 
-## zero-based to one-based indexing
+- `-f text` → `-f line`
+- `-z` → `-s` (line-oriented Super JSON)
+- `-Z` → `-S` (formatted Super JSON)
 
-Because PostgreSQL level compatibility is a goal for the sql portions of
-the SuperDB syntax, and psql uses one-based indexing for much of its
-syntax, SuperDB is now one-based.
+### Comments
 
-This largely shows in `[...]` slice nomenclature on strings and arrays.
+zq used `//` for single-line comments. SuperDB uses PostgreSQL-compatible syntax:
+- `--` for single-line comments
+- `/* ... */` for multi-line comments
 
-Anytime you see `[0:2]` it should be changed to `[1:3]`. Or `[:2]` ->
-`[:3]`. Negative indexes have NOT changed. So `[0:-1]` -> `[1:-1]`.
+## Simple Renames
 
-## zero-based indexing restored with pragma support
+### yield → values
+
+```bash
+-- OLD
+zq 'yield {a:1}'
+
+-- NEW
+super -c 'values {a:1}'
+```
+
+### parse_zson → parse_sup
+
+```bash
+-- OLD
+zq 'parse_zson(s)'
+
+-- NEW
+super -c 'parse_sup(s)'
+```
+
+### func → fn
+
+As of [commit aab15e0d](https://github.com/brimdata/super/commit/aab15e0d):
+
+```bash
+-- OLD
+func double(x): ( x * 2 )
+
+-- NEW
+fn double(x): ( x * 2 )
+```
+
+### over → unnest (basic usage)
+
+Simple uses are a direct replacement:
+
+```bash
+-- OLD
+zq 'yield [1,2,3] | over this'
+
+-- NEW
+super -c 'values [1,2,3] | unnest this'
+```
+
+## Behavioral Changes
+
+### Indexing is 0-based (with pragma for 1-based)
 
 As of [PR 6348](https://github.com/brimdata/super/pull/6348) on Nov 10, 2025,
-0-based indexing has been restored as the default, with a pragma system allowing
-you to switch between indexing conventions.
-
-This reverses the earlier 1-based indexing change. The default is now 0-based,
-but you can use `pragma index_base = 1` for SQL-style 1-based indexing in
-contexts where that's preferred.
+0-based indexing is the default. Use `pragma index_base = 1` for SQL-style
+1-based indexing when needed.
 
 ```bash
--- 0-based indexing is now the default
+-- 0-based indexing (default)
 super -s -c "values ['a','b','c'][0]"
 "a"
 ```
 
 ```bash
--- Use pragma for 1-based indexing (SQL-style)
+-- 1-based indexing via pragma
 super -s -c "
 pragma index_base = 1
 values ['a','b','c'][1]
@@ -119,294 +158,170 @@ values ['a','b','c'][1]
 "a"
 ```
 
+The pragma affects array/string indexing, slicing, and functions like `SUBSTRING()`.
+
+### unnest with `into` (formerly `=>`)
+
+`over this => (...)` becomes `unnest this into (...)`:
+
 ```bash
--- With 1-based indexing, index 0 returns missing
-super -s -c "
-pragma index_base = 1
-values ['a','b','c'][0]
-"
-error("missing")
+-- OLD
+zq 'over arr => ( yield this * 2 )'
+
+-- NEW
+super -c 'unnest arr into ( values this * 2 )'
 ```
 
-The pragma affects slicing and functions like `SUBSTRING()` within its scope.
+### unnest with multiple values (formerly `with`)
 
-## over -> unnest
+`over a with b => (...)` becomes `unnest {b,a} into (...)`.
 
-Simple uses of over are simple to change without behavioral change:
+**Warning:** This has behavioral changes. Inside the parentheses, `this` used to
+be just `a` in zq, but now `this` is the record `{b,a}` in super.
 
-These are identical:
+### grep requires explicit `this` argument
 
-```bash
-yield [1,2,3] | over this
-```
-
-```bash
-values [1,2,3] | unnest this
-```
-
-### `=>` has become `into`
-
-`over this => (...)` is now `unnest this into (...)` and should largely
-be the same.
-
-### `with ... =>` is more complicated
-
-`over a with b => (...)` is now `unnest {b,a} into (...)` and will have
-behavioral changes! `this` inside the parens used to be just `a` with `zq`
-but now `this` inside the parens with `super` is the record `{b,a}`.
-
-## grep and regexp changes
-
-As of this change ([PR 6115](https://github.com/brimdata/super/pull/6115)) on
-Aug 15, 2025:
-
-- inline regexp (`/.../`) is no longer a supported syntax and must be strings
-- globs are no longer supported in the `grep` function
-- `this` is no longer implied, it must be passed in the 2nd argument.
+As of [PR 6115](https://github.com/brimdata/super/pull/6115) on Aug 15, 2025:
+- Inline regexp (`/.../`) syntax removed — use strings
+- Globs no longer supported in grep
+- `this` must be passed explicitly
 
 ```bash
-# NO LONGER WORKS IN SUPER
-echo '{"s":"alphabet"}' | zq -z "grep(/a*b/,s)" -
-```
+-- OLD (no longer works)
+zq -z "grep(/a*b/,s)"
+zq -z "yield ['a','b'] | grep(/b/)"
 
-```bash
-# THE CORRECT WAY TO DO IT NOW. CORRECT. GOOD.
-echo '{"s":"alphabet"}' | super -s -c "grep('a.*b',s)" -
-```
-
-```bash
-# THIS WAY NO LONGER WORKS IN SUPER.
-zq -z "yield ['a','b'] | grep(/b/)"       
-["a","b"]
-```
-
-```bash
-# MISSING SECOND ARGUMENT IS BAD.
-super -s -c "values ['a','b'] | grep('b')"
-too few arguments at line 1, column 20:
-values ['a','b'] | grep('b')
-                   ~~~~~~~~~\
-```
-
-```bash
-# CORRECT. GOOD.
+-- NEW
+super -s -c "grep('a.*b', s)"
 super -s -c "values ['a','b'] | grep('b', this)"
-["a","b"]
 ```
 
-## Changes to implied `this` arguments
+### is and nest_dotted require explicit `this`
 
-As of [5075037c](https://github.com/brimdata/super/commit/5075037c) on Aug 27,
-2025:
-
-`is` and `nest_dotted` no longer take an implied `this` as a first argument.
-They now must receive `this` explicitly as their 1st argument.
-
-This is a similar change as to `grep` above.
-
-`shape` and `cast` also will be changed in a similar fashion SOON.
+As of [commit 5075037c](https://github.com/brimdata/super/commit/5075037c) on Aug 27, 2025:
 
 ```bash
-# THIS NO LONGER WORKS. BAD.
+-- OLD (no longer works)
 zq -z "yield 2 | is(<int64>)"
-2
-```
 
-```bash
-# THIS SHOWS THE ERROR WHEN INCORRECT.
-super -s -c "values 2 | is(<int64>)"
-too few arguments at line 1, column 12:
-values 2 | is(<int64>)
-~~~~~~~~~~~
-```
-
-```bash
-# CORRECT. GOOD.
+-- NEW
 super -s -c "values 2 | is(this, <int64>)"
-2
 ```
 
-`nest_dotted` is the same.
+`nest_dotted` follows the same pattern.
 
-[//]: # (TODO: NEED EXAMPLES)
+### Cast syntax changes
 
-## Cast changes
+As of [commit ec1c5eee](https://github.com/brimdata/super/commit/ec1c5eee) on Aug 28, 2025:
 
-As of [ec1c5eee](https://github.com/brimdata/super/commit/ec1c5eee) on Aug 28, 2025:
-
-([4e6d4921](https://github.com/brimdata/super/commit/4e6d4921) on Aug 29, 2025
-includes a CAST related bug fix)
-
-zq used to support casting with a direct "function" style syntax like this:
+Function-style casting (`type(value)`) is no longer supported. Use `::` casting:
 
 ```bash
-zq -z "{a:time('2025-08-28T12:00:00Z')}" 
-```
-...where `time` could be any primitive type (e.g. `string`, `int64`, `uint64`,
-etc.) or custom type.
+-- OLD (no longer works)
+zq -z "{a:time('2025-08-28T12:00:00Z')}"
 
-But that's no longer supported.
-
-```bash
-# BAD. INCORRECT.
-super -s -c "{a:time('2025-08-28T12:00:00Z')}"      
-no such function at line 1, column 4:
-{a:time('2025-08-28T12:00:00Z')}
-```
-
-You have to cast by other means:
-
-```bash
-# CORRECT. GOOD. THIS IS THE PREFERRED UPGRADE METHOD.
-super -s -c "{a:'2025-08-28T12:00:00Z'::time}" 
+-- NEW (preferred)
+super -s -c "{a:'2025-08-28T12:00:00Z'::time}"
 {a:2025-08-28T12:00:00Z}
 ```
 
-```bash
-# this is legal, but not preferred. do not use.
-super -s -c "{a:cast('2025-08-28T12:00:00Z', <time>)}"
-{a:2025-08-28T12:00:00Z}
-```
+Alternative syntaxes (legal but not preferred):
+- `cast(value, <type>)`
+- `CAST(value AS type)`
+
+As of 0.51029, `::` cast and `CAST AS` only accept types, not expressions.
+
+### Lateral subqueries require array wrapping
+
+As of [PR 6100](https://github.com/brimdata/super/pull/6100) and
+[PR 6243](https://github.com/brimdata/super/pull/6243):
+
+Lateral subqueries that produce multiple values must be wrapped in `[...]`:
 
 ```bash
-# this is legal, but not preferred. do not use.
-super -s -c "{a:CAST('2025-08-28T12:00:00Z' AS time)}"
-{a:2025-08-28T12:00:00Z}
+-- OLD (no longer works - produces error)
+super -s -c "[3,2,1] | { a: ( unnest this | values this ) }"
+{a:error("query expression produced multiple values (consider [subquery])")}
+
+-- NEW
+super -s -c "[3,2,1] | { a: [unnest this | values this] }"
+{a:[3,2,1]}
 ```
 
-## User Defined Syntax Changes
-
-### User-Defined Operators: `op` syntax change
+### User-defined operator syntax
 
 As of [PR 6181](https://github.com/brimdata/super/pull/6181) on Sep 2, 2025:
 
-User-defined operators now use a different syntax for both declaration and
-invocation to better align with built-in operators and distinguish them from
-user functions.
+**Declaration:** Remove parentheses around parameters.
 
-**OLD zq syntax:**
 ```bash
-# Declaration with parentheses around parameters
-op components(s): (
-  parse_sup(s)
-  | unnest json
-  | values this
-)
+-- OLD
+op myop(a, b): ( ... )
 
-# Invocation with parentheses (function-call style)
-unnest [this] | components(this)
+-- NEW
+op myop a, b: ( ... )
 ```
 
-**NEW super syntax:**
+**Invocation:** Use space-separated arguments (or `call` keyword).
+
 ```bash
-# Declaration WITHOUT parentheses around parameters
-op components s: (
-  parse_sup(s)
-  | unnest json
-  | values this
-)
+-- OLD
+myop(x, y)
 
-# Invocation uses 'call' keyword (or shortcut without it)
-unnest [this] | call components this
-
-# Shortcut: drop 'call' keyword (preferred)
-unnest [this] | components this
+-- NEW
+myop x, y
+-- or: call myop x, y
 ```
 
-**Key changes:**
-- Declaration: `op name(arg):` → `op name arg:`
-- Multiple args: `op name(a, b):` → `op name a, b:`
-- No args: `op name():` → `op name:`
-- Invocation: `name(arg)` → `call name arg` or just `name arg`
+### FROM vs from separation
 
-**Note:** The shortcut form (without `call`) cannot be used for a single
-operator with no arguments inside a subquery - you must use `call` in that
-case.
+As of [PR 6405](https://github.com/brimdata/super/pull/6405) on Dec 1, 2025:
 
-### User-Defined Functions: `func` → `fn`
+Pipe-operator `from` and SQL `FROM` clause are now distinct. Relational FROM
+requires a SELECT clause:
 
-https://github.com/brimdata/super/commit/aab15e0d
-
-`func` is now just `fn` - a simple rename.
-
-**OLD:**
 ```bash
-func myfunction(x): ( x + 1 )
+-- OLD (no longer works)
+super -c 'from ( from a )'
+
+-- NEW
+super -c 'select * from ( select * from a )'
 ```
 
-**NEW:**
+### Aggregate filter clause
+
+As of [PR 6465](https://github.com/brimdata/super/pull/6465) on Dec 23, 2025:
+
+The `where` clause on aggregates changed to SQL-standard `filter`:
+
 ```bash
-fn myfunction(x): ( x + 1 )
+-- OLD
+count() where grep('bar', this)
+
+-- NEW
+count() filter (grep('bar', this))
 ```
 
-## lateral subqueries that produce multiple results must be array wrapped
+## Removed Features
 
-Starting with [this PR (6100)](https://github.com/brimdata/super/pull/6100) on
-Aug 11, and finishing with [this PR
-(6243)](https://github.com/brimdata/super/pull/6243) on Sep 17 to allow `[...]`
-syntax in these spaces, lateral subqueries that produce multiple results must be
-wrapped in an array.
+### Streaming aggregation functions
 
-Before these changes, this would work as-is:
-```bash
-super -s -c "[3,2,1] | { a: ( unnest this | values this ) }"
+As of [PR 6355](https://github.com/brimdata/super/pull/6355), per-record
+cumulative aggregations are removed.
 
-{a:[3,2,1]}
-```
-
-After these changes, this errors out:
-```bash
-super -s -c "[3,2,1] | { a: ( unnest this | values this ) }"
-
-{a:error("query expression produced multiple values (consider [subquery])")}
-```
-
-But is patched just by putting the lateral subquery in an literal array:
-```bash
-super -s -c "[3,2,1] | { a: ( [unnest this | values this] ) }"
-
-{a:[3,2,1]}
-```
-
-### cast related functions removed
-
-The functions crop(), fill(), fit(), order(), and shape() have all been REMOVED.
-Cast should be used in any location calling any of these functions. See the
-[cast section above](#cast-changes) for details on what should be done instead
-of these functions.
-
-There's a small chance that these functions were used in a context where cast is
-not appropriate, because it does too much, but it seems unlikely.
-
-### ::-cast and cast-as to use only types not expressions
-
-As of 0.51029, the `::-cast` and `cast-as` operators now only accept types, not
-the result of an expression.
-
-## No more streaming aggregation functions
-
-As of [PR 6355](https://github.com/brimdata/super/pull/6355), streaming
-aggregations (per-record cumulative state) are removed. You'll see this error:
-
-```
-call to aggregate function in non-aggregate context at line 1, column 48:
-values {v:10},{v:20},{v:30} | put running_sum:=sum(v)
-                                               ~~~~~~
-```
-
-**Row numbering** has a replacement via the `count` operator:
+**Row numbering** — use the `count` operator:
 
 ```bash
 -- OLD: put row_num:=count(this)
 -- NEW:
-super -s -c 'values {a:1},{b:2},{c:3} | count {row,...this}'
-{row:1::uint64,a:1}
-{row:2::uint64,b:2}
-{row:3::uint64,c:3}
+super -s -c 'values {a:1},{b:2},{c:3} | count | {row:count,...that}'
+{row:1,a:1}
+{row:2,b:2}
+{row:3,c:3}
 ```
 
-**Other aggregations** (`sum`, `avg`, `min`, `max`, `collect`) have no per-record
-replacement. Use `aggregate` or `summarize`, but they collapse all records:
+**Other aggregations** (`sum`, `avg`, `min`, `max`, `collect`) — use `aggregate`,
+but note it collapses all records:
 
 ```bash
 super -s -c 'values {v:10},{v:20},{v:30} | aggregate total:=sum(v)'
@@ -420,48 +335,97 @@ super -s -c 'values {v:10},{v:20},{v:30} | aggregate total:=sum(v)'
 -- produced: [1], [1,2], [1,2,3]
 ```
 
-Note: Grouped aggregation (`collect(x) by key`) still works - only streaming
-(per-record cumulative) aggregation was removed.
+Grouped aggregation (`collect(x) by key`) still works.
 
+### Removed functions
 
-## `FROM` and `from` are different now
+The functions `crop()`, `fill()`, `fit()`, `order()`, and `shape()` have been
+removed. Use cast instead — see [Cast syntax changes](#cast-syntax-changes).
 
-This is only a breaking change for earlier superdb builds, but in [PR 
-#6405 | Dec 1st 2025](https://github.com/brimdata/super/pull/6405):
+### Inline regexp syntax
 
-> This commit cleanly separates the syntax of the pipe-operator "from" and the SQL
-> FROM clause. This means that table aliases are no longer allowed with pipe from
-> (even though they were ignored). Also, a relational FROM is no longer possible
-> without a SELECT clause (required a "SELECT *" to do a straight relational join).
+`/pattern/` is no longer supported. Use string patterns: `'pattern'`
 
-So this means commands like `super -c 'from ( from a )'` now must be `super -c '
-select * from ( select * from a )'`, and something like `super -s -c "from (values 
-(1),(2),(3))"` must be `super -s -c "select * from (values (1),(2),(3))"`
+### Globs in grep
 
-## chrismo Preferred Formatting Changes
+Globs are no longer supported in the `grep` function. Use regex patterns.
 
-This is just a matter of preference. I want all multi-line command
-strings to go from this:
+## Type Changes
+
+### Count functions return int64
+
+As of Dec 24-29, 2025 ([PR 6466](https://github.com/brimdata/super/pull/6466),
+[PR 6467](https://github.com/brimdata/super/pull/6467),
+[PR 6472](https://github.com/brimdata/super/pull/6472)):
+
+These now return `int64` instead of `uint64`:
+- `count()` function
+- `dcount()` function
+- `uniq` operator count field
+- `count` operator output field
 
 ```bash
-zq -j 'over this
-       | cut Id,Name' -
+-- OLD: returned uint64
+super -s -c "values 1,2,3 | aggregate cnt:=count() | typeof(cnt)"
+<uint64>
+
+-- NEW: returns int64
+super -s -c "values 1,2,3 | aggregate cnt:=count() | typeof(cnt)"
+<int64>
 ```
 
-To this:
+## Advanced/Lake Features
+
+### Robot from f-string syntax
+
+As of [PR 6450](https://github.com/brimdata/super/pull/6450) on Dec 16, 2025:
+
+Dynamic data source specification now uses f-string syntax. This is primarily
+relevant when using SuperDB with a lake (database):
+
+```bash
+from f'{pool_name}'
+```
+
+If you previously scanned entities within an array of strings, emulate that with
+`unnest` upstream of the robot from.
+
+## Formatting Conventions for AI Upgraders
+
+When performing upgrades, follow these formatting conventions for consistency:
+
+### Use double quotes for query strings
+
+Single-quoted strings are valid SuperDB syntax, so use double quotes for the
+shell query string to avoid confusion:
+
+```bash
+-- GOOD
+super -s -c "values 'hello'"
+
+-- AVOID (works but confusing)
+super -s -c 'values "hello"'
+```
+
+### Multi-line query formatting
+
+For multi-line queries, use this format:
+
 ```bash
 super -j -c "
-  over this
+  unnest this
   | cut Id,Name
 " -
 ```
 
-Double-quotes should always be used, since single-quoted strings are legal
-with SuperDB.
+- Opening double-quote ends the first line
+- Query content starts on new line, indented 2 spaces from `super`
+- Closing double-quote on its own line, aligned with `super`
 
-The command string should have the opening double-quote end the 1st line, then
-the command string contents should start on a new line, just 2 space indented
-from the parent `super` binary.
+### Switch ordering
 
-The closing double-quote should be on its own line, left-aligned in the same
-column os the `super` binary at the very start.
+Place `-c` last, with all other switches before it:
+
+```bash
+super -s -f json -c "values this" input.json
+```
