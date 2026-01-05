@@ -9,7 +9,9 @@
       "Bash(super:*)",
       "Bash(ASDF_SUPERDB_VERSION=0.51231 super:*)",
       "Bash(ASDF_SUPERDB_VERSION=0.50930 super:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
