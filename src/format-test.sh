@@ -8,14 +8,11 @@ function sk_format_bytes_test() {
   local -r input="$1"
   local -r expected="$2"
 
-  type="uint64"
+  local type="uint64"
   [ "${input:0:1}" = "-" ] && type="int64"
 
-# TODO: zq versions output the type e.g. <1(uint64) B> - can we kill that?
-#  _assert "$expected" \
-#    "$(zq -f text -I "$this_dir"/format.spq "yield $type('$input') | sk_format_bytes(this)")"
   _assert "$expected" \
-    "$(super -f text -I "$this_dir"/format.spq -c "yield $type('$input') | sk_format_bytes(this)")"
+    "$(super -f line -I "$this_dir"/format.spq -c "values '${input}'::${type} | sk_format_bytes(this)")"
 }
 
 sk_format_bytes_test 0 "0 B"
@@ -58,6 +55,6 @@ sk_format_bytes_test 18446744073709551615 "16 EB" # this is the tipping point?
 # TODO: research the possible division bugs/gotchyas with large EB values?
 #       in the pipeline version of this?
 #     default => {k: 1024, data: value}
-#    | i:=uint64(floor(log(this.data) / log(this.k)))
-#    | result:=uint64(this.data / pow(this.k, this.i))
-#    | yield f"{this.result} {k_units[this.i]}"
+#    | i:=floor(log(this.data) / log(this.k))::uint64
+#    | result:=(this.data / pow(this.k, this.i))::uint64
+#    | values f"{this.result} {k_units[this.i]}"

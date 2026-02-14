@@ -1,4 +1,4 @@
-func skdoc_in_array(): (
+fn skdoc_in_array(): (
   cast(
     {name:"sk_in_array",
      type:"func",
@@ -8,24 +8,24 @@ func skdoc_in_array(): (
                {i:"sk_in_array([1])",o:"[1]"}]}, <skdoc>)
 )
 
-func sk_in_array(value): (
+fn sk_in_array(value): (
   kind(value) == "array" ? value : [value]
 )
 
-func skdoc_array_flatten(): (
+fn skdoc_array_flatten(): (
   cast(
     {name:"sk_array_flatten",
      type:"op",
      desc:"Flattens an array of arrays into a single array.",
      args:[],
-     examples:[{i:"[1,2,[3,4],5] | sk_array_flatten()",o:"[1,2,3,4,5]"},
-               {i:"[[1,2],[3,4]] | sk_array_flatten()",o:"[1,2,3,4]"}]}, <skdoc>)
+     examples:[{i:"[1,2,[3,4],5] | sk_array_flatten",o:"[1,2,3,4,5]"},
+               {i:"[[1,2],[3,4]] | sk_array_flatten",o:"[1,2,3,4]"}]}, <skdoc>)
 )
 
-op sk_array_flatten(): (
-  string(this)
+op sk_array_flatten: (
+  this::string
   | this[1:-1]
   | replace(this,'[','')
   | replace(this, ']','')
-  | parse_zson(f'[{this}]')
+  | parse_sup(f'[{this}]')
 )

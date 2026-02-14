@@ -1,7 +1,7 @@
-// sk_include integer.spq
-// sk_include integer.spq // to test duplicate includes
+-- sk_include integer.spq
+-- sk_include integer.spq -- to test duplicate includes
 
-op skdoc_slice(): (
+op skdoc_slice: (
   cast(
     {name:"sk_slice",
      type:"func",
@@ -12,14 +12,14 @@ op skdoc_slice(): (
      examples:[{i:"sk_slice('howdy')",o:"'Howdy'"}] }, <skdoc>)
 )
 
-// This isn't necessary with zq, but during early releases of super, the
-// behavior of slice was changed to return an error if the indexes are out of
-// range. There was discussion of possibly returning to the old behavior.
-func sk_slice(s, start, end): (
+-- This isn't necessary with zq, but during early releases of super, the
+-- behavior of slice was changed to return an error if the indexes are out of
+-- range. There was discussion of possibly returning to the old behavior.
+fn sk_slice(s, start, end): (
   s[sk_clamp(start, -len(s), len(s)):sk_clamp(end, -len(s), len(s))]
 )
 
-op skdoc_capitalize(): (
+op skdoc_capitalize: (
   cast(
     {name:"sk_capitalize",
      type:"func",
@@ -28,11 +28,11 @@ op skdoc_capitalize(): (
      examples:[{i:"sk_capitalize('hoWDy')",o:"'Howdy'"}] }, <skdoc>)
 )
 
-func sk_capitalize(s): (
+fn sk_capitalize(s): (
   f"{upper(sk_slice(s, 0, 1))}{lower(sk_slice(s,1,len(s)))}"
 )
 
-op skdoc_titleize(): (
+op skdoc_titleize: (
   cast(
     {name:"sk_titleize",
      type:"func",
@@ -41,13 +41,13 @@ op skdoc_titleize(): (
      examples:[{i:"sk_titleize('once uPON A TIME')",o:"'Once Upon A Time'"}] }, <skdoc>)
 )
 
-func sk_titleize(s): (
-  // this could smarter, ignoring insignificant words
-  // and such, but that will be a lot more complex.
-  join(map(split(s, " "), sk_capitalize), " ")
+fn sk_titleize(s): (
+  -- this could be smarter, ignoring insignificant words
+  -- and such, but that will be a lot more complex.
+  [unnest split(s, " ") | values sk_capitalize(this)] | join(this, " ")
 )
 
-func skdoc_pad_left(): (
+fn skdoc_pad_left(): (
   cast(
     {name:"sk_pad_left",
      type:"func",
@@ -55,14 +55,14 @@ func skdoc_pad_left(): (
      args:[{name:"s",desc:"The string to pad"},
            {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
-     examples:[{i:"yield sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, <skdoc>)
+     examples:[{i:"values sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, <skdoc>)
 )
 
-func sk_pad_left(s, pad_char, target_length): (
+fn sk_pad_left(s, pad_char, target_length): (
   len(s) < target_length ? sk_pad_left(f'{pad_char}{s}', pad_char, target_length) : s
 )
 
-func skdoc_pad_right(): (
+fn skdoc_pad_right(): (
   cast(
     {name:"sk_pad_right",
      type:"func",
@@ -70,16 +70,14 @@ func skdoc_pad_right(): (
      args:[{name:"s",desc:"The string to pad"},
            {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
-     examples:[{i:"yield sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
+     examples:[{i:"values sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
 )
 
-func sk_pad_right(s, pad_char, target_length): (
+fn sk_pad_right(s, pad_char, target_length): (
   len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
 )
 
-op skdoc_urldecode(): (
-  -- TODO
-)
+-- TODO: skdoc_urldecode
 
 -- URL Decoder for SuperDB
 -- Usage: super -I urldecode.spq -s -c 'values urldecode(this)' - <<< '"%2Ftavern%20test"'

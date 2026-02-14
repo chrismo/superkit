@@ -3,7 +3,7 @@
 _published as part of
 [superkit](https://github.com/chrismo/superkit/blob/main/doc/zq-to-super-upgrades.md)_
 
-Jan 6, 2026 — SuperDB Version 0.51231 (pre-release)
+Feb 14, 2026 — SuperDB Version 0.1.0
 
 This document is designed for AI assistants performing automated upgrades of zq
 scripts to SuperDB. It covers all breaking changes between zq and the current

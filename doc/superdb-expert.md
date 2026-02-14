@@ -506,9 +506,9 @@ Every record must have:
 local -r new_id=$(gen_id "<task>" "$_tasks_fn")
 echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
   super -s -c "
-    type task = {id:int64,task:string,done:bool,archive:bool,ts:time} 
+    type task = {id:int64,task:string,done:bool,archive:bool,ts:time}
     ts:=now(),done:=false,archive:=false
-    | shape(this, <task>)" - >>"$_tasks_fn"
+    | this::task" - >>"$_tasks_fn"
 ```
 
 #### Update Pattern
@@ -520,7 +520,7 @@ _current_records |
   super -s -c "
     where id==$target_id 
     | put updated_field:=\"new_value\", ts:=now()
-    | shape(this, <task>)" - >>"$_tasks_fn"
+    | this::task" - >>"$_tasks_fn"
 ```
 
 #### Query Pattern
@@ -553,13 +553,13 @@ _current_records |
 - First-class type values
 - Type representation: `<[int64|string]>` for mixed types
 
-### Shape Operations
+### Cast to Named Types
 
-Define and enforce record shapes:
+Define and enforce record shapes using `::` cast syntax:
 
 ```
 type user = {id:int64,name:string,email:string,active:bool,ts:time}
-input | shape(this, <user>)
+input | this::user
 ```
 
 ### Nested Field Access
@@ -726,7 +726,7 @@ local -r task_type="type task = {id:int64,task:string,done:bool,archive:bool,ts:
 echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
   super -s -c "$task_type
     ts:=now(),done:=false,archive:=false
-    | shape(this, <task>)" - >>"$_tasks_fn"
+    | this::task" - >>"$_tasks_fn"
 ```
 
 **Instead of:**
@@ -735,12 +735,12 @@ echo "{id:$new_id,task:\"$(j_esc "$text")\"}" |
 # BAD: Global types.spq dependency
 super -I "$(_script_dir)/types.spq" -s -c "
   ts:=now(),done:=false,archive:=false  
-  | shape(this, <task>)" - >>"$_tasks_fn"
+  | this::task" - >>"$_tasks_fn"
 ```
 
-Remember: SuperDB is actively developed as of Aug 2025 with no planned release
-date, but is making rapid progress toward PostgreSQL compatibility. Always
-verify stdin/stdout patterns and never assume JavaScript-like or jq syntax. SuperDB
+Remember: SuperDB 0.1.0 was the first official release from Brim Data, and
+is making rapid progress toward PostgreSQL compatibility. Always verify
+stdin/stdout patterns and never assume JavaScript-like or jq syntax. SuperDB
 supports both traditional SQL and pipe syntax, emphasizing simplicity for basic
 tasks while supporting sophisticated analytics. When in doubt, test both SQL and
 pipe approaches to find the most effective solution.
@@ -838,9 +838,9 @@ SuperDB has a `round()` function that rounds to the nearest integer:
 
 ```bash
 # Round to nearest integer (single argument only)
-super -c "values round(3.14)" # outputs: 3.0
-super -c "values round(-1.5)" # outputs: -2.0
-super -c "values round(1234.567)" # outputs: 1235.0
+super -c "values round(3.14)" # outputs: 3
+super -c "values round(-1.5)" # outputs: -2
+super -c "values round(1234.567)" # outputs: 1235
 
 # For rounding to specific decimal places, use the multiply-cast-divide pattern
 super -c "values ((1234.567 * 100)::int64 / 100.0)" # outputs: 1234.56 (2 decimals)

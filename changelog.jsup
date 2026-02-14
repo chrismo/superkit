@@ -14,7 +14,13 @@
         "new: sk_slice() - returns a slice of a string even if indexes are out of range",
         "new: sk_titleize() - capitalizes each word in a string",
         "experimental: sk_include() - allows including other superkit files to share functions and ops",
-        "skdoc: backfill skdocs for sk_keys, sk_merge_records"
+        "skdoc: backfill skdocs for sk_keys, sk_merge_records",
+        "docs: update superdb-expert.md for SuperDB 0.1.0 - replace shape() with ::cast, update round() outputs, update version language",
+        "docs: update zq-to-super-upgrades.md version header to 0.1.0",
+        "infra: migrate all .spq files to SuperDB 0.1.0 syntax (fn, op, --, ::cast, unnest, values, parse_sup)",
+        "infra: rewrite sk_keys to use fields()+uniq, sk_add_ids to use count operator, sk_titleize to use lateral subquery",
+        "infra: drop zq dual-testing, convert test suite from custom test.sh to bats",
+        "infra: 85 bats tests passing on SuperDB 0.1.0"
     ]
 }
 {

@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-zq_and_super string.spq 'sk_capitalize("hey")' '"Hey"'
-zq_and_super string.spq 'sk_capitalize("hey you")' '"Hey you"'
-zq_and_super string.spq 'yield "hey you" | sk_capitalize(this)' '"Hey you"'
+super_test string.spq,integer.spq 'sk_capitalize("hey")' '"Hey"'
+super_test string.spq,integer.spq 'sk_capitalize("hey you")' '"Hey you"'
+super_test string.spq,integer.spq 'values "hey you" | sk_capitalize(this)' '"Hey you"'
 
-zq_and_super string.spq 'sk_titleize("hey you")' '"Hey You"'
-zq_and_super string.spq 'sk_titleize("hey  you")' '"Hey  You"'
-zq_and_super string.spq 'sk_titleize("HEY yOu")' '"Hey You"'
+super_test string.spq,integer.spq 'sk_titleize("hey you")' '"Hey You"'
+super_test string.spq,integer.spq 'sk_titleize("hey  you")' '"Hey  You"'
+super_test string.spq,integer.spq 'sk_titleize("HEY yOu")' '"Hey You"'

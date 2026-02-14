@@ -1,64 +1,61 @@
-// sk_include array.spq
+-- sk_include array.spq
 
-// the built-in `fields` function is similar, but puts each field into its own
-// nested array, though it also handles nested keys. This keys operator here
-// attempts to emulate jq's keys, which does not go deep but only lists the
-// top-level ones.
+-- the built-in `fields` function is similar, but puts each field into its own
+-- nested array, though it also handles nested keys. This keys operator here
+-- attempts to emulate jq's keys, which does not go deep but only lists the
+-- top-level ones.
 
-func skdoc_keys(): (
+fn skdoc_keys(): (
   cast(
     {name:"sk_keys",
      type:"op",
      desc:"Returns the keys of the top-level fields in a record. This does not go deep into nested records.",
      args:[],
-     examples:[{i:"{a:1,b:{c:333}} | sk_keys()",o:"['a','b']"},
-               {i:"{x:10,y:20,z:30} | sk_keys()",o:"['x','y','z']"}] }, <skdoc>)
+     examples:[{i:"{a:1,b:{c:333}} | sk_keys",o:"['a','b']"},
+               {i:"{x:10,y:20,z:30} | sk_keys",o:"['x','y','z']"}] }, <skdoc>)
 )
 
-op sk_keys(): (
-  // ... with sorted keys:
-  // over this => (this.key[0]) | sort | collect(this)
-
-  // ... in order:
-  over this => (this.key[0]) | collect(this)
+op sk_keys: (
+  fields(this) | unnest this | values this[0] | uniq | collect(this)
 )
 
-func skdoc_merge_records(): (
+fn skdoc_merge_records(): (
   cast(
     {name:"sk_merge_records",
      type:"op",
      desc:"Merges an array of records into a single record by combining the fields. If there are duplicate keys, the last one wins.",
      args:[],
-     examples:[{i:"[{a:1},{b:{c:333}}] | sk_merge_records()",o:"{a:1,b:{c:333}}"}] }, <skdoc>)
+     examples:[{i:"[{a:1},{b:{c:333}}] | sk_merge_records",o:"{a:1,b:{c:333}}"}] }, <skdoc>)
 )
 
-op sk_merge_records(): (
-  string(this)
+op sk_merge_records: (
+  this::string
   | replace(this, "},{",",")
-  | parse_zson(this[1:-1])
+  | parse_sup(this[1:-1])
 )
 
-// # this sort of approach suffers from an illegal left-hand assignment:
-// ❯ zq '[{a:1},{b:{c:333}}] | (over this with obj={} | flatten(this) | obj[key[0]]:=value )'
+-- # this sort of approach suffers from an illegal left-hand assignment:
+-- ❯ zq '[{a:1},{b:{c:333}}] | (over this with obj={} | flatten(this) | obj[key[0]]:=value )'
 
-// # this was a better step from Phil, but doesn't work on nested records
-// over this
-// | over flatten(this)
-// | collect_map(|{key[0]:value}|)
-// | yield parse_zson(replace(string(this), "|", ""))'
+-- # this was a better step from Phil, but doesn't work on nested records
+-- over this
+-- | over flatten(this)
+-- | collect_map(|{key[0]:value}|)
+-- | values parse_sup(replace(this::string, "|", ""))'
 
-func skdoc_add_ids(): (
+fn skdoc_add_ids(): (
   cast(
     {name:"sk_add_ids",
      type:"op",
-     desc:"Prepends an incrementing uint64 id field to each record. Always returns an array.",
+     desc:"Prepends an incrementing id field to each record. Always returns an array.",
      args:[],
-     examples:[{i:"[{a:3},{b:4}] | sk_add_ids()",o:"[{id:1(uint64),a:3},{id:2(uint64),b:4}]"}] }, <skdoc>)
+     examples:[{i:"[{a:3},{b:4}] | sk_add_ids",o:"[{id:1,a:3},{id:2,b:4}]"}] }, <skdoc>)
 )
 
-op sk_add_ids(): (
+op sk_add_ids: (
   sk_in_array(this)
-  | over this
-  | yield {id: int64(count()), ...this}
+  | unnest this
+  | count
+  | values {id:count,...that}
   | collect(this)
 )

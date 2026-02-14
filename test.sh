@@ -26,23 +26,20 @@ function _src_dir() {
   echo "$(_script_dir)/src"
 }
 
-# TODO: separate executions for each unit test won't scale well at all
-# try an sk_unit? :)
-function zq_and_super() {
+# TODO: include.spq's dynamic file reading is broken in 0.1.0
+# For now, manually specify all includes needed for each test
+function super_test() {
   local -r include_files="$1"
   local -r query="$2"
   local -r expected="$3"
 
-  local -r includes=$(
-    super -f line -I "$(_src_dir)/include.spq" -c "
-      sk_resolve_includes('$include_files', '$(_src_dir)')
-      | f'-I $(_src_dir)/{this}'"
-  )
+  local includes=""
+  for f in $(echo "$include_files" | tr ',' '\n'); do
+    includes="$includes -I $(_src_dir)/$f"
+  done
 
   # shellcheck disable=SC2086
-  _assert "$expected" "$(zq -z $includes "$query")"
-  # shellcheck disable=SC2086
-  _assert "$expected" "$(super -z $includes -c "$query")"
+  _assert "$expected" "$(super -s $includes -c "$query")"
 }
 
 filter="${1:-}"

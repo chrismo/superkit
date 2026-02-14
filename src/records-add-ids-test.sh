@@ -2,15 +2,15 @@
 
 set -euo pipefail
 
-zq_and_super records.spq '{foo:"bar"} | sk_add_ids()' \
+super_test records.spq,array.spq '{foo:"bar"} | sk_add_ids' \
   '[{id:1,foo:"bar"}]'
-zq_and_super records.spq '[{foo:"bar"}] | over this | sk_add_ids()' \
+super_test records.spq,array.spq '[{foo:"bar"}] | unnest this | sk_add_ids' \
   '[{id:1,foo:"bar"}]'
-zq_and_super records.spq '[{a:"a"},{b:"b"}] | over this | sk_add_ids()' \
+super_test records.spq,array.spq '[{a:"a"},{b:"b"}] | unnest this | sk_add_ids' \
   '[{id:1,a:"a"},{id:2,b:"b"}]'
-zq_and_super records.spq '[{id:1}] | sk_add_ids()' \
+super_test records.spq,array.spq '[{id:1}] | sk_add_ids' \
   '[{id:1}]'
-zq_and_super records.spq '[{foo:"bar",id:2}] | sk_add_ids()' \
+super_test records.spq,array.spq '[{foo:"bar",id:2}] | sk_add_ids' \
   '[{id:2,foo:"bar"}]'
-zq_and_super records.spq 'yield 1 | sk_add_ids()' \
+super_test records.spq,array.spq 'values 1 | sk_add_ids' \
   '[{id:1}]'

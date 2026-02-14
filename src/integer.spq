@@ -1,9 +1,9 @@
-// TODO: this doesn't cause any problems yet because we're not recursively
-// scanning sk_include files for _their_ sk_includes.
+-- TODO: this doesn't cause any problems yet because we're not recursively
+-- scanning sk_include files for _their_ sk_includes.
 
-// sk_include string.spq // test circular dependencies
+-- sk_include string.spq -- test circular dependencies
 
-op skdoc_clamp(): (
+op skdoc_clamp: (
   cast(
     {name:"sk_clamp",
      type:"func",
@@ -16,11 +16,11 @@ op skdoc_clamp(): (
                {i:"sk_clamp(2, 2, 3)",o:"2"}]}, <skdoc>)
 )
 
-func sk_clamp(i, min, max): (
+fn sk_clamp(i, min, max): (
     i < min ? min : i > max ? max : i
 )
 
-func skdoc_min(): (
+fn skdoc_min(): (
   cast(
     {name:"sk_min",
      type:"func",
@@ -32,11 +32,11 @@ func skdoc_min(): (
                {i:"sk_min(2, 2)",o:"2"}]}, <skdoc>)
 )
 
-func sk_min(a, b): (
+fn sk_min(a, b): (
   a < b ? a : b
 )
 
-func skdoc_max(): (
+fn skdoc_max(): (
   cast(
     {name:"sk_max",
      type:"func",
@@ -48,6 +48,6 @@ func skdoc_max(): (
                {i:"sk_max(2, 2)",o:"2"}]}, <skdoc>)
 )
 
-func sk_max(a, b): (
+fn sk_max(a, b): (
   a > b ? a : b
 )
