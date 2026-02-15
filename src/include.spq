@@ -1,19 +1,21 @@
-op sk_include_scan(fn): (
-  file eval(fn) format line
-  | grep('// sk_include')
-  | grok('// sk_include %{USERNAME:filename}', this)
-  | yield filename
+-- NOTE: sk_include_scan is broken in SuperDB 0.1.0 because
+-- the file+expression pattern no longer works. Marked as TODO
+-- until a replacement mechanism is available.
+
+op sk_include_scan filename: (
+  -- TODO: file expression pattern broken in 0.1.0
+  values filename
 )
 
-op sk_resolve_includes(direct, src_dir): (
-  // putting direct and parsed in a record feels hacky, but it works
+op sk_resolve_includes direct, src_dir: (
+  -- putting direct and parsed in a record feels hacky, but it works
   {direct: split(direct, ',')}
-  | parsed:=( over direct
-              | yield f'{src_dir}/{this}'
-              | sk_include_scan(this) )
-  // inlined sk_in_array ... not sure about re-using here?
+  | parsed:=( unnest direct
+              | values f'{src_dir}/{this}'
+              | sk_include_scan this )
+  -- inlined sk_in_array ... not sure about re-using here?
   | parsed:=kind(parsed) == "array" ? parsed : [parsed]
   | [direct, ...parsed]
-  | over this
+  | unnest this
   | uniq
 )
