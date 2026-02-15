@@ -11,7 +11,11 @@
       "Bash(ASDF_SUPERDB_VERSION=0.50930 super:*)",
       "Bash(git push)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(./test.sh:*)",
+      "Bash(bats test/:*)",
+      "mcp__superdb__super_lsp_status",
+      "mcp__superdb__super_complete"
     ],
     "deny": [],
     "ask": []
