@@ -27,32 +27,30 @@ function default() {
   # TODO: extract left out to a sk_left function or something
   local -r script=$(
     cat <<-'EOF'
-func pad_right(s, pad_char, target_length): (
+fn pad_right(s, pad_char, target_length): (
   len(s) < target_length ? pad_right(f'{s}{pad_char}', pad_char, target_length) : s
 )
 
-// left truncates the string to n characters with ellipsis if the string is
-// longer than n. this is also done due to a bug in early versions of super
-// when slicing strings shorter than the target length.
-// https://github.com/brimdata/super/issues/5688
-func left(s, n): (
+-- left truncates the string to n characters with ellipsis if the string is
+-- longer than n. this is also done due to a bug in early versions of super
+-- when slicing strings shorter than the target length.
+-- https://github.com/brimdata/super/issues/5688
+fn left(s, n): (
   len(s) < n ? s : f'{s[:n]}...'
 )
 
 collect(this)
-| {data: this, max_len:(over this | max(len(pattern_name)) ) }
-| over this.data with max_len => (
-    yield f'{pad_right(this.pattern_name, ' ', (max_len + 1))}{left(this.regex, 60+max_len)}'
+| {data: this, max_len:[unnest this | max(len(pattern_name))]}
+| unnest {this.max_len, this.data} into (
+    values f'{pad_right(this.data.pattern_name, ' ', (this.max_len + 1))}{left(this.data.regex, 60+this.max_len)}'
   )
 EOF
   )
 
   if _check_command super; then
     super -f text -c "$script" "$(_script_dir)/skgrok.jsup" | _fuzzy_view
-  elif _check_command zq; then
-    zq -f text "$script" "$(_script_dir)/skgrok.jsup" | _fuzzy_view
   else
-    echo "ERROR: Could not find 'super' or 'zq' commands"
+    echo "ERROR: Could not find 'super' on PATH"
     exit 1
   fi
 }

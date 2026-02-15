@@ -7,11 +7,11 @@ function _script_dir() {
 }
 
 function read_version_from_src() {
-  super -f text -I "$(_script_dir)"/src/version.spq -c "yield sk_version()"
+  super -f text -I "$(_script_dir)"/src/version.spq -c "values sk_version()"
 }
 
 function read_version_from_changelog() {
-  super -f text -c "yield version | head 1" changelog.jsup
+  super -f text -c "values version | head 1" changelog.jsup
 }
 
 function validate_versions() {
@@ -27,18 +27,18 @@ function validate_versions() {
 function bump_next_version() {
   local -r current_version=$(read_version_from_src)
   local -r new_version=$(
-    super -f text -c "yield '$current_version'
+    super -f text -c "values '$current_version'
                       | split(this, '.')
-                      | {major: uint32(this[0]),
-                         minor: uint32(this[1]),
-                         patch: uint32(this[2])}
+                      | {major: this[0]::uint32,
+                         minor: this[1]::uint32,
+                         patch: this[2]::uint32}
                       | patch:=patch+1
                       | f'{major}.{minor}.{patch}'"
   )
 
   sed -i '' -E "s/$current_version/$new_version/g" "$(_script_dir)"/src/version.spq
 
-  new_log=$(super -Z -c "
+  new_log=$(super -S -c "
 {
   date:'',
   version:'$new_version',
@@ -51,7 +51,7 @@ function bump_next_version() {
 
   mv "$(_script_dir)"/changelog.jsup "$(_script_dir)"/changelog.jsup.bak
   echo "$new_log" >"$(_script_dir)"/changelog.jsup
-  super -Z -c 'yield this' "$(_script_dir)"/changelog.jsup.bak \
+  super -S -c 'values this' "$(_script_dir)"/changelog.jsup.bak \
     >>"$(_script_dir)"/changelog.jsup
   rm "$(_script_dir)"/changelog.jsup.bak
 
@@ -111,8 +111,8 @@ function release() {
     exit 1
   fi
 
-  local -r latest_changelog=$(super -Z -c "head 1" changelog.jsup)
-  local -r date=$(echo "$latest_changelog" | super -f text -c 'yield this.date' -)
+  local -r latest_changelog=$(super -S -c "head 1" changelog.jsup)
+  local -r date=$(echo "$latest_changelog" | super -f text -c 'values this.date' -)
   local -r today=$(date +%Y-%m-%d)
 
   if [ "$date" != "$today" ]; then

@@ -21,55 +21,42 @@ enough right now to not go looking for one, and the regex is pretty simple.
 
 So, I'll define my own pattern in the 3rd arg to grok to handle this:
 ```mdtest-command
-zq -z '
-  yield "My name is: Muerte!"  
+super -s -c '
+  values "My name is: Muerte!"
   | grok("%{NAME_PREFIX}", this, "NAME_PREFIX .*: ")'
 ```
-But right away this fails:
+Since there aren't any errors, and no field names assigned, it returns an empty
+record:
 ```mdtest-output
-error({message:"grok(): value does not match pattern",on:"My name is: Muerte!"})
+{}
 ```
 
 It's a simple regex, it seems like it's accurate, it's hard for me to see what's
 wrong?
 
-The regex is fine, in fact. The real reason this fails is that the capture
-pattern is **missing a field name** in which to store the value, not that the
-value doesn't match the pattern. A field name is required in each capture
-pattern (_except ... it isn't. Not really. Keep reading._)
+The regex is fine, in fact. The real reason this returns an empty record is that
+the capture pattern is **missing a field name** in which to store the value.
+Without a field name, there's nothing to capture into a record field.
 
 We probably made this mistake because we don't really want to capture "My name
-is: " in a field of the record. But, no big deal, we can use the cut operator
-later to remove it.
+is: " in a field of the record. But, no big deal, we can add one and use the
+cut operator later to remove it.
 
 ```mdtest-command
-zq -z '
-  yield "My name is: Muerte!"  
-  | grok("%{NAME_PREFIX:prefix}", this, "NAME_PREFIX .*: ")'             
+super -s -c '
+  values "My name is: Muerte!"
+  | grok("%{NAME_PREFIX:prefix}", this, "NAME_PREFIX .*: ")'
 ```
 ```mdtest-output
 {prefix:"My name is: "}
 ```
-                       
+
 Success!
-
-Also, the pre-release of `super` has a fix for the nameless capture pattern.
-
-```mdtest-command
-super -z -c '
-  yield "My name is: Muerte!"  
-  | grok("%{NAME_PREFIX}", this, "NAME_PREFIX .*: ")'
-```
-Since there aren't any errors, and no field names assigned, it nows returns any
-empty record.
-```mdtest-output
-{}
-```
 
 For our next incremental step, let's capture the name. That's all that's left.
 ```mdtest-command
-super -z -c '
-  yield "My name is: Muerte!"  
+super -s -c '
+  values "My name is: Muerte!"
   | grok("%{NAME_PREFIX:prefix}%{WORD:name}", this, "NAME_PREFIX .*: ")'
 ```
 ```mdtest-output
@@ -87,8 +74,8 @@ capture patterns need a field name as long as _**one**_ of them has a field
 name. So we can reduce our last example to be this:
 
 ```mdtest-command
-super -z -c '
-  yield "My name is: Muerte!" 
+super -s -c '
+  values "My name is: Muerte!" 
   | grok("%{NAME_PREFIX}%{WORD:name}", this, "NAME_PREFIX .*: ")'
 ```
 ```mdtest-output
@@ -99,8 +86,8 @@ Second, custom regex patterns can be _inlined_ into the pattern string without
 being a custom named pattern in the 3rd argument at all!
                    
 ```mdtest-command
-super -z -c '
-  yield "My name is: Muerte!" 
+super -s -c '
+  values "My name is: Muerte!" 
   | grok(".*: %{WORD:name}", this)'
 ```
 ```mdtest-output
@@ -112,11 +99,11 @@ Now that feels clean and simple!
 ## Unit tests in codebase
 
 ```mdtest-command
-super -z -c 'yield "1", "foo" | grok("%{INT}", this)' 
+super -s -c 'values "1", "foo" | grok("%{INT}", this)'
 ```
 ```mdtest-output
 {}
-error({message:"grok(): value does not match pattern",on:"foo"})
+error({message:"grok: value does not match pattern",on:"foo"})
 ```
 
 ## as of versions
@@ -125,12 +112,5 @@ error({message:"grok(): value does not match pattern",on:"foo"})
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-350-g733dc02a1
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
+Version: v0.1.0
 ```

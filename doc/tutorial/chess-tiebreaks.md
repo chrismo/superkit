@@ -12,7 +12,7 @@ here](https://lichess.org/broadcast/tata-steel-masters-2024/tiebreaks/L43YRQWv#b
 ## The Complete Solution
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 curl -sS https://lichess.org/api/broadcast/ycy5D2r8.pgn |
+curl -sS https://lichess.org/api/broadcast/ycy5D2r8.pgn |
 super -i line -s -c "
   --
   -- parse the pgn file
@@ -130,7 +130,7 @@ plus one tie-breaker between Gukesh and Wei:
 ```
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c "
+super -s -c "
   split(pairing, ' ')
   | unnest {pairing:this, player:this} into (
       unnest {player: this.player, opponent: pairing} into (
@@ -188,7 +188,7 @@ Now we can append the same count query to find players who faced each other
 more than once:
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c "
+super -s -c "
   split(pairing, ' ')
   | unnest {all_pairings:this, player:this} into (
       unnest {player: this.player, opponent: all_pairings} into (
@@ -210,8 +210,8 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c "
 ## as of versions
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super --version
+super --version
 ```
 ```mdtest-output
-Version: v0.0.0-20251016221528-bdb38bbc4fef
+Version: v0.1.0
 ```

@@ -1,15 +1,14 @@
-// deprecated - multi_line seems fine for any reader
-op skops_single_line(): (
-  over examples
-  | yield f"{name} :: {i} => {o}"
+-- deprecated - multi_line seems fine for any reader
+op skops_single_line: (
+  unnest examples
+  | values f"{name} :: {i} => {o}"
 )
 
-op skops_multi_line(): (
-  // ¶ is a newline placeholder. § is a NUL placeholder. zq won't output inlined
-  // newlines correctly (but super will with `-i line`, and neither tool can
-  // parse an inline NUL.
-  yield f"{name} [{type}]¶¶{(over examples
-                    | yield f'  {i} => {o}'
+op skops_multi_line: (
+  -- ¶ is a newline placeholder. § is a NUL placeholder. super won't output
+  -- inlined newlines correctly with `-i line`, and can't parse an inline NUL.
+  values f"{name} [{type}]¶¶{(unnest examples
+                    | values f'  {i} => {o}'
                     | collect(this)
                     | join(this, '¶') )}§"
 )

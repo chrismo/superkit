@@ -43,8 +43,7 @@ from data d
         d.foo = max_foo.max_foo;
 ```
 
-In `zq` and `super` this can be done one way, with piped operators and a Lateral
-Subquery:
+In `super` this can be done with piped operators and a Lateral Subquery:
 
 ```mdtest-input data.json
 {"id":1, "date":"2025-02-27", "foo": 3}
@@ -53,31 +52,31 @@ Subquery:
 {"id":4, "date":"2025-02-28", "foo": 9}
 ```
 
-Here's an example using the piped `where` operator:
+Here's an example using the piped `where` operator with `unnest ... into`:
 ```mdtest-command
-zq -z '
+super -s -c '
   collect(this)
   | {data: this}
-  | maxes:=(over this.data | foo:=max(foo) by date | yield {date,foo})
-  | over this.data with maxes => ( where {date,foo} in maxes )' data.json
+  | maxes:=[unnest this.data | foo:=max(foo) by date | values {date,foo}]
+  | unnest {this.maxes, this.data} into (
+      where {this.data.date, this.data.foo} in this.maxes
+      | values this.data
+    )' data.json
 ```
 ```mdtest-output
 {id:1,date:"2025-02-27",foo:3}
 {id:4,date:"2025-02-28",foo:9}
 ```
-                                              
-And another example using the piped `join` operator:
+
+And a simpler example using the piped `join` operator with `from`:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
-  collect(this)
-  | unnest {data:this, item:this} into (
-      values this.item
-      | inner join (unnest this.data
-                    | foo:=max(foo) by date
-                    | values {date,foo})
-        on {left.date,left.foo}={right.date,right.foo}
-      | values left
-    )
+super -s -c '
+  from data.json
+  | inner join (from data.json
+                | foo:=max(foo) by date
+                | values {date,foo})
+    on {left.date,left.foo}={right.date,right.foo}
+  | values left
   | sort id' data.json
 ```
 ```mdtest-output
@@ -85,10 +84,10 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 {id:4,date:"2025-02-28",foo:9}
 ```
                                  
-`super` also supports SQL syntax, and as of around 0.50918, these subqueries work:
+`super` also supports SQL syntax, and these subqueries work:
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select *
   from "data.json"
   where foo in (select max(foo), date
@@ -103,12 +102,12 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 If we save off the max data to a file first, then we can start to see how this
 could look:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select max(foo) as max_foo
   from "data.json"
   group by date' > max.sup
 
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select l.id, l.date, l.foo
   from "data.json" l
     join "max.sup" r
@@ -139,7 +138,7 @@ also pull in user information from a related table.
 
 First, the basic join returns all records with user names:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join "users.json" u on s.user_id = u.user_id
@@ -154,7 +153,7 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 
 Filtering to top scores per date using a subquery:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select *
   from "scores.json"
   where score in (select max(score), date
@@ -167,10 +166,9 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 ```
 
 The "obvious" SQL approach with tuple comparison returns empty — this is a known
-issue during SuperDB's pre-release period
-([#6326](https://github.com/brimdata/super/issues/6326)):
+issue ([#6326](https://github.com/brimdata/super/issues/6326)):
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join "users.json" u on s.user_id = u.user_id
@@ -184,7 +182,7 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 
 A derived table approach (subquery in FROM) does work:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join (
@@ -202,7 +200,7 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 
 The piped approach also works — filter first, then join to get usernames:
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super -s -c '
+super -s -c '
   from "scores.json"
   | where score in (select max(score), date from "scores.json" group by date)
   | inner join (from "users.json") on left.user_id=right.user_id
@@ -217,15 +215,8 @@ ASDF_SUPERDB_VERSION=0.51016 super -s -c '
 # as of versions
 
 ```mdtest-command
-ASDF_SUPERDB_VERSION=0.51016 super --version
+super --version
 ```
 ```mdtest-output
-Version: v0.0.0-20251016221528-bdb38bbc4fef
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
+Version: v0.1.0
 ```

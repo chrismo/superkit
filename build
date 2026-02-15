@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-export ASDF_SUPERDB_VERSION=0.50327
+# export ASDF_SUPERDB_VERSION=0.1.0
 
 function _script_dir() {
   dirname "${BASH_SOURCE[0]}"
@@ -13,7 +13,7 @@ function _update_super_version_in_docs() {
 
   for file in "$(_script_dir)"/doc/*.md; do
     echo >&2 "$file"
-    sed -i '' -E "s/Version: v1\.18\.0-[0-9]+-g.*/$version/g" "$file"
+    sed -i '' -E "s/Version: v[0-9]+\.[0-9]+\.[0-9]+.*/$version/g" "$file"
   done
 
   # 1s, not s, and no trailing -g to do the 1st occurrence
@@ -82,7 +82,7 @@ function test() {
 function skgrok() {
   fn="../super/pkg/grok/base.go"
 
-  super -z -i line -c "
+  super -s -i line -c "
     grep('h.Must')
     | grok('.*h.Must\\\\(\"%{USERNAME:pattern_name}.*?\`%{GREEDYDATA:regex}\`', this)" $fn \
     >./bin/skgrok.jsup
@@ -102,13 +102,13 @@ function _parse_spqs() {
   local record name spq_fn
 
   while IFS=$'\n' read -r record; do
-    name=$(echo "$record" | zq -f text 'yield this.name' -)
-    spq_fn=$(echo "$record" | zq -f text 'yield this.filename' -)
+    name=$(echo "$record" | super -f text -c 'values this.name' -)
+    spq_fn=$(echo "$record" | super -f text -c 'values this.filename' -)
 
-    super -z -I "$dist_fn" -c "$name()"
+    super -s -I "$dist_fn" -c "$name"
   done < <(
-    super -i line -z -I ./src/skdoc.spq \
-      -c "skdoc_parse_file_contents(this)" "$dist_fn"
+    super -i line -s -I ./src/skdoc.spq \
+      -c "skdoc_parse_file_contents this" "$dist_fn"
   ) >>"$(_script_dir)"/bin/skops.jsup
 }
 
@@ -126,42 +126,42 @@ function _parse_md_file() {
     echo "$fn" |
       super -i line -f text -c "
         switch (
-          case grep('language/agg',this) => 'agg'
-          case grep('language/func',this) => 'func'
-          case grep('language/oper',this) => 'op'
+          case grep('language/agg',this) ( values 'agg' )
+          case grep('language/func',this) ( values 'func' )
+          case grep('language/oper',this) ( values 'op' )
         )" -
   )
 
-  super -i line -z -c '
-      op parse_spq_test(test_record): (
-        test_record.i:=f"[{join(test_record.inputs, ",")}] | over this | {test_record.spq[0]}",
+  super -i line -s -c '
+      op parse_spq_test test_record: (
+        test_record.i:=f"[{join(test_record.inputs, ",")}] | unnest this | {test_record.spq[0]}",
         test_record.o:=is(test_record.outputs, <null>) ? "" : join(test_record.outputs, " ↵ ")
       )
 
-      op process_chunk(chunk): (
+      op process_chunk chunk: (
         split(chunk, " ↵ ")
-        | over this | where len(this) > 0 | collect(this)
+        | unnest this | where len(this) > 0 | collect(this)
       )
 
-      op parse_spq_tests(line): (
+      op parse_spq_tests line: (
         grok(".*?# spq%{DATA:spq}# input%{DATA:inputs}# expected output%{GREEDYDATA:outputs}", line)
-        | spq:=(over [this] | process_chunk(this.spq)),
-          inputs:=(over [this] | process_chunk(this.inputs)),
-          outputs:=(over [this] | process_chunk(this.outputs))
-        | parse_spq_test(this)
+        | spq:=(unnest [this] | process_chunk this.spq),
+          inputs:=(unnest [this] | process_chunk this.inputs),
+          outputs:=(unnest [this] | process_chunk this.outputs)
+        | parse_spq_test this
         | cut i,o
         | collect(this)
         | {examples: this}
       )
 
-      collect(this)                      // collect all lines to get the entire file
-      | join(this, " ↵ ")                // make it all one string
-      | split(this, "```mdtest-spq")[1:] // drop the 0th item before the first occurrence
-      | over this
+      collect(this)                      -- collect all lines to get the entire file
+      | join(this, " ↵ ")                -- make it all one string
+      | split(this, "```mdtest-spq")[1:] -- drop the 0th item before the first occurrence
+      | unnest this
       | grok("%{DATA:data}```", this)
-      | parse_spq_tests(this.data)
+      | parse_spq_tests this.data
       ' "$fn" |
-    super -z -c "{name:'$(basename "$fn" ".md")', type:'$type', ...this}" -
+    super -s -c "{name:'$(basename "$fn" ".md")', type:'$type', ...this}" -
 }
 
 function _parse_super_mds() {
@@ -182,7 +182,7 @@ function skops() {
 
   # _parse_spqs # do this later now
   _parse_super_mds
-  super -z -c 'sort type,name' "$dst_fn" >"$dst_fn".sorted
+  super -s -c 'sort type,name' "$dst_fn" >"$dst_fn".sorted
   mv "$dst_fn".sorted "$dst_fn"
 }
 

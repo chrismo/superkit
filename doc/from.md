@@ -1,5 +1,10 @@
 # from
 
+**NOTE:** As of SuperDB 0.1.0, the expression-based `from` approach documented
+below no longer works — `from` with dynamic expressions is a parse error. This
+doc is preserved for historical reference until a replacement mechanism is
+available.
+
 The `super db` subcommand replaces the `zed` CLI command that accompanied `zq`
 through version 1.18.
 
@@ -25,7 +30,7 @@ Let's setup a temporary local lake to work with:
 super db init ./test-lake
 super db -lake ./test-lake create "a"
 super -c "{a:1}" | super db load -lake ./test-lake -use "a" -
-super db query -z -lake ./test-lake "from a | yield this"
+super db query -s -lake ./test-lake "from a | values this"
 ```
 ```mdtest-output head
 lake created...
@@ -34,30 +39,30 @@ lake created...
 And now run this `super db query` against it, with a user-defined op that takes
 the pool name as a parameter.
 ```mdtest-command fails
-super db query -z -lake ./test-lake "op load_pool(pool_name): (from pool_name | yield this) load_pool('a')"
+super db query -s -lake ./test-lake "op load_pool pool_name: (from pool_name | values this) load_pool('a')"
 ```
 This produces this error:
 ```mdtest-output
 pool_name: pool not found at line 1, column 32:
-op load_pool(pool_name): (from pool_name | yield this) load_pool('a')
+op load_pool pool_name: (from pool_name | values this) load_pool('a')
                                ~~~~~~~~~
 ```
 
 If it's a field reference, it also won't work as-is, though the error is
 different:
 ```mdtest-command fails
-super db query -z -lake ./test-lake "{name:'a'} | from this.name | yield this"
+super db query -s -lake ./test-lake "{name:'a'} | from this.name | values this"
 ```
 This produces this error:
 ```mdtest-output
 from operator cannot have parent unless from argument is an expression at line 1, column 19:
-{name:'a'} | from this.name | yield this
+{name:'a'} | from this.name | values this
                   ~~~~~~~~~
 ```
 
 But wrapped in `eval`, all is well:
 ```mdtest-command 
-super db query -z -lake ./test-lake "op load_pool(pool_name): (from eval(pool_name) | yield this) load_pool('a')"
+super db query -s -lake ./test-lake "op load_pool pool_name: (from eval(pool_name) | values this) load_pool('a')"
 ```
 ```mdtest-output
 {a:1}
@@ -65,7 +70,7 @@ super db query -z -lake ./test-lake "op load_pool(pool_name): (from eval(pool_na
 
 ...but the field reference version doesn't work...
 ```mdtest-command fails 
-super db query -z -lake ./test-lake "{name:'a'} | from eval(this.name) | yield this"
+super db query -s -lake ./test-lake "{name:'a'} | from eval(this.name) | values this"
 ```
 ```mdtest-output
 a: cannot open in a data lake environment
@@ -86,7 +91,7 @@ With zq/zed 1.18, this wasn't a problem. Same setup:
 zed init ./test-lake
 zed -lake ./test-lake create "a"
 super -c "{a:1}" | zed load -lake ./test-lake -use "a" -
-zed query -lake ./test-lake "from a | yield this"
+zed query -lake ./test-lake "from a | values this"
 ```
 ```mdtest-output head
 lake created...
@@ -94,7 +99,7 @@ lake created...
                                                     
 Same query passing pool name to a user-defined op:
 ```mdtest-command
-zed query -lake ./test-lake -z "op load_pool(pool_name): (from pool_name | yield this) load_pool('a')"
+zed query -lake ./test-lake -z "op load_pool pool_name: (from pool_name | values this) load_pool('a')"
 ```
 ```mdtest-output
 {a:1}
@@ -102,11 +107,11 @@ zed query -lake ./test-lake -z "op load_pool(pool_name): (from pool_name | yield
 
 But this didn't work then with a field reference either:
 ```mdtest-command fails
-zed query -lake ./test-lake -z "{name:'a'} | from this.name | yield this"
+zed query -lake ./test-lake -z "{name:'a'} | from this.name | values this"
 ```
 ```mdtest-output
 this.name: pool not found at line 1, column 19:
-{name:'a'} | from this.name | yield this
+{name:'a'} | from this.name | values this
                   ~~~~~~~~~
 ```
 
@@ -128,12 +133,5 @@ rm -rf ./test-lake
 super --version
 ```
 ```mdtest-output
-Version: v1.18.0-350-g733dc02a1
-```
-_and zq 1.18_
-```mdtest-command
-zq --version
-```
-```mdtest-output
-Version: v1.18.0
+Version: v0.1.0
 ```

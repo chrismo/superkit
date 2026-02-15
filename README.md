@@ -1,14 +1,8 @@
 # SuperKit
 
-_NOTE: As of Nov 2025, SuperKit is VERY behind-the-times, and only works with
-either zq 1.18.0 or the [0.50327 pre-release 
-build](https://github.com/chrismo/superdb-builds/releases/tag/0.50327) of 
-SuperDB. There are some standalone AI Coding Agent documents that are 
-up-to-date._
-
 The SuperKit library is a collection of common Functions and Operators for
-[SuperDB](https://superdb.org/). These will also work with the last released
-version of `zq` and `zed`, version 1.18.0.
+[SuperDB](https://superdb.org/) 0.1.0, the first official release from Brim
+Data.
                             
 SuperKit also contains additional docs and descriptive tests as a supplement to
 the official documentation.
@@ -17,15 +11,8 @@ https://github.com/chrismo/superkit/issues
 
 ## SuperDB Installation
 
-As of Nov 2025, the [Brim Data Homebrew
-Tap](https://github.com/brimdata/homebrew-tap) has the tip version of
-pre-releases of SuperDB. See their [install instructions
-here](https://superdb.org/getting-started/install).
-
-I also maintain an [asdf plugin for
-SuperDB](https://github.com/chrismo/asdf-superdb) pre-release builds. Pre-built
-binaries installed by that plugin are hosted here:
-https://github.com/chrismo/superdb-builds/.
+See the [official install instructions](https://superdb.org/getting-started/install)
+for SuperDB 0.1.0.
 
 ## SuperKit Installation
 
@@ -48,7 +35,7 @@ SuperKit library of funcs and ops, of which there are few currently, but
 we're working on it. :) 
 
 ```shell
-❯ sk -c '[1,20,300] | over this | sk_format_bytes(this*10000000)'  
+❯ sk -c '[1,20,300] | unnest this | sk_format_bytes(this*10000000)'
 "9 MB"
 "190 MB"
 "2 GB"
@@ -145,7 +132,7 @@ unit test script. As soon as there's a dependency introduced between, e.g.,
 string.spq -> integer.spq, then all the unit tests need that inclusion added,
 even pre-existing ones that would (in theory) still fine without it.
 
-For now, the test script supports `// sk_include` comments in the .spq files and
+For now, the test script supports `-- sk_include` comments in the .spq files and
 will include these referenced files in the test run. It doesn't yet support
 recursive `sk_includes`, but that may be added soon. Just itching one scratch at
 a time right now.

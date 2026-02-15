@@ -98,5 +98,5 @@ seq 1 3 | super -s -c "
 super --version
 ```
 ```mdtest-output
-Version: v0.0.0-20250930170057-3b76fa645ee8
+Version: v0.1.0
 ```

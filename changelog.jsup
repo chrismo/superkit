@@ -20,7 +20,13 @@
         "infra: migrate all .spq files to SuperDB 0.1.0 syntax (fn, op, --, ::cast, unnest, values, parse_sup)",
         "infra: rewrite sk_keys to use fields()+uniq, sk_add_ids to use count operator, sk_titleize to use lateral subquery",
         "infra: drop zq dual-testing, convert test suite from custom test.sh to bats",
-        "infra: 85 bats tests passing on SuperDB 0.1.0"
+        "infra: 85 bats tests passing on SuperDB 0.1.0",
+        "docs: update all doc/*.md for 0.1.0 syntax and version strings",
+        "docs: update joins.md - anti join now works, select * includes _1 suffixed columns",
+        "docs: update subqueries.md - rewrite lateral subquery to unnest...into pattern",
+        "docs: note from.md expression-based from is broken in 0.1.0",
+        "infra: update build script, release.sh, bin scripts for 0.1.0 syntax",
+        "infra: update README.md for 0.1.0"
     ]
 }
 {

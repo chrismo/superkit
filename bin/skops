@@ -51,16 +51,13 @@ function _fuzzy_view() {
 }
 
 function default() {
-  local -r op_name="skops_multi_line()"
+  local -r op_name="skops_multi_line"
 
   if _check_command super; then
     super -f line -I "$(_script_dir)/skops.spq" \
       -c "$op_name" "$(_script_dir)/skops.jsup" | _fuzzy_view
-  elif _check_command zq; then
-    zq -f text -I "$(_script_dir)/skops.spq" \
-      "$op_name" "$(_script_dir)/skops.jsup" | _fuzzy_view
   else
-    echo "ERROR: Could not find 'super' or 'zq' on PATH"
+    echo "ERROR: Could not find 'super' on PATH"
     exit 1
   fi
 }
