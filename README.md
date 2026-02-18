@@ -1,10 +1,17 @@
-# SuperKit (Archived)
+# SuperKit
 
-This repo is archived. SuperKit was a SuperDB function library, CLI tool suite,
-and collection of tutorial docs for [SuperDB](https://superdb.org/).
+Documentation, tutorials, and recipes for [SuperDB](https://superdb.org/).
 
-All content (recipes, grok patterns, tutorials, test examples) has moved to
-[superdb-mcp](https://github.com/chrismo/superdb-mcp), which serves this
-material through the SuperDB MCP server for use with coding agents.
+**Website:** [chrismo.github.io/superkit](https://chrismo.github.io/superkit/)
 
-`changelog.jsup` is kept here for historical reference.
+## Content
+
+- **Expert Guide** — Comprehensive SuperSQL syntax reference
+- **Upgrade Guide** — Migration guide from zq to SuperDB
+- **Tutorials** — Step-by-step guides for common patterns
+
+## How it works
+
+Content is authored in [superdb-mcp](https://github.com/chrismo/superdb-mcp) and auto-synced here via GitHub Action. The site is built with Jekyll using the [Just the Docs](https://just-the-docs.com/) theme and deployed via GitHub Pages.
+
+`changelog.jsup` is kept for historical reference from the original SuperKit project.

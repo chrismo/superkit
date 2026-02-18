@@ -1,2 +1,8 @@
 tmp/
 dist/
+_site/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+.bundle/
+Gemfile.lock
