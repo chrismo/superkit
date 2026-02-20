@@ -1,6 +1,6 @@
 title: SuperKit
 description: SuperDB documentation, tutorials, and recipes
-remote_theme: just-the-docs/just-the-docs
+theme: just-the-docs
 url: "https://chrismo.github.io"
 baseurl: "/superkit"
 permalink: pretty
