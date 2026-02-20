@@ -16,7 +16,7 @@ getting raw text from Bash into SuperDB.
 ## The Problem
 
 When building `.sup` records from Bash, you need to escape text before embedding
-it in ZSON strings. A common approach is manual escaping with sed:
+it in SUP strings. A common approach is manual escaping with sed:
 
 ```bash
 # Manual escaping — fragile and error-prone
