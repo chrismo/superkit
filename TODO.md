@@ -1,3 +1,7 @@
+---
+nav_exclude: true
+---
+
 # TODO
 
 ## Consider reviving SuperKit as a CLI install
