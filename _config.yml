@@ -4,3 +4,4 @@ remote_theme: just-the-docs/just-the-docs
 url: "https://chrismo.github.io"
 baseurl: "/superkit"
 permalink: pretty
+color_scheme: dark
