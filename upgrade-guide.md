@@ -1,11 +1,9 @@
 ---
-title: Upgrade Guide
+title: "Upgrade Guide"
+description: ""Migration guide from zq to SuperDB. Covers all breaking changes and syntax updates.""
 layout: default
 nav_order: 3
+superdb_version: "0.1.0"
+last_updated: "2026-01-31"
 ---
 
-# Upgrade Guide
-
-This content is auto-synced from [superdb-mcp](https://github.com/chrismo/superdb-mcp).
-
-To populate this page, run the sync workflow or push a docs change to the superdb-mcp main branch.
