@@ -78,13 +78,16 @@ async function main() {
     ],
   });
 
-  // Process markdown files in repo root and tutorials/
+  // Process markdown files in _build/ and _build/tutorials/
   const files = [
-    ...fs.readdirSync(".").filter((f) => f.endsWith(".md")),
     ...fs
-      .readdirSync("tutorials")
+      .readdirSync("_build")
       .filter((f) => f.endsWith(".md"))
-      .map((f) => path.join("tutorials", f)),
+      .map((f) => path.join("_build", f)),
+    ...fs
+      .readdirSync("_build/tutorials")
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => path.join("_build/tutorials", f)),
   ];
 
   let totalBlocks = 0;
