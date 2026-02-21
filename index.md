@@ -10,8 +10,8 @@ Documentation, tutorials, and recipes for [SuperDB](https://superdb.org/).
 
 ## Guides
 
-- [Expert Guide]({% link expert-guide.md %}) — Comprehensive SuperSQL syntax reference covering data types, operators, expressions, aggregations, and more.
-- [Upgrade Guide]({% link upgrade-guide.md %}) — Migration guide for upgrading from zq to SuperDB, with all breaking changes documented.
+- [Expert Guide]({% link _build/expert-guide.md %}) — Comprehensive SuperSQL syntax reference covering data types, operators, expressions, aggregations, and more.
+- [Upgrade Guide]({% link _build/upgrade-guide.md %}) — Migration guide for upgrading from zq to SuperDB, with all breaking changes documented.
 
 ## Tutorials
 
