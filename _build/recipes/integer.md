@@ -34,6 +34,14 @@ sk_clamp(2, 2, 3)
 -- => 2
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_clamp(i, min, max): (
+  i < min ? min : i > max ? max : i
+)
+```
+
 ---
 
 ## sk_min
@@ -53,6 +61,14 @@ sk_min(1, 2)
 
 sk_min(3, 2)
 -- => 2
+```
+
+**Implementation:**
+
+```supersql
+fn sk_min(a, b): (
+  a < b ? a : b
+)
 ```
 
 ---
@@ -76,19 +92,9 @@ sk_max(3, 2)
 -- => 3
 ```
 
----
-
-## Implementation
+**Implementation:**
 
 ```supersql
-fn sk_clamp(i, min, max): (
-    i < min ? min : i > max ? max : i
-)
-
-fn sk_min(a, b): (
-  a < b ? a : b
-)
-
 fn sk_max(a, b): (
   a > b ? a : b
 )

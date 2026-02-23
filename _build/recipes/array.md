@@ -29,6 +29,14 @@ sk_in_array([1])
 -- => [1]
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_in_array(value): (
+  kind(value) == "array" ? value : [value]
+)
+```
+
 ---
 
 ## sk_array_flatten
@@ -45,15 +53,9 @@ Flattens an array of arrays into a single array.
 -- => [1,2,3,4]
 ```
 
----
-
-## Implementation
+**Implementation:**
 
 ```supersql
-fn sk_in_array(value): (
-  kind(value) == "array" ? value : [value]
-)
-
 op sk_array_flatten: (
   this::string
   | this[1:-1]

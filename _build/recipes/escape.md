@@ -34,6 +34,16 @@ sk_csv_field('hello, world')
 -- => quoted and wrapped
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_csv_field(s): (
+  grep("[,\"\n]", s)
+    ? f"\"{replace(s, "\"", "\"\"")}\""
+    : s
+)
+```
+
 ---
 
 ## sk_csv_row
@@ -46,6 +56,14 @@ escaped with sk_csv_field, then joined with commas.
 | Argument | Description |
 |----------|-------------|
 | `arr` | Array of values to format as a CSV row |
+
+**Implementation:**
+
+```supersql
+fn sk_csv_row(arr): (
+  join([unnest arr | values sk_csv_field(cast(this, <string>))], ",")
+)
+```
 
 ---
 
@@ -69,6 +87,14 @@ sk_shell_quote('has $var')
 -- => single-quoted, $ not expanded
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_shell_quote(s): (
+  f"'{replace(s, "'", "'\\''")}'"
+)
+```
+
 ---
 
 ## sk_tsv_field
@@ -81,6 +107,14 @@ tab and newline characters with their backslash-escaped forms.
 | Argument | Description |
 |----------|-------------|
 | `s` | The value to escape |
+
+**Implementation:**
+
+```supersql
+fn sk_tsv_field(s): (
+  replace(replace(cast(s, <string>), "\t", "\\t"), "\n", "\\n")
+)
+```
 
 ---
 
@@ -122,28 +156,4 @@ Append a timestamped record with raw text to a `.sup` file.
 ```bash
 echo "$text" | super -s -i line \
   -c "values {ts: now(), body: this}" - >> data.sup
-```
-
----
-
-## Implementation
-
-```supersql
-fn sk_csv_field(s): (
-  grep("[,\"\n]", s)
-    ? f"\"{replace(s, "\"", "\"\"")}\""
-    : s
-)
-
-fn sk_csv_row(arr): (
-  join([unnest arr | values sk_csv_field(cast(this, <string>))], ",")
-)
-
-fn sk_shell_quote(s): (
-  f"'{replace(s, "'", "'\\''")}'"
-)
-
-fn sk_tsv_field(s): (
-  replace(replace(cast(s, <string>), "\t", "\\t"), "\n", "\\n")
-)
 ```

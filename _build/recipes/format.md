@@ -31,9 +31,7 @@ sk_format_bytes(0)
 
 Supports units up to EB (exabytes). The full unit list: B, KB, MB, GB, TB, PB, EB.
 
----
-
-## Implementation
+**Implementation:**
 
 ```supersql
 const sk_bytes_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
