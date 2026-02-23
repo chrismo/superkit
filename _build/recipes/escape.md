@@ -123,3 +123,27 @@ Append a timestamped record with raw text to a `.sup` file.
 echo "$text" | super -s -i line \
   -c "values {ts: now(), body: this}" - >> data.sup
 ```
+
+---
+
+## Implementation
+
+```supersql
+fn sk_csv_field(s): (
+  grep("[,\"\n]", s)
+    ? f"\"{replace(s, "\"", "\"\"")}\""
+    : s
+)
+
+fn sk_csv_row(arr): (
+  join([unnest arr | values sk_csv_field(cast(this, <string>))], ",")
+)
+
+fn sk_shell_quote(s): (
+  f"'{replace(s, "'", "'\\''")}'"
+)
+
+fn sk_tsv_field(s): (
+  replace(replace(cast(s, <string>), "\t", "\\t"), "\n", "\\n")
+)
+```
