@@ -28,6 +28,14 @@ sk_slice('howdy')
 -- => 'Howdy'
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_slice(s, start, end): (
+  s[sk_clamp(start, -len(s), len(s)):sk_clamp(end, -len(s), len(s))]
+)
+```
+
 ---
 
 ## sk_capitalize
@@ -45,6 +53,14 @@ sk_capitalize('hoWDy')
 -- => 'Howdy'
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_capitalize(s): (
+  f"{upper(sk_slice(s, 0, 1))}{lower(sk_slice(s,1,len(s)))}"
+)
+```
+
 ---
 
 ## sk_titleize
@@ -60,6 +76,14 @@ Splits string by space and capitalizes each word.
 ```supersql
 sk_titleize('once uPON A TIME')
 -- => 'Once Upon A Time'
+```
+
+**Implementation:**
+
+```supersql
+fn sk_titleize(s): (
+  [unnest split(s, " ") | values sk_capitalize(this)] | join(this, " ")
+)
 ```
 
 ---
@@ -81,6 +105,14 @@ values sk_pad_left('abc', ' ', 5)
 -- => '  abc'
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_pad_left(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_left(f'{pad_char}{s}', pad_char, target_length) : s
+)
+```
+
 ---
 
 ## sk_pad_right
@@ -100,6 +132,14 @@ values sk_pad_right('abc', ' ', 5)
 -- => 'abc  '
 ```
 
+**Implementation:**
+
+```supersql
+fn sk_pad_right(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
+)
+```
+
 ---
 
 ## sk_urldecode
@@ -116,33 +156,9 @@ URL decoder for SuperDB. Splits on `%`, decodes each hex-encoded segment, and jo
 super -I string.spq -s -c 'values sk_urldecode("%2Ftavern%20test")' -
 ```
 
----
-
-## Implementation
+**Implementation:**
 
 ```supersql
--- includes integer.spq
-
-fn sk_slice(s, start, end): (
-  s[sk_clamp(start, -len(s), len(s)):sk_clamp(end, -len(s), len(s))]
-)
-
-fn sk_capitalize(s): (
-  f"{upper(sk_slice(s, 0, 1))}{lower(sk_slice(s,1,len(s)))}"
-)
-
-fn sk_titleize(s): (
-  [unnest split(s, " ") | values sk_capitalize(this)] | join(this, " ")
-)
-
-fn sk_pad_left(s, pad_char, target_length): (
-  len(s) < target_length ? sk_pad_left(f'{pad_char}{s}', pad_char, target_length) : s
-)
-
-fn sk_pad_right(s, pad_char, target_length): (
-  len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
-)
-
 op sk_decode_seg s: (
   len(s) == 0
     ? s

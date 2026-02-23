@@ -26,6 +26,14 @@ into nested records.
 -- => ['x','y','z']
 ```
 
+**Implementation:**
+
+```supersql
+op sk_keys: (
+  fields(this) | unnest this | values this[0] | uniq | collect(this)
+)
+```
+
 ---
 
 ## sk_merge_records
@@ -38,6 +46,16 @@ there are duplicate keys, the last one wins.
 ```supersql
 [{a:1},{b:{c:333}}] | sk_merge_records
 -- => {a:1,b:{c:333}}
+```
+
+**Implementation:**
+
+```supersql
+op sk_merge_records: (
+  this::string
+  | replace(this, "},{",",")
+  | parse_sup(this[1:-1])
+)
 ```
 
 ---
@@ -53,23 +71,9 @@ Prepends an incrementing id field to each record. Always returns an array.
 -- => [{id:1,a:3},{id:2,b:4}]
 ```
 
----
-
-## Implementation
+**Implementation:**
 
 ```supersql
--- includes array.spq
-
-op sk_keys: (
-  fields(this) | unnest this | values this[0] | uniq | collect(this)
-)
-
-op sk_merge_records: (
-  this::string
-  | replace(this, "},{",",")
-  | parse_sup(this[1:-1])
-)
-
 op sk_add_ids: (
   sk_in_array(this)
   | unnest this
