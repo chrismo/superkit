@@ -22,6 +22,15 @@ Step-by-step tutorials covering common SuperDB patterns:
 - [{{ tutorial.title }}]({{ tutorial.url | relative_url }})
 {% endfor %}
 
+## Recipes
+
+Reusable SuperSQL functions and operators:
+
+{% assign recipes = site.pages | where_exp: "page", "page.parent == 'Recipes'" | sort: "nav_order" %}
+{% for recipe in recipes %}
+- [{{ recipe.title }}]({{ recipe.url | relative_url }})
+{% endfor %}
+
 ---
 
 Content is auto-synced from [superdb-mcp](https://github.com/chrismo/superdb-mcp), which serves this material through the SuperDB MCP server for use with coding agents.
