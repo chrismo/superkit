@@ -18,6 +18,7 @@ const THEME = "github-dark";
 function mapLang(tag) {
   if (!tag) return "spq"; // untagged blocks in expert-guide are SuperSQL
   if (tag === "sql") return "spq";
+  if (tag === "supersql") return "spq";
   if (tag === "mdtest-command") return "bash";
   if (tag === "mdtest-output") return "spq";
   if (tag === "json lines") return "json";
@@ -78,17 +79,16 @@ async function main() {
     ],
   });
 
-  // Process markdown files in _build/ and _build/tutorials/
-  const files = [
-    ...fs
-      .readdirSync("_build")
-      .filter((f) => f.endsWith(".md"))
-      .map((f) => path.join("_build", f)),
-    ...fs
-      .readdirSync("_build/tutorials")
-      .filter((f) => f.endsWith(".md"))
-      .map((f) => path.join("_build/tutorials", f)),
-  ];
+  // Process markdown files in _build/ and its subdirectories
+  const dirs = ["_build", "_build/tutorials", "_build/recipes"];
+  const files = dirs.flatMap((dir) =>
+    fs.existsSync(dir)
+      ? fs
+          .readdirSync(dir)
+          .filter((f) => f.endsWith(".md"))
+          .map((f) => path.join(dir, f))
+      : []
+  );
 
   let totalBlocks = 0;
   for (const file of files) {
