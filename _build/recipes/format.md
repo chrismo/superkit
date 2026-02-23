@@ -30,3 +30,24 @@ sk_format_bytes(0)
 ```
 
 Supports units up to EB (exabytes). The full unit list: B, KB, MB, GB, TB, PB, EB.
+
+---
+
+## Implementation
+
+```supersql
+const sk_bytes_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+const sk_bytes_divisor=1024
+
+fn _sk_bytes_unit_index(value): (
+  floor(log(value) / log(sk_bytes_divisor))::uint64
+)
+
+fn _sk_format_nonzero_bytes(value): (
+  f"{(value / pow(sk_bytes_divisor, _sk_bytes_unit_index(value)))::uint64} {sk_bytes_units[_sk_bytes_unit_index(value)]}"
+)
+
+fn sk_format_bytes(value): (
+  (value == 0) ? "0 B" : _sk_format_nonzero_bytes(value)
+)
+```

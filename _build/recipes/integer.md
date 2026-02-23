@@ -75,3 +75,21 @@ sk_max(1, 2)
 sk_max(3, 2)
 -- => 3
 ```
+
+---
+
+## Implementation
+
+```supersql
+fn sk_clamp(i, min, max): (
+    i < min ? min : i > max ? max : i
+)
+
+fn sk_min(a, b): (
+  a < b ? a : b
+)
+
+fn sk_max(a, b): (
+  a > b ? a : b
+)
+```

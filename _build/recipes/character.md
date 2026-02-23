@@ -72,3 +72,31 @@ Converts 1-26 to A-Z.
 sk_alpha(3)
 -- => 'C'
 ```
+
+---
+
+## Implementation
+
+```supersql
+-- includes string.spq
+
+op sk_seq(n): (
+  split(sk_pad_left('', '0', n), '')
+  | unnest this
+  | count
+  | values count - 1
+)
+
+fn sk_hex_digits(): (
+  split("0123456789abcdef", "")
+)
+
+fn sk_chr(code): (
+  let d = sk_hex_digits() |
+  hex(f'{d[code/16]}{d[code%16]}')::string
+)
+
+fn sk_alpha(n): (
+  sk_chr(64 + n)
+)
+```

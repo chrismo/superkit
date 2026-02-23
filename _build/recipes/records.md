@@ -52,3 +52,29 @@ Prepends an incrementing id field to each record. Always returns an array.
 [{a:3},{b:4}] | sk_add_ids
 -- => [{id:1,a:3},{id:2,b:4}]
 ```
+
+---
+
+## Implementation
+
+```supersql
+-- includes array.spq
+
+op sk_keys: (
+  fields(this) | unnest this | values this[0] | uniq | collect(this)
+)
+
+op sk_merge_records: (
+  this::string
+  | replace(this, "},{",",")
+  | parse_sup(this[1:-1])
+)
+
+op sk_add_ids: (
+  sk_in_array(this)
+  | unnest this
+  | count
+  | values {id:count,...that}
+  | collect(this)
+)
+```

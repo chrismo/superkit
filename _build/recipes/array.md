@@ -44,3 +44,21 @@ Flattens an array of arrays into a single array.
 [[1,2],[3,4]] | sk_array_flatten
 -- => [1,2,3,4]
 ```
+
+---
+
+## Implementation
+
+```supersql
+fn sk_in_array(value): (
+  kind(value) == "array" ? value : [value]
+)
+
+op sk_array_flatten: (
+  this::string
+  | this[1:-1]
+  | replace(this,'[','')
+  | replace(this, ']','')
+  | parse_sup(f'[{this}]')
+)
+```

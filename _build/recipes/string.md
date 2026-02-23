@@ -115,3 +115,47 @@ URL decoder for SuperDB. Splits on `%`, decodes each hex-encoded segment, and jo
 ```bash
 super -I string.spq -s -c 'values sk_urldecode("%2Ftavern%20test")' -
 ```
+
+---
+
+## Implementation
+
+```supersql
+-- includes integer.spq
+
+fn sk_slice(s, start, end): (
+  s[sk_clamp(start, -len(s), len(s)):sk_clamp(end, -len(s), len(s))]
+)
+
+fn sk_capitalize(s): (
+  f"{upper(sk_slice(s, 0, 1))}{lower(sk_slice(s,1,len(s)))}"
+)
+
+fn sk_titleize(s): (
+  [unnest split(s, " ") | values sk_capitalize(this)] | join(this, " ")
+)
+
+fn sk_pad_left(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_left(f'{pad_char}{s}', pad_char, target_length) : s
+)
+
+fn sk_pad_right(s, pad_char, target_length): (
+  len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
+)
+
+op sk_decode_seg s: (
+  len(s) == 0
+    ? s
+    : (is_error(hex(s[1:3]))
+        ? s
+        : hex(s[1:3])::string + s[3:])
+)
+
+op sk_urldecode url: (
+  split(url, "%")
+    | unnest this
+    | decode_seg this
+    | collect(this)
+    | join(this, "")
+)
+```
