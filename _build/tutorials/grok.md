@@ -4,7 +4,7 @@ description: "Tutorial on using the grok function for text parsing in SuperDB."
 layout: default
 nav_order: 4
 parent: Tutorials
-superdb_version: "0.1.0"
+superdb_version: "0.2.0"
 last_updated: "2026-02-15"
 ---
 
@@ -122,5 +122,5 @@ error({message:"grok: value does not match pattern",on:"foo"})
 super --version
 ```
 ```mdtest-output
-Version: v0.1.0
+Version: v0.2.0
 ```

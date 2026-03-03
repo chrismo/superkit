@@ -4,7 +4,7 @@ description: "End-to-end tutorial parsing PGN chess data to find tie-break games
 layout: default
 nav_order: 2
 parent: Tutorials
-superdb_version: "0.1.0"
+superdb_version: "0.2.0"
 last_updated: "2026-02-15"
 ---
 
@@ -34,10 +34,9 @@ super -i line -s -c "
   --
   -- pair up each player in each game
   --
-  -- future super versions will support window functions, but we can make do with this
-  --
-  | put row_num:=count(this)
-  | put game_id:=((row_num - 1) / 2)::int64
+  | count
+  | put game_id:=((count - 1) / 2)::int64
+  | values {...that, game_id}
   | aggregate
       last_name_white:=max(last_name_white),
       last_name_black:=max(last_name_black)
@@ -66,12 +65,12 @@ super -i line -s -c "
 ```
 
 ```mdtest-output
-{player:"Abdusattorov",opponent:"Wei",count:3::uint64}
-{player:"Giri",opponent:"Gukesh",count:4::uint64}
-{player:"Gukesh",opponent:"Giri",count:4::uint64}
-{player:"Gukesh",opponent:"Wei",count:3::uint64}
-{player:"Wei",opponent:"Abdusattorov",count:3::uint64}
-{player:"Wei",opponent:"Gukesh",count:3::uint64}
+{player:"Abdusattorov",opponent:"Wei",count:3}
+{player:"Giri",opponent:"Gukesh",count:4}
+{player:"Gukesh",opponent:"Giri",count:4}
+{player:"Gukesh",opponent:"Wei",count:3}
+{player:"Wei",opponent:"Abdusattorov",count:3}
+{player:"Wei",opponent:"Gukesh",count:3}
 ```
 
 ## Walkthrough
@@ -96,9 +95,11 @@ which we filter with `where not is_error(this)`.
 PGN files list White and Black players on consecutive lines for each game. We
 need to combine them into single records.
 
-The trick is using expression-context `count(this)` which produces a running
-count (1, 2, 3, ...). Integer division `(row_num - 1) / 2` maps pairs of rows to
-the same game_id: rows 1,2 get game_id 0; rows 3,4 get game_id 1, etc.
+The `count` operator adds a sequential `count` field to each record (1, 2, 3, ...).
+Integer division `(count - 1) / 2` maps pairs of rows to the same game_id:
+rows 1,2 get game_id 0; rows 3,4 get game_id 1, etc. The `count` operator wraps
+the input in a `that` field, so `{...that, game_id}` spreads the original fields
+back out alongside the game_id.
 
 Then `aggregate ... by game_id` with `max()` picks up the non-null value from
 each field within each pair.
@@ -213,8 +214,8 @@ super -s -c "
 ```
 
 ```mdtest-output
-{player:"Gukesh",opponent:"Wei",count:2::uint64}
-{player:"Wei",opponent:"Gukesh",count:2::uint64}
+{player:"Gukesh",opponent:"Wei",count:2}
+{player:"Wei",opponent:"Gukesh",count:2}
 ```
 
 ## as of versions
@@ -223,5 +224,5 @@ super -s -c "
 super --version
 ```
 ```mdtest-output
-Version: v0.1.0
+Version: v0.2.0
 ```

@@ -4,7 +4,7 @@ description: "Guide to the unnest operator including nested unnest...into patter
 layout: default
 nav_order: 10
 parent: Tutorials
-superdb_version: "0.1.0"
+superdb_version: "0.2.0"
 last_updated: "2026-02-15"
 ---
 
@@ -108,5 +108,5 @@ seq 1 3 | super -s -c "
 super --version
 ```
 ```mdtest-output
-Version: v0.1.0
+Version: v0.2.0
 ```
