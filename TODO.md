@@ -11,9 +11,19 @@ There's a persistent preference for CLIs over MCPs in the broader community
 Not everyone is using MCP-capable tools, and a standalone CLI would make the
 docs, recipes, and grok patterns accessible without an MCP client.
 
-Possible scope:
+Why both CLI and MCP:
+- In my limited experience, MCP is superior for agent workflows with SuperDB
+  specifically — Claude does WAY better with the SuperDB MCP than a shell script
+- But most folks report better success with CLIs over MCPs in practice — not everyone
+  is using MCP-capable tools
+- Token cost is the strongest argument for CLI (no round-trips through the model)
+- No reason not to provide both
+
+Possible approach:
+- Sync the MCP's own scripts (help, recipes, grok) into superkit so both delivery
+  mechanisms share the same underlying content
 - `sk help expert` / `sk help tutorial:grok` — same content as `super_help`
 - `sk grok <pattern>` — search grok patterns
 - `sk recipes <query>` — browse recipe functions
 - Installable via Homebrew, npm, or standalone binary
-- Content still authored in superdb-mcp, synced here, CLI reads from local copy
+- Content authored in superdb-mcp, scripts synced here, CLI wraps them
