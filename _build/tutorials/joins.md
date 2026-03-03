@@ -23,8 +23,8 @@ last_updated: "2026-02-15"
 
 Left Join (Left Only + Inner Joins — where clause required to eliminate inner joins)
 
-Note: In 0.1.0, `select *` now includes columns from both sides. The right table's
-columns get a `_1` suffix to avoid name collisions, and unmatched values are
+`select *` includes columns from both sides. The right table's columns get a
+`_1` suffix to avoid name collisions, and unmatched values are
 `error("missing")`.
 ```mdtest-command
 super -s -c "select * from za.sup as za
