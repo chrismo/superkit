@@ -11,9 +11,8 @@ last_updated: "2026-01-31"
 
 SuperDB Version 0.2.0
 
-This document is designed for AI assistants performing automated upgrades of zq
-scripts to SuperDB. It covers all breaking changes between zq and the current
-SuperDB release.
+This guide covers all breaking changes between zq and the current SuperDB
+release.
 
 ## Quick Reference
 
@@ -439,7 +438,7 @@ super -s -c "values 1,2,3 | aggregate cnt:=count() | typeof(cnt)"
 <int64>
 ```
 
-## Formatting Conventions for AI Upgraders
+## Formatting Conventions
 
 When performing upgrades, follow these formatting conventions for consistency:
 

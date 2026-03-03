@@ -7,26 +7,21 @@ superdb_version: "0.2.0"
 last_updated: "2026-01-31"
 ---
 
-# SuperDB Query Specialist
+# SuperDB Expert Guide
 
-You are a SuperDB expert specializing in the unique SuperDB query language.
+SuperDB is a command-line tool and query engine that puts JSON and relational
+tables on equal footing with a super-structured data model. It uses a
+Unix-inspired pipeline syntax similar to jq but with its own distinct language
+and semantics. This guide covers SuperDB's query syntax, patterns, and best
+practices.
 
-SuperDB has piping like jq, but IS NOT JQ.
+## Note on Zed/zq Compatibility
 
-SuperDB is NOT JavaScript — it has its own syntax and semantics. SuperDB puts
-JSON and relational tables on equal footing with a super-structured data model.
-
-## CRITICAL WARNING ABOUT ZED/ZQ LANGUAGE
-
-**DO NOT REFERENCE zed.brimdata.io OR ZQ LANGUAGE DOCUMENTATION!**
-
-- Zed and zq are OUTDATED languages that SuperDB is REPLACING
-- SuperDB supports SOME legacy zq syntax but has made BREAKING CHANGES
-- The old Zed language documentation at zed.brimdata.io is INCOMPATIBLE
-- Only use SuperDB documentation at superdb.org and GitHub examples
-- When in doubt, test syntax with actual SuperDB binary, not old examples
-
-**ALWAYS use current SuperDB syntax, never assume Zed/zq patterns work!**
+**SuperDB replaces the older Zed/zq toolchain and has breaking changes.**
+The Zed language documentation at zed.brimdata.io is outdated and incompatible
+with current SuperDB syntax. Use SuperDB documentation at superdb.org and
+GitHub examples instead. When in doubt, test syntax with the actual `super`
+binary rather than relying on old Zed/zq examples.
 
 ## Core Knowledge
 
@@ -43,10 +38,10 @@ JSON and relational tables on equal footing with a super-structured data model.
   - `-i` for input format
   - `-f line` for clean number formatting without type decorators
 
-#### Old switches that are now ILLEGAL
+#### Removed switches
 
-- `-z` for deprecated ZSON name. Illegal - DO NOT USE
-- `-Z` for deprecated ZSON name. Illegal - DO NOT USE
+- `-z` for deprecated ZSON name. **Removed** — no longer accepted.
+- `-Z` for deprecated ZSON name. **Removed** — no longer accepted.
 
 ### Critical Rules
 
@@ -88,7 +83,7 @@ from source
 - Each branch runs in parallel using parentheses syntax
 - Branches can be combined, merged, or joined
 - Without explicit join/merge, an implied "combine" operator forwards values
-- **NEVER use `=>` fat arrow syntax - that's from old Zed language!**
+- **Note:** The `=>` fat arrow syntax from the old Zed language is not supported.
 
 ## PostgreSQL Compatibility & Traditional SQL
 
@@ -729,13 +724,13 @@ If `<expr>` is omitted, it defaults to `true`. Available pragmas:
 - **`index_base`** — `0` (default) for zero-based indexing, `1` for one-based indexing
 - **`pg`** — `false` (default, Google SQL semantics) or `true` (PostgreSQL semantics for GROUP BY identifier resolution)
 
-## SuperDB Quoting Rules (Critical for Bash Integration)
+## SuperDB Quoting Rules (Bash Integration)
 
-**ALWAYS follow these quoting rules when SuperDB is called from bash:**
+Follow these quoting rules when calling `super` from bash:
 
-- **ALWAYS use double quotes for the `-c` parameter**: `super -s -c "..."`
-- **ALWAYS use single quotes inside SuperDB queries**: `{type:10, content:'$variable'}`
-- **NEVER escape double quotes inside SuperDB** - use single quotes instead
+- Use double quotes for the `-c` parameter: `super -s -c "..."`
+- Use single quotes inside SuperDB queries: `{type:10, content:'$variable'}`
+- Avoid escaping double quotes inside SuperDB — use single quotes instead
 - This allows bash interpolation while avoiding quote escaping issues
 
 **Examples:**
