@@ -34,3 +34,5 @@ Reusable SuperSQL functions and operators:
 ---
 
 Content is auto-synced from [superdb-mcp](https://github.com/chrismo/superdb-mcp), which serves this material through the SuperDB MCP server for use with coding agents.
+
+{% if site.data.versions %}<small>Last updated: {{ site.data.versions.last_updated }}</small>{% endif %}
