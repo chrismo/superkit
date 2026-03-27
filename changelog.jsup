@@ -1,4 +1,16 @@
 {
+    date: "2026-03-27",
+    version: "0.3.0",
+    super_version: "v0.3.0",
+    items: [
+        "infra: update asdf-superdb to download official brimdata/super releases for v0.3.0+",
+        "infra: update superdb-mcp to v1.4.0 targeting SuperDB v0.3.0",
+        "docs: update all docs and tutorials to target SuperDB v0.3.0",
+        "docs: add v0.3.0 breaking changes to upgrade guide (BSUP v2, collect/union, concat/null)",
+        "docs: add v0.3.0 new features to expert guide (debug, infer, defuse, unblend, optional fields)"
+    ]
+}
+{
     date: "",
     version: "0.2.2",
     super_version: "",
