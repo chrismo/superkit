@@ -4,7 +4,7 @@ description: "Guide to the unnest operator including nested unnest...into patter
 layout: default
 nav_order: 8
 parent: Tutorials
-superdb_version: "0.2.0"
+superdb_version: "0.3.0"
 last_updated: "2026-02-15"
 ---
 

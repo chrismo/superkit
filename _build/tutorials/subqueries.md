@@ -4,7 +4,7 @@ description: "Examples of correlated subqueries and derived table patterns in Su
 layout: default
 nav_order: 6
 parent: Tutorials
-superdb_version: "0.2.0"
+superdb_version: "0.3.0"
 last_updated: "2026-02-15"
 ---
 
