@@ -5,7 +5,7 @@ layout: default
 nav_order: 5
 parent: Tutorials
 superdb_version: "0.3.0"
-last_updated: "2026-02-15"
+last_updated: "2026-03-28"
 ---
 
 # grok
@@ -106,6 +106,45 @@ super -s -c '
 
 Now that feels clean and simple!        
 
+## Pairing grok with infer
+
+Grok extracts fields as strings — even numbers and IPs. The `infer` operator
+can automatically detect and cast these to native types.
+
+Here's a log line parsed with grok — note that everything is a string:
+
+```mdtest-command
+super -s -c '
+  values
+    "192.168.1.1 GET /api/users 200 1234",
+    "10.0.0.5 POST /api/data 404 567"
+  | grok("%{IP:client} %{WORD:method} %{URIPATH:path} %{INT:status} %{INT:bytes}", this)'
+```
+```mdtest-output
+{client:"192.168.1.1",method:"GET",path:"/api/users",status:"200",bytes:"1234"}
+{client:"10.0.0.5",method:"POST",path:"/api/data",status:"404",bytes:"567"}
+```
+
+Add `| infer` and the types get cleaned up automatically:
+
+```mdtest-command
+super -s -c '
+  values
+    "192.168.1.1 GET /api/users 200 1234",
+    "10.0.0.5 POST /api/data 404 567"
+  | grok("%{IP:client} %{WORD:method} %{URIPATH:path} %{INT:status} %{INT:bytes}", this)
+  | infer'
+```
+```mdtest-output
+{client:192.168.1.1,method:"GET",path:"/api/users",status:200,bytes:1234}
+{client:10.0.0.5,method:"POST",path:"/api/data",status:404,bytes:567}
+```
+
+`client` became an `ip` type, `status` and `bytes` became `int64`, while
+`method` and `path` correctly stayed as strings. This means you can now do
+things like `where status >= 400` or `where client in 10.0.0.0/8` without
+manual casting.
+
 ## Unit tests in codebase
 
 ```mdtest-command
@@ -122,5 +161,5 @@ error({message:"grok: value does not match pattern",on:"foo"})
 super --version
 ```
 ```mdtest-output
-Version: v0.2.0
+Version: v0.3.0
 ```

@@ -540,6 +540,33 @@ super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
 - Use `super -s -c "values this"` to inspect intermediate data
 - Add `| head 5` to preview results during development
 
+### The `debug` operator
+
+The `debug` operator taps into a pipeline to emit values to stderr without
+affecting the main output:
+
+```
+debug [ <expr> ] [ filter ( <pred> ) ]
+```
+
+- With no args, echoes every value to stderr
+- `<expr>` transforms what gets emitted (e.g., `debug f'val={this}'`)
+- `filter (<pred>)` controls which values trigger debug output
+- Output is always SUP format on stderr, regardless of `-f` flag
+
+```bash
+# Flag failing scores on stderr while writing results to a file
+super -s -c "
+  from scores.json
+  | put pass:=score >= 70
+  | debug f'FAIL: {name} ({score})' filter (pass=false)
+  | sort name
+" > results.sup
+```
+
+See `tutorial:debug` for advanced patterns including `fork`, subqueries, and
+`fn`/`op` usage with debug.
+
 ### Debugging Commands
 
 ```bash
@@ -641,6 +668,31 @@ super -c "values (123.45::int64)::string" # outputs: "123"
 - Use `::type` syntax, NOT function calls like `int64(value)`, `string(value)`, etc.
 - **Historical note:** Earlier SuperDB pre-releases supported function-style casting like `int64(123.45)`, but this
   syntax has been removed. Always use `::type` syntax instead.
+
+### Type Inference with `infer`
+
+The `infer` operator samples input and auto-detects native types for string
+values, casting them automatically. Useful for cleaning up CSV or other
+string-heavy data:
+
+```bash
+# Strings become ints, bools, timestamps, IPs where detected
+echo '{"port":"80","active":"true","ts":"Jun 1, 2025"}' |
+  super -s -c "infer" -
+# => {port:80,active:true,ts:2025-06-01T00:00:00Z}
+```
+
+Candidate types: `int64`, `float64`, `ip`, `net`, `time`, `bool`. Default
+sample size is 100 records; `infer 0` analyzes all input.
+
+### `defuse` and `unblend` functions
+
+These reverse the effects of `fuse` and `blend`:
+
+- `defuse(val)` — reverses `fuse` by converting fusion types back to original
+  types, downcasting union values to their subtype equivalent
+- `unblend(val)` — reverses `blend` by removing union types and eliminating
+  optional fields without values
 
 ### Rounding Numbers
 

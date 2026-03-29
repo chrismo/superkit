@@ -467,14 +467,45 @@ values instead of propagating them.
 
 ### New features in v0.3.0
 
-- **`debug` operator** — new operator for debugging pipelines
-- **`infer` operator** — new operator for type inference
-- **`defuse` function** — new function for error handling
-- **`unblend` function** — new function for type separation
-- **`db vacate` command** — new command to vacate database pools
-- **Optional fields in record expressions** — record fields can now be marked optional
-- **Fusion types** — new type system feature
-- **Named types in `upcast` function**
+#### `debug` operator
+
+Tap into a pipeline to emit debugging values to stderr without affecting the
+main output. Supports an optional expression and filter clause:
+
+```
+values 1,2,3 | debug f'val={this}' filter (this > 1) | pass
+```
+
+Debug output goes to stderr in SUP format. See the `tutorial:debug` topic for
+detailed usage including `fork`-based patterns and subquery aggregation.
+
+#### `infer` operator
+
+Samples input and auto-detects native types for string values, casting them
+to the inferred type. Useful for cleaning up CSV or other string-heavy data:
+
+```
+infer [ <limit> ]
+```
+
+Candidate types: `int64`, `float64`, `ip`, `net`, `time`, `bool`. Default
+sample size is 100 records; set to 0 to analyze all input.
+
+#### `defuse` and `unblend` functions
+
+`defuse(val)` reverses the effects of `fuse` — converts fusion types back to
+their original types by downcasting union values to their subtype equivalent.
+
+`unblend(val)` reverses the effects of `blend` — removes union types and
+eliminates optional fields without values from records.
+
+#### Other new features
+
+- **`db vacate` command** — vacate database pools
+- **Optional fields in record expressions** — record fields can now be marked
+  optional with `?` syntax
+- **Fusion types** — new type system feature for complete type fusion
+- **Named types in `upcast` function** — upcast now supports named types
 
 ## Formatting Conventions
 
