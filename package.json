@@ -1,6 +1,46 @@
 {
-  "private": true,
-  "dependencies": {
-    "shiki": "^3.2.0"
+  "name": "superkit",
+  "version": "1.0.0",
+  "description": "SuperDB toolkit — docs, recipes, grok patterns, and CLI tools for the super binary",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "skdoc": "dist/cli/skdoc.js",
+    "skgrok": "dist/cli/skgrok.js",
+    "skops": "dist/cli/skops.js"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrismo/superkit.git"
+  },
+  "keywords": [
+    "superdb",
+    "supersql",
+    "data",
+    "query",
+    "cli"
+  ],
+  "author": "chrismo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "shiki": "^3.2.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
