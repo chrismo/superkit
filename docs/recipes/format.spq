@@ -1,0 +1,24 @@
+-- cannot get above EB with uint64 - sorry "ZB" & "YB" and beyond...
+const sk_bytes_units=["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+const sk_bytes_divisor=1024
+
+fn _sk_bytes_unit_index(value): (
+  floor(log(value) / log(sk_bytes_divisor))::uint64
+)
+
+fn _sk_format_nonzero_bytes(value): (
+  f"{(value / pow(sk_bytes_divisor, _sk_bytes_unit_index(value)))::uint64} {sk_bytes_units[_sk_bytes_unit_index(value)]}"
+)
+
+fn skdoc_format_bytes(): (
+  cast(
+    {name:"sk_format_bytes",
+     type:"func",
+     desc:"Returns the size in bytes in human readable format.",
+     args:[{name:"value",desc:"Must be castable to uint64"}],
+     examples:[{i:"sk_format_bytes(1048576)",o:"'1 MB'"}] }, <skdoc>)
+)
+
+fn sk_format_bytes(value): (
+  (value == 0) ? "0 B" : _sk_format_nonzero_bytes(value)
+)
