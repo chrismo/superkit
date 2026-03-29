@@ -12,46 +12,51 @@ last_updated: "2026-03-27"
 SuperDB Version 0.3.0
 
 This guide covers all breaking changes between zq and the current SuperDB
-release.
+release. Each entry is tagged with the version it first appeared in so you can
+skip changes that predate your starting version.
+
+Version 0.1.0 was the first official SuperDB release. Earlier community-contributed
+builds used pseudo-versions in `0.YMMDD` format (e.g., `0.51231` for Dec 31, 2025)
+and are not covered individually here — all changes from that era are tagged as 0.1.0.
 
 ## Quick Reference
 
 This table covers ALL breaking changes. Complex items reference detailed sections below.
 
-| Category         | zq                          | super                                    |
-|------------------|-----------------------------|------------------------------------------|
-| Keyword          | `yield`                     | `values`                                 |
-| Function         | `parse_zson`                | `parse_sup`                              |
-| Function         | `func`                      | `fn`                                     |
-| Operator         | `over`                      | `unnest`                                 |
-| Operator def     | `op name(a, b):`            | `op name a, b:`                          |
-| Operator call    | `name(x, y)`                | `name x, y`                              |
-| Switch           | `-z` / `-Z`                 | `-s` / `-S`                              |
-| Switch           | `-f text`                   | `-f line`                                |
-| Switch           | (implicit)                  | `-c` required before query               |
-| Comments         | `//`                        | `--` or `/* */`                          |
-| Regexp           | `/pattern/`                 | `'pattern'` (string)                     |
-| Cast             | `type(value)`               | `value::type`                            |
-| Agg filter       | `count() where x`           | `count() filter (x)`                     |
-| Indexing         | 0-based                     | 0-based & 1-based (see Indexing section) |
-| Scoped unnest    | `over x => (...)`           | `unnest x into (...)`                    |
-| Unnest with      | `over a with b`             | `unnest {b,a}` (see section)             |
-| grep             | `grep(/pat/)`               | `grep('pat', this)`                      |
-| is()             | `is(<type>)`                | `is(this, <type>)`                       |
-| nest_dotted      | `nest_dotted()`             | `nest_dotted(this)`                      |
-| Lateral subquery | `{ a: (subquery) }`         | `{ a: [subquery] }` (see section)        |
-| Nested FROM      | `from (from x)`             | `select * from (select * from x)`        |
-| Streaming agg    | `put x:=sum(y)`             | Removed (see section)                    |
-| Functions        | `crop/fill/fit/order/shape` | Removed — use cast                       |
-| Globs            | `grep(foo*)`                | Removed — use regex                      |
-| String concat    | `"a" + "b"`                 | `f'{a}{b}'`, `a \|\| b`, or `concat`     |
-| count type       | returns `uint64`            | returns `int64`                          |
-| Dynamic from     | `from pool`                 | `from f'{pool}'` (see section)           |
-| BSUP format      | BSUP v1                     | BSUP v2 (v1 no longer readable)          |
-| collect/union    | preserves all errors        | drops `error("quiet")` values            |
-| concat/f-strings | errors propagate            | `null` values ignored                    |
+| Since | Category         | zq                          | super                                    |
+|-------|------------------|-----------------------------|------------------------------------------|
+| 0.1.0 | Keyword          | `yield`                     | `values`                                 |
+| 0.1.0 | Function         | `parse_zson`                | `parse_sup`                              |
+| 0.1.0 | Function         | `func`                      | `fn`                                     |
+| 0.1.0 | Operator         | `over`                      | `unnest`                                 |
+| 0.1.0 | Operator def     | `op name(a, b):`            | `op name a, b:`                          |
+| 0.1.0 | Operator call    | `name(x, y)`                | `name x, y`                              |
+| 0.1.0 | Switch           | `-z` / `-Z`                 | `-s` / `-S`                              |
+| 0.1.0 | Switch           | `-f text`                   | `-f line`                                |
+| 0.1.0 | Switch           | (implicit)                  | `-c` required before query               |
+| 0.1.0 | Comments         | `//`                        | `--` or `/* */`                          |
+| 0.1.0 | Regexp           | `/pattern/`                 | `'pattern'` (string)                     |
+| 0.1.0 | Cast             | `type(value)`               | `value::type`                            |
+| 0.1.0 | Agg filter       | `count() where x`           | `count() filter (x)`                     |
+| 0.1.0 | Indexing         | 0-based                     | 0-based & 1-based (see Indexing section) |
+| 0.1.0 | Scoped unnest    | `over x => (...)`           | `unnest x into (...)`                    |
+| 0.1.0 | Unnest with      | `over a with b`             | `unnest {b,a}` (see section)             |
+| 0.1.0 | grep             | `grep(/pat/)`               | `grep('pat', this)`                      |
+| 0.1.0 | is()             | `is(<type>)`                | `is(this, <type>)`                       |
+| 0.1.0 | nest_dotted      | `nest_dotted()`             | `nest_dotted(this)`                      |
+| 0.1.0 | Lateral subquery | `{ a: (subquery) }`         | `{ a: [subquery] }` (see section)        |
+| 0.1.0 | Nested FROM      | `from (from x)`             | `select * from (select * from x)`        |
+| 0.1.0 | Streaming agg    | `put x:=sum(y)`             | Removed (see section)                    |
+| 0.1.0 | Functions        | `crop/fill/fit/order/shape` | Removed — use cast                       |
+| 0.1.0 | Globs            | `grep(foo*)`                | Removed — use regex                      |
+| 0.1.0 | count type       | returns `uint64`            | returns `int64`                          |
+| 0.1.0 | Dynamic from     | `from pool`                 | `from f'{pool}'` (see section)           |
+| 0.1.0 | String concat    | `"a" + "b"`                 | `f'{a}{b}'`, `a \|\| b`, or `concat`     |
+| 0.3.0 | BSUP format      | BSUP v1                     | BSUP v2 (v1 no longer readable)          |
+| 0.3.0 | collect/union    | drops quiet+missing errors  | drops only `error("quiet")`              |
+| 0.3.0 | concat/f-strings | `null` propagates           | `null` values ignored                    |
 
-## CLI Changes
+## CLI Changes (0.1.0)
 
 ### The `-c` switch is now required
 
@@ -115,7 +120,7 @@ zq used `//` for single-line comments. SuperDB uses PostgreSQL-compatible syntax
 - `--` for single-line comments
 - `/* ... */` for multi-line comments
 
-## Simple Renames
+## Simple Renames (0.1.0)
 
 ### yield → values
 
@@ -161,7 +166,7 @@ zq 'yield [1,2,3] | over this'
 super -c 'values [1,2,3] | unnest this'
 ```
 
-## Behavioral Changes
+## Behavioral Changes (0.1.0)
 
 ### Indexing is 0-based (with pragma for 1-based)
 
@@ -369,7 +374,7 @@ from f'{pool_name}'
 Note: f-strings are general-purpose string interpolation and work anywhere a
 string is accepted, not just in `from` clauses.
 
-## Removed Features
+## Removed Features (0.1.0)
 
 ### Streaming aggregation functions
 
@@ -417,7 +422,7 @@ removed. Use cast instead — see [Cast syntax changes](#cast-syntax-changes).
 
 Globs are no longer supported in the `grep` function. Use regex patterns.
 
-## Type Changes
+## Type Changes (0.1.0)
 
 ### Count functions return int64
 
@@ -455,10 +460,11 @@ super-0.2.0 -s data.bsup > data.sup
 super -f bsup data.sup > data-v2.bsup
 ```
 
-### collect and union drop quiet errors
+### collect and union error handling
 
-In `collect` and `union` aggregate functions, `error("quiet")` values are now
-dropped. `error("missing")` values are still preserved.
+In `collect` and `union` aggregate functions, `error("missing")` values are now
+preserved. Previously (0.1.0–0.2.0) both `error("quiet")` and `error("missing")`
+were silently dropped. Now only `error("quiet")` is dropped.
 
 ### null values ignored in concat and f-strings
 
