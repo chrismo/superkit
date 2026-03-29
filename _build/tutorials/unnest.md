@@ -2,7 +2,7 @@
 title: "unnest"
 description: "Guide to the unnest operator including nested unnest...into patterns."
 layout: default
-nav_order: 8
+nav_order: 9
 parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-02-15"
