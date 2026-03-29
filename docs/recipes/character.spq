@@ -1,0 +1,57 @@
+-- sk_include string.spq
+
+op skdoc_seq: (
+  cast(
+    {name:"sk_seq",
+     type:"op",
+     desc:"Generates a sequence 0..n-1 (like generate_series).",
+     args:[{name:"n",desc:"Number of elements to generate"}],
+     examples:[{i:"sk_seq(3)",o:"0, 1, 2"}] }, <skdoc>)
+)
+
+op sk_seq(n): (
+  split(sk_pad_left('', '0', n), '')
+  | unnest this
+  | count
+  | values count - 1
+)
+
+fn skdoc_hex_digits(): (
+  cast(
+    {name:"sk_hex_digits",
+     type:"func",
+     desc:"Returns the 16 hex digit characters as an array.",
+     args:[],
+     examples:[] }, <skdoc>)
+)
+
+fn sk_hex_digits(): (
+  split("0123456789abcdef", "")
+)
+
+fn skdoc_chr(): (
+  cast(
+    {name:"sk_chr",
+     type:"func",
+     desc:"Converts an integer (0-127) to its ASCII character.",
+     args:[{name:"code",desc:"ASCII code (0-127)"}],
+     examples:[{i:"sk_chr(65)",o:"'A'"}] }, <skdoc>)
+)
+
+fn sk_chr(code): (
+  let d = sk_hex_digits() |
+  hex(f'{d[code/16]}{d[code%16]}')::string
+)
+
+fn skdoc_alpha(): (
+  cast(
+    {name:"sk_alpha",
+     type:"func",
+     desc:"Converts 1-26 to A-Z.",
+     args:[{name:"n",desc:"Number 1-26"}],
+     examples:[{i:"sk_alpha(3)",o:"'C'"}] }, <skdoc>)
+)
+
+fn sk_alpha(n): (
+  sk_chr(64 + n)
+)
