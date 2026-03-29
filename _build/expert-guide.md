@@ -431,6 +431,34 @@ _current_tasks | super -s -c "where done==true | count()" -
 - First-class type values
 - Type representation: `<[int64|string]>` for mixed types
 
+#### Optional fields
+
+Record fields can be marked optional with `?` syntax. Optional fields may be
+absent (null) without changing the record's type:
+
+```
+{x:1, y?:null}   # y is optional and absent
+{x:2, y?:3}      # y is optional and present
+```
+
+#### Fusion types
+
+`fuse` merges heterogeneous record types into a common schema using union types
+and optional fields. `defuse` reverses this:
+
+```
+values {a:1}, {a:2, b:"hello"} | fuse
+# => fusion({a:1,b?:_::string},<{a:int64}>)
+# => fusion({a:2,b?:"hello"},<{a:int64,b:string}>)
+
+values {a:1}, {a:2, b:"hello"} | fuse | defuse(this)
+# => {a:1}
+# => {a:2,b:"hello"}
+```
+
+Similarly, `blend` creates a common type using optional fields and unions, and
+`unblend` reverses it.
+
 ### Nested Field Access
 
 ```
@@ -735,6 +763,8 @@ SuperDB supports f-string interpolation for formatting output:
 - Numbers must be converted to strings using `::string` casting
 - F-strings use single quotes with `f'...'` prefix
 - Variables are referenced with `{variable_name}` syntax
+- `null` values are silently ignored in f-strings (as of v0.3.0):
+  `f'hello {null} world'` produces `"hello  world"`
 
 ### Avoid jq syntax
 
