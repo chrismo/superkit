@@ -1,9 +1,12 @@
 ---
+title: "debug"
 name: debug
 description: "Guide to the debug operator for tapping pipelines and inspecting intermediate values."
+layout: default
+nav_order: 3
+parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-03-28"
-web: "https://chrismo.github.io/superkit/_build/tutorials/debug/"
 ---
 
 # debug

@@ -5,4 +5,4 @@ url: "https://chrismo.github.io"
 baseurl: "/superkit"
 permalink: pretty
 color_scheme: dark
-include: ["_build"]
+exclude: ["src", "node_modules", "dist", "tmp", "test", "bin", "README.md"]

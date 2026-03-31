@@ -1,9 +1,12 @@
 ---
+title: "Joins"
 name: joins
 description: "Examples of outer joins, anti joins, and full outer joins in SuperDB."
+layout: default
+nav_order: 6
+parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-02-15"
-web: "https://chrismo.github.io/superkit/_build/tutorials/joins/"
 ---
 
 # Joins

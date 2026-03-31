@@ -1,8 +1,9 @@
 ---
 title: "Fork as a Window Function Workaround"
+name: fork-for-window
 description: "Using fork as a workaround for window functions to do per-group selection."
 layout: default
-nav_order: 3
+nav_order: 4
 parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-02-20"

@@ -19,5 +19,5 @@ super -I string.spq -c "values sk_capitalize('hello')"
 ```
 
 Recipe source files are available in the
-[superdb-mcp](https://github.com/chrismo/superdb-mcp/tree/main/docs/recipes)
+[superkit](https://github.com/chrismo/superkit/tree/main/docs/recipes)
 repository.

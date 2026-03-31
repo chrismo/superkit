@@ -1,9 +1,12 @@
 ---
+title: "Chess Tiebreaks"
 name: chess-tiebreaks
 description: "End-to-end tutorial parsing PGN chess data to find tie-break games."
+layout: default
+nav_order: 2
+parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-02-15"
-web: "https://chrismo.github.io/superkit/_build/tutorials/chess-tiebreaks/"
 ---
 
 # Chess Tiebreaks

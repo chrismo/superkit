@@ -1,15 +1,16 @@
 ---
 title: "Updating Data in a Lake"
+name: super-db-update
 description: "Workarounds for updating data in a SuperDB lake."
 layout: default
-nav_order: 9
+nav_order: 11
 parent: Tutorials
 superdb_version: "0.2.0"
 last_updated: "2026-02-15"
 ---
 
 # Updating Data in a Lake
-            
+
 There are plans to eventually support this, captured in this [GitHub Issue
 #4024](https://github.com/brimdata/super/issues/4024). But for now, we'll have
 to fudge it.
