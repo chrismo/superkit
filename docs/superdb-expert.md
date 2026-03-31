@@ -1,9 +1,11 @@
 ---
+title: "Expert Guide"
 name: superdb-expert
 description: "Expert guide for SuperDB queries and data transformations. Covers syntax, patterns, and best practices."
+layout: default
+nav_order: 2
 superdb_version: "0.3.0"
 last_updated: "2026-03-27"
-web: "https://chrismo.github.io/superkit/_build/expert-guide/"
 ---
 
 # SuperDB Expert Guide

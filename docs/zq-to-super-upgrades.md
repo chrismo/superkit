@@ -1,9 +1,11 @@
 ---
+title: "Upgrade Guide"
 name: zq-to-super-upgrades
 description: "Migration guide from zq to SuperDB. Covers all breaking changes and syntax updates."
+layout: default
+nav_order: 3
 superdb_version: "0.3.0"
 last_updated: "2026-03-27"
-web: "https://chrismo.github.io/superkit/_build/upgrade-guide/"
 ---
 
 # Upgrading zq to super

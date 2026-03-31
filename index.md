@@ -10,8 +10,8 @@ Documentation, tutorials, and recipes for [SuperDB](https://superdb.org/).
 
 ## Guides
 
-- [Expert Guide]({% link _build/expert-guide.md %}) — Comprehensive SuperSQL syntax reference covering data types, operators, expressions, aggregations, and more.
-- [Upgrade Guide]({% link _build/upgrade-guide.md %}) — Migration guide for upgrading from zq to SuperDB, with all breaking changes documented.
+- [Expert Guide]({% link docs/superdb-expert.md %}) — Comprehensive SuperSQL syntax reference covering data types, operators, expressions, aggregations, and more.
+- [Upgrade Guide]({% link docs/zq-to-super-upgrades.md %}) — Migration guide for upgrading from zq to SuperDB, with all breaking changes documented.
 
 ## Tutorials
 
@@ -33,6 +33,6 @@ Reusable SuperSQL functions and operators:
 
 ---
 
-Content is auto-synced from [superdb-mcp](https://github.com/chrismo/superdb-mcp), which serves this material through the SuperDB MCP server for use with coding agents.
+Content is also available through the [SuperDB MCP server](https://github.com/chrismo/superdb-mcp) for use with coding agents.
 
 {% if site.data.versions %}<small>Last updated: {{ site.data.versions.last_updated }}</small>{% endif %}

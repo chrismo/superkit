@@ -1,9 +1,12 @@
 ---
+title: "Optimizing Sup Values into Bash Variables"
 name: sup-to-bash
 description: "Optimizing SuperDB output into Bash variables efficiently."
+layout: default
+nav_order: 8
+parent: Tutorials
 superdb_version: "0.3.0"
 last_updated: "2026-02-15"
-web: "https://chrismo.github.io/superkit/_build/tutorials/sup_to_bash/"
 ---
 
 # Optimizing Sup Values into Bash Variables

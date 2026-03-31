@@ -19,7 +19,7 @@ function listTutorials(): string[] {
   const tutorialsDir = join(getDocsDir(), 'tutorials');
   try {
     return readdirSync(tutorialsDir)
-      .filter(f => f.endsWith('.md'))
+      .filter(f => f.endsWith('.md') && f !== 'index.md')
       .map(f => basename(f, '.md'))
       .sort();
   } catch {
@@ -27,13 +27,13 @@ function listTutorials(): string[] {
   }
 }
 
-const SITE_BASE = 'https://chrismo.github.io/superkit/_build';
+const SITE_BASE = 'https://chrismo.github.io/superkit/docs';
 
 const webUrls: Record<string, string> = {
-  'expert': `${SITE_BASE}/expert-guide`,
-  'upgrade': `${SITE_BASE}/upgrade-guide`,
-  'upgrade-guide': `${SITE_BASE}/upgrade-guide`,
-  'migration': `${SITE_BASE}/upgrade-guide`,
+  'expert': `${SITE_BASE}/superdb-expert`,
+  'upgrade': `${SITE_BASE}/zq-to-super-upgrades`,
+  'upgrade-guide': `${SITE_BASE}/zq-to-super-upgrades`,
+  'migration': `${SITE_BASE}/zq-to-super-upgrades`,
   'tutorials': `${SITE_BASE}/tutorials`,
 };
 
