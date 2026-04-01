@@ -1,5 +1,5 @@
 {
-  "name": "superkit",
+  "name": "@chrismo/superkit",
   "version": "1.0.0",
   "description": "SuperDB toolkit — docs, recipes, grok patterns, and CLI tools for the super binary",
   "type": "module",
