@@ -235,9 +235,9 @@ super -I string.spq -s -c 'values sk_urldecode("%2Ftavern%20test")' -
 op sk_decode_seg s: (
   len(s) == 0
     ? s
-    : (is_error(hex(s[1:3]))
+    : (is_error(hex(s[0:2]))
         ? s
-        : hex(s[1:3])::string + s[3:])
+        : f'{hex(s[0:2])::string}{s[2:]}')
 )
 
 op sk_urldecode url: (

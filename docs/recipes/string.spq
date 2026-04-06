@@ -114,21 +114,20 @@ fn skdoc_mid(): (
 
 fn sk_mid(s, start, n): (sk_slice(s, sk_clamp(start, 0, len(s)), sk_clamp(start, 0, len(s)) + sk_clamp(n, 0, len(s))))
 
--- TODO: skdoc_urldecode
-
--- URL Decoder for SuperDB
--- Usage: super -I urldecode.spq -s -c 'values sk_urldecode(this)' - <<< '"%%2Ftavern%%20test"'
--- Or inline the definitions in your query
-
--- Helper operator to decode a single segment after splitting on %%
--- If the segment starts with valid 2-char hex, converts it to the character
--- Otherwise returns the segment as-is
+fn skdoc_urldecode(): (
+  cast(
+    {name:"sk_urldecode",
+     type:"op",
+     desc:"URL-decodes a percent-encoded string. Splits on %%, decodes each hex-encoded segment, and joins back together.",
+     args:[{name:"url",desc:"The URL-encoded string to decode."}],
+     examples:[{i:"'%%2Fhello%%20world' | sk_urldecode this",o:"'/hello world'"}]}, <skdoc>)
+)
 op sk_decode_seg s: (
   len(s) == 0
     ? s
-    : (is_error(hex(s[1:3]))
+    : (is_error(hex(s[0:2]))
         ? s
-        : hex(s[1:3])::string + s[3:])
+        : f'{hex(s[0:2])::string}{s[2:]}')
 )
 
 -- Main URL decoder operator
