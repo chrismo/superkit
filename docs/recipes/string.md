@@ -241,9 +241,9 @@ op sk_decode_seg s: (
 )
 
 op sk_urldecode url: (
-  split(url, "%")
+  split(url, "%%")
     | unnest this
-    | decode_seg this
+    | sk_decode_seg this
     | collect(this)
     | join(this, "")
 )
