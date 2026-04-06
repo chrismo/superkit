@@ -11,7 +11,7 @@ last_updated: "2026-02-17"
 
 # Getting Bash Text into SuperDB
 
-The companion to [sup_to_bash](sup_to_bash.md), this covers the reverse: safely
+The companion to [sup_to_bash]({% link docs/tutorials/sup_to_bash.md %}), this covers the reverse: safely
 getting raw text from Bash into SuperDB.
 
 ## The Problem

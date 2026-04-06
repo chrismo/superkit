@@ -6,6 +6,8 @@ nav_order: 1
 
 # SuperKit
 
+{% assign expert = site.pages | where: "name", "superdb-expert.md" | first %}<small>for SuperDB {{ expert.superdb_version }}</small>
+
 Documentation, tutorials, and recipes for [SuperDB](https://superdb.org/).
 
 ## Guides
