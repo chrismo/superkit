@@ -9,7 +9,7 @@ op skdoc_slice: (
      args:[{name:"s",desc:"The string to slice."}
            {name:"start",desc:"Starting index, zero-based, inclusive."}
            {name:"end",desc:"Ending index, exclusive."}],
-     examples:[{i:"sk_slice('howdy')",o:"'Howdy'"}] }, <skdoc>)
+     examples:[{i:"sk_slice('howdy', 0, 3)",o:"'how'"}] }, <skdoc>)
 )
 
 -- This isn't necessary with zq, but during early releases of super, the

@@ -9,7 +9,7 @@ op skdoc_seq: (
      examples:[{i:"sk_seq(3)",o:"0, 1, 2"}] }, <skdoc>)
 )
 
-op sk_seq(n): (
+op sk_seq n: (
   split(sk_pad_left('', '0', n), '')
   | unnest this
   | count

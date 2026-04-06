@@ -24,8 +24,8 @@ Returns a slice of the string passed in, even if indexes are out of range.
 | `end` | Ending index, exclusive. |
 
 ```supersql
-sk_slice('howdy')
--- => 'Howdy'
+sk_slice('howdy', 0, 3)
+-- => 'how'
 ```
 
 **Implementation:**

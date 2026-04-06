@@ -21,7 +21,7 @@ fn skdoc_csv_row(): (
      type:"func",
      desc:"Builds a CSV row from an array of values. Each element is cast to string and escaped with sk_csv_field, then joined with commas.",
      args:[{name:"arr",desc:"Array of values to format as a CSV row"}],
-     examples:[{i:"sk_csv_row(arr) where arr has commas",o:"fields with commas get quoted"}] }, <skdoc>)
+     examples:[{i:"sk_csv_row(['a', 'b,c', 'd'])",o:"'a,\"b,c\",d'"}] }, <skdoc>)
 )
 
 fn sk_csv_row(arr): (
