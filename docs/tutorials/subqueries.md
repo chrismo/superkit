@@ -17,8 +17,6 @@ superdb.
 
 ## Correlated Subqueries
 
-[//]: # (TODO: file versions - phil's versions from Slack - NOT versions - issue #54) 
-
 Let's start with this simple dataset:
 
 ```json lines
@@ -128,6 +126,57 @@ super -s -c '
 {id:1,date:"2025-02-27",foo:3}
 {id:4,date:"2025-02-28",foo:9}
 ```
+
+### Fork-and-Join: A Streamable Alternative
+
+The lateral subquery approach above uses `collect` to buffer the entire input
+into a single value before iterating. This works well for small datasets, but
+`collect` has limits on how large a single value can be. For larger datasets,
+a fork-and-join approach avoids that limitation by keeping things streamable.
+
+The idea is a self-join: raw data on one side, aggregated data on the other,
+joined on the matching fields.
+
+```mdtest-command
+super -s -c '
+  from data.json
+  | inner join (
+      from data.json
+      | foo := max(foo) by date
+    ) on {left.date, left.foo}={right.date, right.foo}
+  | values left
+  | sort date'
+```
+```mdtest-output
+{id:1,date:"2025-02-27",foo:3}
+{id:4,date:"2025-02-28",foo:9}
+```
+
+This can also use `fork` to read the input once instead of naming the file
+twice:
+
+```mdtest-command
+super -s -c '
+  from data.json
+  | fork
+    ( pass )
+    ( foo := max(foo) by date )
+  | inner join on {left.date, left.foo}={right.date, right.foo}
+  | values left
+  | sort date'
+```
+```mdtest-output
+{id:1,date:"2025-02-27",foo:3}
+{id:4,date:"2025-02-28",foo:9}
+```
+
+With `fork`, the data flows through a single unnamed input — one branch
+passes records through, the other aggregates. The multi-field join key uses
+the `{left.x, left.y}={right.x, right.y}` record syntax (see
+[multi-value joins](../join/#multi-value-joins)).
+
+The tradeoff: fork-and-join is more verbose, but it avoids the `collect`
+size limit and works with streaming pipelines.
 
 ## Subquery with Related Data Join
 

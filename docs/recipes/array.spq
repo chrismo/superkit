@@ -29,3 +29,52 @@ op sk_array_flatten: (
   | replace(this, ']','')
   | parse_sup(f'[{this}]')
 )
+
+fn skdoc_array_append(): (
+  cast(
+    {name:"sk_array_append",
+     type:"func",
+     desc:"Appends a value to the end of an array.",
+     args:[{name:"arr",desc:"The array to append to."}
+           {name:"val",desc:"The value to append."}],
+     examples:[{i:"sk_array_append([1,2,3], 4)",o:"[1,2,3,4]"}
+               {i:"sk_array_append([], \"a\")",o:"[\"a\"]"}]}, <skdoc>)
+)
+
+fn sk_array_append(arr, val): ([...arr, val])
+
+fn skdoc_array_remove(): (
+  cast(
+    {name:"sk_array_remove",
+     type:"op",
+     desc:"Removes all occurrences of a value from an array.",
+     args:[{name:"val",desc:"The value to remove."}],
+     examples:[{i:"[1,2,3,2,1] | sk_array_remove 2",o:"[1,3,1]"}
+               {i:"[\"a\",\"b\",\"c\"] | sk_array_remove \"b\"",o:"[\"a\",\"c\"]"}]}, <skdoc>)
+)
+
+op sk_array_remove val: (
+  [unnest this | where this != val]
+)
+
+fn skdoc_array_deep_flatten(): (
+  cast(
+    {name:"sk_deep_flatten",
+     type:"op",
+     desc:"Recursively flattens nested arrays into a single flat array.",
+     args:[],
+     examples:[{i:"[[1,[2,3]],[4,[5,[6]]]] | sk_deep_flatten",o:"[1,2,3,4,5,6]"}
+               {i:"[1,[2],[[3]]] | sk_deep_flatten",o:"[1,2,3]"}]}, <skdoc>)
+)
+
+op sk_deep_flatten: (
+  fn _df(v): (
+    case kind(v)
+    when "array" then (
+      [unnest [unnest v | _df(this)] | unnest this]
+    )
+    else [v]
+    end
+  )
+  _df(this)
+)

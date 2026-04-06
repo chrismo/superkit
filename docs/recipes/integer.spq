@@ -51,3 +51,25 @@ fn skdoc_max(): (
 fn sk_max(a, b): (
   a > b ? a : b
 )
+
+fn skdoc_last_day_of_month(): (
+  cast(
+    {name:"sk_last_day_of_month",
+     type:"func",
+     desc:"Returns the last day number (28-31) of the given month and year.",
+     args:[{name:"year",desc:"The year (e.g. 2024)."}
+           {name:"month",desc:"The month number (1-12)."}],
+     examples:[{i:"sk_last_day_of_month(2024, 2)",o:"29"}
+               {i:"sk_last_day_of_month(2023, 2)",o:"28"}
+               {i:"sk_last_day_of_month(2024, 12)",o:"31"}
+               {i:"sk_last_day_of_month(2024, 4)",o:"30"}]}, <skdoc>)
+)
+
+fn sk_last_day_of_month(year, month): (
+  -- Returns the last day number of the given month
+  {
+    nm: month == 12 ? 1 : month + 1,
+    ny: month == 12 ? year + 1 : year
+  }
+  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::time - 1d)::string)[8:10]::uint8
+)

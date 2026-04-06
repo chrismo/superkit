@@ -142,6 +142,79 @@ fn sk_pad_right(s, pad_char, target_length): (
 
 ---
 
+## sk_left
+
+Returns the first n characters of a string.
+
+**Type:** function
+
+| Argument | Description |
+|----------|-------------|
+| `s` | The string. |
+| `n` | Number of characters from the left. |
+
+```supersql
+sk_left('hello', 3)
+-- => 'hel'
+```
+
+**Implementation:**
+
+```supersql
+fn sk_left(s, n): (sk_slice(s, 0, sk_clamp(n, 0, len(s))))
+```
+
+---
+
+## sk_right
+
+Returns the last n characters of a string.
+
+**Type:** function
+
+| Argument | Description |
+|----------|-------------|
+| `s` | The string. |
+| `n` | Number of characters from the right. |
+
+```supersql
+sk_right('hello', 3)
+-- => 'llo'
+```
+
+**Implementation:**
+
+```supersql
+fn sk_right(s, n): (sk_slice(s, len(s) - sk_clamp(n, 0, len(s)), len(s)))
+```
+
+---
+
+## sk_mid
+
+Returns n characters from a string starting at a given position.
+
+**Type:** function
+
+| Argument | Description |
+|----------|-------------|
+| `s` | The string. |
+| `start` | Starting index, zero-based. |
+| `n` | Number of characters to return. |
+
+```supersql
+sk_mid('hello world', 6, 5)
+-- => 'world'
+```
+
+**Implementation:**
+
+```supersql
+fn sk_mid(s, start, n): (sk_slice(s, sk_clamp(start, 0, len(s)), sk_clamp(start, 0, len(s)) + sk_clamp(n, 0, len(s))))
+```
+
+---
+
 ## sk_urldecode
 
 URL decoder for SuperDB. Splits on `%`, decodes each hex-encoded segment, and joins back together.

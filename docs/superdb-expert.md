@@ -383,7 +383,7 @@ echo '{id:1,person_id:1,exercise:"tango"}
 {id:4,person_id:2,exercise:"cooking"}' > exercises.sup
 
 # joins supported: left, right, inner, full outer, anti
-super -c "
+super -s -c "
   select * from people.json people
   join exercises.sup exercises
   on people.id=exercises.person_id
@@ -391,7 +391,7 @@ super -c "
 
 # where ... is null not supported yet
 # unless coalesce used in the select clause
-super -c "
+super -s -c "
   select * from people.json people
   left join exercises.sup exercises
   on people.id=exercises.person_id
@@ -421,6 +421,159 @@ _current_tasks "| where done==true" | super -s -c "count()" -
 
 ```bash
 _current_tasks | super -s -c "where done==true | count()" -
+```
+
+## Advanced Patterns
+
+### Finding Syntax Errors in .sup Files
+
+Read each line as a raw string and test it individually with `parse_sup()`.
+The first error reported is the real problem:
+
+```
+super -i line -j -c '
+  values {raw: this, parsed: parse_sup(this)}
+  | where is_error(parsed)
+  | cut raw
+' broken-file.sup
+```
+
+### Crosstab Pattern
+
+SQL crosstab using CASE/WHEN to pivot rows into columns:
+
+```sql
+SELECT
+  coalesce(category, 'Total') as _,
+  SUM(CASE WHEN win = true THEN count ELSE 0 END) AS win,
+  SUM(CASE WHEN win = false THEN count ELSE 0 END) AS loss
+GROUP BY _
+```
+
+### Fork and Join for Inline Data
+
+Use `fork` with inline structured data to split and rejoin streams:
+
+```
+values {
+  data:[{id:1,s:'a'},{id:2,s:'b'},{id:3,s:'c'}],
+  match:[{id:2},{id:3}]
+}
+| fork
+  ( unnest data )
+  ( unnest match )
+| inner join on left.id=right.id
+```
+
+See the [Subqueries tutorial](tutorials/subqueries) for fork-and-join as a
+streamable alternative to `collect`-based correlated subqueries, and
+[Moar Subqueries](tutorials/moar_subqueries) for the collect-first "go up
+before drilling down" pattern.
+
+### Aggregate Filters
+
+Use `filter (expr)` on aggregate functions for conditional aggregation.
+Non-matches produce a count of 0 instead of empty output:
+
+```
+-- Count of 0 for non-matches:
+values 1, 2 | count() filter (this == 3)
+-- => 0
+
+-- Conditional collection:
+unnest [{dir:"out",v:"90"},{dir:"in",v:"561"},{dir:"in",v:"306"}]
+| in_vals:=collect(v) filter (dir=="in"),
+  out_vals:=collect(v) filter (dir=="out")
+```
+
+### Record vs Map Types
+
+Key distinction between Records and Maps:
+
+- `{a:1}` is a Record (unquoted keys)
+- `|{"a":1}|` is a Map (literal primitive keys, pipe delimiters)
+- `put` and spread only work with Records, not Maps or Unions
+- Map keys must be literal primitive types
+- `collect_map` requires a Map Expression argument — use `|{key:val}|` syntax,
+  not a Record expression
+
+### Converting Map to Record
+
+Maps and Records are separate types. To convert a `collect_map` result to a
+Record for use with `put`/spread, strip the pipe delimiters and re-parse:
+
+```
+-- collect_map produces a Map:
+values {k:"a",v:1}, {k:"b",v:2} | collect_map(|{k:v}|)
+-- => |{"a":1,"b":2}|
+
+-- Convert Map to Record:
+values {k:"a",v:1}, {k:"b",v:2}
+| collect_map(|{k:v}|)
+| this::string | this[1:-1] | parse_sup(this)
+-- => {a:1,b:2}
+```
+
+### Which Builtins Need Explicit `this`
+
+Most aggregate functions need `this` passed in explicitly:
+
+- **Implicit** (no argument): `count()`
+- **Explicit**: `and(this)`, `any(this)`, `avg(this)`, `collect(this)`,
+  `dcount(this)`, `fuse(this)`, `max(this)`, `min(this)`, `or(this)`,
+  `sum(this)`, `union(this)`
+- **Oddball**: `collect_map(|{key:val}|)` — needs a Map Expression, not `this`
+
+Functions that changed in 0.1.0 to require explicit `this`:
+- `grep('pattern', this)` (was `grep(/pattern/)`)
+- `is(this, <type>)` (was `is(<type>)`)
+- `nest_dotted(this)` (was `nest_dotted()`)
+
+### Expressions Inside `put`
+
+Pipelines work inside `put` expressions — no lateral subquery hack needed:
+
+```
+values {arn:"arn:aws:kms:us-east-1:000000000000:key/abc123"}
+| put region:=(split(this.arn, ':') | this[3])
+-- => {arn:"arn:aws:kms:us-east-1:000000000000:key/abc123",region:"us-east-1"}
+```
+
+Direct indexing also works: `put region:=split(this.arn, ':')[3]`
+
+### String Slicing
+
+SuperDB uses exclusive end index (like Python):
+
+```
+"aoeusnth"[0:-1]
+-- => "aoeusnt" (last char excluded)
+"aoeusnth"[0:]
+-- => "aoeusnth" (full string)
+```
+
+### search vs where for Regex
+
+- `search 'pattern'` — search all fields
+- `where grep('pattern', this)` — filter with regex in where clause
+- No `=~` operator exists in SuperDB
+
+### Deep Walk (Recursive Transformation)
+
+A recursive function that walks nested structures, applying a
+transformation at every leaf:
+
+```
+fn walk(v):
+  case kind(v)
+  when "array" then
+    [unnest v | walk(this)]
+  when "record" then
+    unflatten([unnest flatten(v) | {key,value:walk(value)}])
+  else v+1
+  end
+values walk([{x:[1,2]},{y:3}])
+-- => [{x:[2,3]},{y:4}]
 ```
 
 ## Advanced SuperDB Features
@@ -548,8 +701,12 @@ super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
 
 - Check for a trailing `-` without stdin
 - Check for no trailing `-` with stdin (sometimes you get output anyway but this is usually wrong!)
+- Watch for trailing `-` inside bash loops — `while IFS= read -r line` provides
+  stdin, so a `super -c "..." -` inside the loop will consume it instead of the
+  pipe. Drop the `-` if the command doesn't need stdin input.
 - Verify field names match exactly (case-sensitive)
 - Check type mismatches in comparisons
+- `collect()` on empty stream returns `null` (not empty) — guard with `coalesce(result, [])`
 
 2. **Type Errors**
 
@@ -654,13 +811,13 @@ Converting numeric values (like milliseconds) to duration types uses f-string in
 
 ```bash
 # Convert milliseconds to duration
-super -c "values 993958 | values f'{this}ms'::duration"
+super -s -c "values 993958 | values f'{this}ms'::duration"
 
 # Convert to seconds first, then duration
-super -c "values 993958 / 1000 | values f'{this}s'::duration"
+super -s -c "values 993958 / 1000 | values f'{this}s'::duration"
 
 # Round duration to buckets (e.g., 15 minute chunks)
-super -c "values 993958 / 1000 | values f'{this}s'::duration | bucket(this, 15m)"
+super -s -c "values 993958 / 1000 | values f'{this}s'::duration | bucket(this, 15m)"
 ```
 
 **Key points:**
@@ -680,16 +837,16 @@ SuperDB uses `::type` syntax for type conversions (not function calls):
 
 ```bash
 # Integer conversion (truncates decimals)
-super -c "values 1234.56::int64" # outputs: 1234
+super -s -c "values 1234.56::int64" # outputs: 1234
 
 # String conversion
-super -c "values 42::string" # outputs: "42"
+super -s -c "values 42::string" # outputs: "42"
 
 # Float conversion
-super -c "values 100::float64" # outputs: 100.0
+super -s -c "values 100::float64" # outputs: 100.0
 
 # Chaining casts
-super -c "values (123.45::int64)::string" # outputs: "123"
+super -s -c "values (123.45::int64)::string" # outputs: "123"
 ```
 
 **Important:**
@@ -729,13 +886,13 @@ SuperDB has a `round()` function that rounds to the nearest integer:
 
 ```bash
 # Round to nearest integer (single argument only)
-super -c "values round(3.14)" # outputs: 3.0
-super -c "values round(-1.5)" # outputs: -2.0
-super -c "values round(1234.567)" # outputs: 1235.0
+super -s -c "values round(3.14)" # outputs: 3.0
+super -s -c "values round(-1.5)" # outputs: -2.0
+super -s -c "values round(1234.567)" # outputs: 1235.0
 
 # For rounding to specific decimal places, use the multiply-cast-divide pattern
-super -c "values ((1234.567 * 100)::int64 / 100.0)" # outputs: 1234.56 (2 decimals)
-super -c "values ((1234.567 * 10)::int64 / 10.0)" # outputs: 1234.5 (1 decimal)
+super -s -c "values ((1234.567 * 100)::int64 / 100.0)" # outputs: 1234.56 (2 decimals)
+super -s -c "values ((1234.567 * 10)::int64 / 10.0)" # outputs: 1234.5 (1 decimal)
 ```
 
 **Key points:**

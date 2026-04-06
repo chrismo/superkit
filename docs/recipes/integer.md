@@ -99,3 +99,45 @@ fn sk_max(a, b): (
   a > b ? a : b
 )
 ```
+
+---
+
+## sk_last_day_of_month
+
+Returns the last day number (28-31) of the given month and year. Correctly handles leap years.
+
+**Type:** function
+
+| Argument | Description |
+|----------|-------------|
+| `year` | The year (e.g. 2024). |
+| `month` | The month number (1-12). |
+
+```supersql
+sk_last_day_of_month(2024, 2)
+-- => 29
+
+sk_last_day_of_month(2023, 2)
+-- => 28
+
+sk_last_day_of_month(2024, 12)
+-- => 31
+
+sk_last_day_of_month(2024, 4)
+-- => 30
+```
+
+Works by constructing the first day of the next month as a time value, subtracting one day, then extracting the day number from the resulting date string.
+
+**Implementation:**
+
+```supersql
+fn sk_last_day_of_month(year, month): (
+  -- Returns the last day number of the given month
+  {
+    nm: month == 12 ? 1 : month + 1,
+    ny: month == 12 ? year + 1 : year
+  }
+  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::time - 1d)::string)[8:10]::uint8
+)
+```

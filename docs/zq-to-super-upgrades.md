@@ -49,6 +49,7 @@ This table covers ALL breaking changes. Complex items reference detailed section
 | count type       | returns `uint64`            | returns `int64`                          |
 | Dynamic from     | `from pool`                 | `from f'{pool}'` (see section)           |
 | BSUP format      | BSUP v1                     | BSUP v2 (v1 no longer readable)          |
+| collect (empty)  | no output on empty stream   | returns `null` (see section)             |
 | collect/union    | preserves all errors        | drops `error("quiet")` values            |
 | concat/f-strings | errors propagate            | `null` values ignored                    |
 
@@ -454,6 +455,28 @@ files, convert them using a v0.2.0 binary before upgrading:
 # Convert v1 BSUP to SUP (using old binary), then back to v2 BSUP (using new binary)
 super-0.2.0 -s data.bsup > data.sup
 super -f bsup data.sup > data-v2.bsup
+```
+
+### collect on empty stream returns null
+
+In 0.1.0+, `collect()` on an empty stream returns `null` instead of producing
+no output. This can cause subtle downstream bugs — `this in null` drops all
+records instead of preserving them:
+
+```
+-- Empty collect returns null:
+values [1,2,3] | unnest this | where false | collect(this)
+-- Returns: null
+
+-- Downstream gotcha: "not in null" filters out everything:
+values ["a","b","c"] | unnest this | where not (this in null) | collect(this)
+-- Returns: null  (all records dropped!)
+
+-- Guard with coalesce or check for empty array:
+values ["a","b","c"] | unnest this
+  | where not (this in coalesce(null, []))
+  | collect(this)
+-- Returns: ["a","b","c"]
 ```
 
 ### collect and union drop quiet errors

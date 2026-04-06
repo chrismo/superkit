@@ -77,6 +77,43 @@ fn sk_pad_right(s, pad_char, target_length): (
   len(s) < target_length ? sk_pad_right(f'{s}{pad_char}', pad_char, target_length) : s
 )
 
+fn skdoc_left(): (
+  cast(
+    {name:"sk_left",
+     type:"func",
+     desc:"Returns the first n characters of a string.",
+     args:[{name:"s",desc:"The string."}
+           {name:"n",desc:"Number of characters from the left."}],
+     examples:[{i:"sk_left('hello', 3)",o:"'hel'"}]}, <skdoc>)
+)
+
+fn sk_left(s, n): (sk_slice(s, 0, sk_clamp(n, 0, len(s))))
+
+fn skdoc_right(): (
+  cast(
+    {name:"sk_right",
+     type:"func",
+     desc:"Returns the last n characters of a string.",
+     args:[{name:"s",desc:"The string."}
+           {name:"n",desc:"Number of characters from the right."}],
+     examples:[{i:"sk_right('hello', 3)",o:"'llo'"}]}, <skdoc>)
+)
+
+fn sk_right(s, n): (sk_slice(s, len(s) - sk_clamp(n, 0, len(s)), len(s)))
+
+fn skdoc_mid(): (
+  cast(
+    {name:"sk_mid",
+     type:"func",
+     desc:"Returns n characters from a string starting at a given position.",
+     args:[{name:"s",desc:"The string."}
+           {name:"start",desc:"Starting index, zero-based."}
+           {name:"n",desc:"Number of characters to return."}],
+     examples:[{i:"sk_mid('hello world', 6, 5)",o:"'world'"}]}, <skdoc>)
+)
+
+fn sk_mid(s, start, n): (sk_slice(s, sk_clamp(start, 0, len(s)), sk_clamp(start, 0, len(s)) + sk_clamp(n, 0, len(s))))
+
 -- TODO: skdoc_urldecode
 
 -- URL Decoder for SuperDB
