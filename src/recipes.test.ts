@@ -13,16 +13,19 @@ const allSpqFiles = readdirSync(recipesDir)
   .filter(f => f.endsWith('.spq'))
   .sort();
 
-// Strip skdoc blocks and functions that can't be parsed by super -I
-// (sk_shell_quote has nested quotes in f-strings that break the file parser)
+// Strip functions this harness cannot load or assert on.
+// Note: a missing comma used to make most recipe files unparseable by
+// `super -I`; several entries that lived here were symptoms of that, not
+// broken functions. Verify against the real file before adding to this list.
 const UNPARSEABLE_FNS = [
-  'sk_shell_quote',  // nested quotes in f-string
-  'sk_merge_records', // string literal with braces
   'sk_chr',          // uses `let` keyword (broken in current super)
   'sk_alpha',        // depends on sk_chr
-  'sk_seq',          // depends on sk_chr (via sk_pad_left, but also broken)
-  'sk_add_ids',      // uses `that` (old syntax for `this`)
 ];
+
+// Parseable, but this harness wraps every example in `values ...`, which
+// cannot represent an op that yields multiple values. Excluded from
+// assertions only — their definitions still load.
+const MULTI_VALUE_OPS = ['sk_seq'];
 
 function stripSkdocBlocks(content: string): string {
   const lines = content.split('\n');
@@ -102,8 +105,11 @@ function normalizeOutput(s: string): string {
     .trim();
 }
 
-// Write stripped defs to a file that super can load with -I
-const defsFile = join(tmpdir(), 'superkit-test-defs.spq');
+// Write stripped defs to a file that super can load with -I.
+// The filename is per-process: vitest also picks up the compiled copy of this
+// suite under dist/, and two runners sharing one path tear the file mid-write
+// whenever their contents differ (i.e. whenever dist/ is stale).
+const defsFile = join(tmpdir(), `superkit-test-defs-${process.pid}.spq`);
 writeFileSync(defsFile, allDefinitions);
 
 function runSuper(query: string): string {
@@ -114,8 +120,9 @@ function runSuper(query: string): string {
   return result.trim();
 }
 
-// Functions stripped from defs that can't be tested
-const SKIPPED_FNS = new Set(UNPARSEABLE_FNS);
+// Functions with no assertable examples: those stripped from the defs file,
+// plus ops whose output this harness cannot express.
+const SKIPPED_FNS = new Set([...UNPARSEABLE_FNS, ...MULTI_VALUE_OPS]);
 
 const { recipes } = superRecipes();
 
