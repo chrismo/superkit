@@ -91,9 +91,14 @@ sk_shell_quote('has $var')
 
 ```supersql
 fn sk_shell_quote(s): (
-  f"'{replace(s, "'", "'\\''")}'"
+  join(["'", replace(s, "'", "'\\''"), "'"], "")
 )
 ```
+
+Brace interpolation is the usual way to build a string, but not here: the
+replacement argument needs both quote characters, so it collides with the
+f-string's own delimiters whichever one wraps the outside. `join` sidesteps the
+nesting entirely.
 
 ---
 

@@ -6,8 +6,8 @@ op skdoc_slice: (
     {name:"sk_slice",
      type:"func",
      desc:"Returns a slice of the string passed in, even if indexes are out of range.",
-     args:[{name:"s",desc:"The string to slice."}
-           {name:"start",desc:"Starting index, zero-based, inclusive."}
+     args:[{name:"s",desc:"The string to slice."},
+           {name:"start",desc:"Starting index, zero-based, inclusive."},
            {name:"end",desc:"Ending index, exclusive."}],
      examples:[{i:"sk_slice('howdy', 0, 3)",o:"'how'"}] }, <skdoc>)
 )
@@ -52,8 +52,8 @@ fn skdoc_pad_left(): (
     {name:"sk_pad_left",
      type:"func",
      desc:"Inserts pad_char to the left of the string until it reaches target_length.",
-     args:[{name:"s",desc:"The string to pad"}
-           {name:"pad_char",desc:"The character to pad with"}
+     args:[{name:"s",desc:"The string to pad"},
+           {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
      examples:[{i:"values sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, <skdoc>)
 )
@@ -67,8 +67,8 @@ fn skdoc_pad_right(): (
     {name:"sk_pad_right",
      type:"func",
      desc:"Inserts pad_char to the right of the string until it reaches target_length.",
-     args:[{name:"s",desc:"The string to pad"}
-           {name:"pad_char",desc:"The character to pad with"}
+     args:[{name:"s",desc:"The string to pad"},
+           {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
      examples:[{i:"values sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
 )
@@ -82,7 +82,7 @@ fn skdoc_left(): (
     {name:"sk_left",
      type:"func",
      desc:"Returns the first n characters of a string.",
-     args:[{name:"s",desc:"The string."}
+     args:[{name:"s",desc:"The string."},
            {name:"n",desc:"Number of characters from the left."}],
      examples:[{i:"sk_left('hello', 3)",o:"'hel'"}]}, <skdoc>)
 )
@@ -94,7 +94,7 @@ fn skdoc_right(): (
     {name:"sk_right",
      type:"func",
      desc:"Returns the last n characters of a string.",
-     args:[{name:"s",desc:"The string."}
+     args:[{name:"s",desc:"The string."},
            {name:"n",desc:"Number of characters from the right."}],
      examples:[{i:"sk_right('hello', 3)",o:"'llo'"}]}, <skdoc>)
 )
@@ -106,8 +106,8 @@ fn skdoc_mid(): (
     {name:"sk_mid",
      type:"func",
      desc:"Returns n characters from a string starting at a given position.",
-     args:[{name:"s",desc:"The string."}
-           {name:"start",desc:"Starting index, zero-based."}
+     args:[{name:"s",desc:"The string."},
+           {name:"start",desc:"Starting index, zero-based."},
            {name:"n",desc:"Number of characters to return."}],
      examples:[{i:"sk_mid('hello world', 6, 5)",o:"'world'"}]}, <skdoc>)
 )

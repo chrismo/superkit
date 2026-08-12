@@ -8,11 +8,11 @@ op skdoc_clamp: (
     {name:"sk_clamp",
      type:"func",
      desc:"Clamps a value between min and max.",
-     args:[{name:"i",desc:"The value to clamp."}
-           {name:"min",desc:"The minimum value."}
+     args:[{name:"i",desc:"The value to clamp."},
+           {name:"min",desc:"The minimum value."},
            {name:"max",desc:"The maximum value."}],
-     examples:[{i:"sk_clamp(1, 2, 3)",o:"2"}
-               {i:"sk_clamp(4, 2, 3)",o:"3"}
+     examples:[{i:"sk_clamp(1, 2, 3)",o:"2"},
+               {i:"sk_clamp(4, 2, 3)",o:"3"},
                {i:"sk_clamp(2, 2, 3)",o:"2"}]}, <skdoc>)
 )
 
@@ -25,10 +25,10 @@ fn skdoc_min(): (
     {name:"sk_min",
      type:"func",
      desc:"Returns the minimum of two values.",
-     args:[{name:"a",desc:"The first value."}
+     args:[{name:"a",desc:"The first value."},
            {name:"b",desc:"The second value."}],
-     examples:[{i:"sk_min(1, 2)",o:"1"}
-               {i:"sk_min(3, 2)",o:"2"}
+     examples:[{i:"sk_min(1, 2)",o:"1"},
+               {i:"sk_min(3, 2)",o:"2"},
                {i:"sk_min(2, 2)",o:"2"}]}, <skdoc>)
 )
 
@@ -41,10 +41,10 @@ fn skdoc_max(): (
     {name:"sk_max",
      type:"func",
      desc:"Returns the maximum of two values.",
-     args:[{name:"a",desc:"The first value."}
+     args:[{name:"a",desc:"The first value."},
            {name:"b",desc:"The second value."}],
-     examples:[{i:"sk_max(1, 2)",o:"2"}
-               {i:"sk_max(3, 2)",o:"3"}
+     examples:[{i:"sk_max(1, 2)",o:"2"},
+               {i:"sk_max(3, 2)",o:"3"},
                {i:"sk_max(2, 2)",o:"2"}]}, <skdoc>)
 )
 
@@ -57,11 +57,11 @@ fn skdoc_last_day_of_month(): (
     {name:"sk_last_day_of_month",
      type:"func",
      desc:"Returns the last day number (28-31) of the given month and year.",
-     args:[{name:"year",desc:"The year (e.g. 2024)."}
+     args:[{name:"year",desc:"The year (e.g. 2024)."},
            {name:"month",desc:"The month number (1-12)."}],
-     examples:[{i:"sk_last_day_of_month(2024, 2)",o:"29"}
-               {i:"sk_last_day_of_month(2023, 2)",o:"28"}
-               {i:"sk_last_day_of_month(2024, 12)",o:"31"}
+     examples:[{i:"sk_last_day_of_month(2024, 2)",o:"29"},
+               {i:"sk_last_day_of_month(2023, 2)",o:"28"},
+               {i:"sk_last_day_of_month(2024, 12)",o:"31"},
                {i:"sk_last_day_of_month(2024, 4)",o:"30"}]}, <skdoc>)
 )
 

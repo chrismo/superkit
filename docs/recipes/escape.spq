@@ -4,8 +4,8 @@ fn skdoc_csv_field(): (
      type:"func",
      desc:"Escapes a string for use as a CSV field per RFC 4180. Wraps in double quotes and doubles internal quotes when the value contains commas, quotes, or newlines. Plain values pass through unchanged.",
      args:[{name:"s",desc:"The string to escape"}],
-     examples:[{i:"sk_csv_field('plain')",o:"'plain'"}
-               {i:"sk_csv_field('hello, world')",o:"quoted and wrapped"}
+     examples:[{i:"sk_csv_field('plain')",o:"'plain'"},
+               {i:"sk_csv_field('hello, world')",o:"quoted and wrapped"},
                {i:"sk_csv_field('has newline')",o:"quoted and wrapped"}] }, <skdoc>)
 )
 
@@ -34,12 +34,16 @@ fn skdoc_shell_quote(): (
      type:"func",
      desc:"Wraps a string in POSIX shell single quotes. Internal single quotes are escaped so the result is safe for shell interpolation. Protects against injection of $, backticks, and other shell metacharacters.",
      args:[{name:"s",desc:"The string to quote"}],
-     examples:[{i:"sk_shell_quote('hello world')",o:"single-quoted string"}
+     examples:[{i:"sk_shell_quote('hello world')",o:"single-quoted string"},
                {i:"sk_shell_quote('has $var')",o:"single-quoted, $ not expanded"}] }, <skdoc>)
 )
 
+-- Brace interpolation is the usual way to build a string, but not here: the
+-- replacement argument needs both quote characters, so it collides with the
+-- f-string's own delimiters no matter which one is chosen for the outside.
+-- join() sidesteps the nesting entirely.
 fn sk_shell_quote(s): (
-  f"'{replace(s, "'", "'\\'')}'"
+  join(["'", replace(s, "'", "'\\''"), "'"], "")
 )
 
 fn skdoc_tsv_field(): (
@@ -48,7 +52,7 @@ fn skdoc_tsv_field(): (
      type:"func",
      desc:"Escapes a value for use in a TSV field. Casts to string, then replaces literal tab and newline characters with their backslash-escaped forms.",
      args:[{name:"s",desc:"The value to escape"}],
-     examples:[{i:"sk_tsv_field('col1\\tcol2')",o:"tabs replaced with literal \\t"}
+     examples:[{i:"sk_tsv_field('col1\\tcol2')",o:"tabs replaced with literal \\t"},
                {i:"sk_tsv_field('line1\\nline2')",o:"newlines replaced with literal \\n"}] }, <skdoc>)
 )
 

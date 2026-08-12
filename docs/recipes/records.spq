@@ -11,7 +11,7 @@ fn skdoc_keys(): (
      type:"op",
      desc:"Returns the keys of the top-level fields in a record. This does not go deep into nested records.",
      args:[],
-     examples:[{i:"{a:1,b:{c:333}} | sk_keys",o:"['a','b']"}
+     examples:[{i:"{a:1,b:{c:333}} | sk_keys",o:"['a','b']"},
                {i:"{x:10,y:20,z:30} | sk_keys",o:"['x','y','z']"}] }, <skdoc>)
 )
 
@@ -30,7 +30,7 @@ fn skdoc_merge_records(): (
 
 op sk_merge_records: (
   this::string
-  | replace(this, "},{" ",")
+  | replace(this, "},{", ",")
   | parse_sup(this[1:-1])
 )
 
