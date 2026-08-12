@@ -1,0 +1,69 @@
+-- Plain-text field extraction — the awk/cut replacements.
+--
+-- The core impedance mismatch: awk and cut number their fields from 1,
+-- while SuperDB arrays are indexed from 0. These wrappers take the
+-- 1-based number you already know from the shell, so translating a
+-- pipeline stays mechanical instead of an off-by-one hunt.
+--
+-- They also return "" for an out-of-range field, matching how awk
+-- treats $9 on a 3-field line, rather than error("missing").
+
+fn skdoc_fields(): (
+  cast(
+    {name:"sk_fields",
+     type:"func",
+     desc:"Splits a line into fields on runs of whitespace, the way awk does. Leading and trailing whitespace is ignored, and repeated spaces or tabs collapse into a single separator. Returns an empty array for a blank line. Use this instead of split(s, \" \"), which treats every space as its own separator and yields empty strings.",
+     args:[{name:"s",desc:"The line to split"}],
+     examples:[{i:"join(sk_fields('  alpha   beta\tgamma  '), '|')",o:"'alpha|beta|gamma'"},
+               {i:"join(sk_fields('one   two'), '|')",o:"'one|two'"},
+               {i:"len(sk_fields('   '))",o:"0"}] }, <skdoc>)
+)
+
+fn sk_fields(s): (
+  trim(s) == "" ? [] : split(regexp_replace(trim(s), "\\s+", " "), " ")
+)
+
+fn skdoc_nf(): (
+  cast(
+    {name:"sk_nf",
+     type:"func",
+     desc:"Counts whitespace-separated fields in a line, the equivalent of awk's NF. Blank lines count as zero.",
+     args:[{name:"s",desc:"The line to count fields in"}],
+     examples:[{i:"sk_nf('a b  c')",o:"3"},
+               {i:"sk_nf('')",o:"0"}] }, <skdoc>)
+)
+
+fn sk_nf(s): (len(sk_fields(s)))
+
+fn skdoc_field(): (
+  cast(
+    {name:"sk_field",
+     type:"func",
+     desc:"Extracts a single whitespace-separated field by 1-based position, the equivalent of awk's $n. Returns \"\" when n is out of range or less than 1, so a short line does not raise error(\"missing\").",
+     args:[{name:"s",desc:"The line to extract from"},
+           {name:"n",desc:"1-based field number, as in awk"}],
+     examples:[{i:"sk_field('alpha beta gamma', 2)",o:"'beta'"},
+               {i:"sk_field('alpha beta gamma', 1)",o:"'alpha'"},
+               {i:"sk_field('alpha beta gamma', 9)",o:"''"}] }, <skdoc>)
+)
+
+fn sk_field(s, n): (
+  n >= 1 and n <= len(sk_fields(s)) ? sk_fields(s)[n - 1] : ""
+)
+
+fn skdoc_cut(): (
+  cast(
+    {name:"sk_cut",
+     type:"func",
+     desc:"Extracts a single delimited field by 1-based position, the equivalent of cut -d DELIM -f N. Unlike sk_field, the delimiter is literal and repeats are not collapsed, so consecutive delimiters yield empty fields — matching cut. Returns \"\" when n is out of range.",
+     args:[{name:"s",desc:"The line to extract from"},
+           {name:"delim",desc:"Literal field delimiter, not a regular expression"},
+           {name:"n",desc:"1-based field number, as in cut -f"}],
+     examples:[{i:"sk_cut('root:x:0:0', ':', 1)",o:"'root'"},
+               {i:"sk_cut('root:x:0:0', ':', 3)",o:"'0'"},
+               {i:"sk_cut('root:x:0:0', ':', 9)",o:"''"}] }, <skdoc>)
+)
+
+fn sk_cut(s, delim, n): (
+  n >= 1 and n <= len(split(s, delim)) ? split(s, delim)[n - 1] : ""
+)
