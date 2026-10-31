@@ -1,4 +1,19 @@
 {
+    date: "2026-10-31",
+    version: "0.4.0",
+    super_version: "v0.4.0",
+    items: [
+        "docs: update all docs, tutorials, and recipes to target SuperDB v0.4.0",
+        "docs: add v0.4.0 breaking changes to upgrade guide (unified BSUP, pools->tables, file-extension formats, static typing, ok()/is_ok() replacing has()/missing()/quiet(), greatest()/least(), time->timestamp, fusion renames, flatten()/paths(), SUP set/map/named-type syntax)",
+        "docs: add v0.4.0 features to expert guide (option types, none, ??, ?., method-style calls, -- args, SQL CREATE/INSERT/DROP TABLE, keys()/values(), array_agg, optionize()/sum_type(), uuid, recursive types)",
+        "docs: document v0.4.0 known issues (timestamp subtraction returns timestamp, y?:none literal panic, stdin auto-detect miscounts)",
+        "docs: rewrite super_db_update tutorial as a tested walkthrough of tables, load-then-delete, and typed tables",
+        "fix: recipes use ::timestamp (sk_format_epoch, sk_last_day_of_month), sk_keys uses keys(), sk_array_append handles [] without a none-typed union",
+        "fix: skdoc metadata uses cast(..., \"skdoc\") since <skdoc> is no longer an implicit named type",
+        "fix: pre-existing doc bugs (moar_subqueries collect-first query, sup_to_bash IFS output, bash_to_sup single-quoted SUP, typeof() comparisons, round() output)"
+    ]
+}
+{
     date: "2026-03-27",
     version: "0.3.0",
     super_version: "v0.3.0",

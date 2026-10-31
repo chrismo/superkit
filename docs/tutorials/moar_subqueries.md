@@ -5,8 +5,8 @@ description: "Additional subquery patterns including collect-first, fork, and fu
 layout: default
 nav_order: 10
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-04-05"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Moar Subqueries
@@ -31,11 +31,19 @@ from data.json
     | head 10
     | values table
   ]
-| unnest data
-| where table in top_ten
-| aggregate count := count() by table, bucket(ts, 1h)
+| unnest {top_ten, data} into (
+    where data.table in top_ten
+    | values data
+  )
+| aggregate count := count() by table, bucket(ts::timestamp, 1h)
 | sort table, bucket
 ```
+
+`unnest {top_ten, data} into (...)` pairs each element of `data` with the
+`top_ten` array, so the filter can see both. (A plain `unnest data` emits only
+the elements of `data`, which leaves `top_ten` out of scope.) The
+`ts::timestamp` cast is needed because JSON timestamps arrive as strings, and
+`bucket()` requires a `timestamp` or `duration`.
 
 The idea: collect everything first ("go up"), derive what you need (top ten
 tables), then drill back down into the raw data using those results as a filter.

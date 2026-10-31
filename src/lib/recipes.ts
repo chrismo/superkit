@@ -38,8 +38,8 @@ function parseSkdocFromFile(filepath: string): RecipeFunction[] {
   const sourceFile = basename(filepath, '.spq');
   const recipes: RecipeFunction[] = [];
 
-  const skdocPattern = /fn\s+skdoc_\w+\(\):\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*<skdoc>\)/g;
-  const skdocOpPattern = /op\s+skdoc_\w+:\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*<skdoc>\)/g;
+  const skdocPattern = /fn\s+skdoc_\w+\(\):\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*(?:<skdoc>|"skdoc")\)/g;
+  const skdocOpPattern = /op\s+skdoc_\w+:\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*(?:<skdoc>|"skdoc")\)/g;
 
   for (const pattern of [skdocPattern, skdocOpPattern]) {
     let match;

@@ -20,7 +20,7 @@ Two things these smooth over:
   take the 1-based number you already know from the shell, so translating a
   pipeline is mechanical instead of an off-by-one hunt.
 - **An out-of-range field returns `""`,** the way `awk` treats `$9` on a
-  3-field line, rather than raising `error("missing")` and poisoning the record.
+  3-field line, rather than raising an "index out of range" error and poisoning the record.
 
 ---
 
@@ -88,7 +88,7 @@ fn sk_nf(s): (len(sk_fields(s)))
 
 Extracts a single whitespace-separated field by 1-based position, the equivalent
 of `awk`'s `$n`. Returns `""` when `n` is out of range or less than 1, so a short
-line does not raise `error("missing")`.
+line does not raise an "index out of range" error.
 
 **Type:** function
 

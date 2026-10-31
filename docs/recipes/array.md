@@ -89,7 +89,9 @@ sk_array_append([], "a")
 **Implementation:**
 
 ```supersql
-fn sk_array_append(arr, val): ([...arr, val])
+-- The empty-array branch matters as of SuperDB v0.4.0: [] has type [none], so
+-- spreading it gives a [string|none]-typed result instead of [string].
+fn sk_array_append(arr, val): (len(arr) == 0 ? [val] : [...arr, val])
 ```
 
 ---

@@ -1,9 +1,10 @@
 -- sk_include array.spq
 
--- the built-in `fields` function is similar, but puts each field into its own
--- nested array, though it also handles nested keys. This keys operator here
--- attempts to emulate jq's keys, which does not go deep but only lists the
--- top-level ones.
+-- As of SuperDB v0.4.0 the built-in `keys()` function does exactly this (and
+-- also works on maps), so sk_keys is now a thin wrapper kept for backwards
+-- compatibility. It emulates jq's keys, which does not go deep but only lists
+-- the top-level ones. (`paths()`, the replacement for the old `fields()`,
+-- returns every leaf path instead.)
 
 fn skdoc_keys(): (
   cast(
@@ -12,11 +13,11 @@ fn skdoc_keys(): (
      desc:"Returns the keys of the top-level fields in a record. This does not go deep into nested records.",
      args:[],
      examples:[{i:"{a:1,b:{c:333}} | sk_keys",o:"['a','b']"},
-               {i:"{x:10,y:20,z:30} | sk_keys",o:"['x','y','z']"}] }, <skdoc>)
+               {i:"{x:10,y:20,z:30} | sk_keys",o:"['x','y','z']"}] }, "skdoc")
 )
 
 op sk_keys: (
-  fields(this) | unnest this | values this[0] | uniq | collect(this)
+  values keys(this)
 )
 
 fn skdoc_merge_records(): (
@@ -25,7 +26,7 @@ fn skdoc_merge_records(): (
      type:"op",
      desc:"Merges an array of records into a single record by combining the fields. If there are duplicate keys, the last one wins.",
      args:[],
-     examples:[{i:"[{a:1},{b:{c:333}}] | sk_merge_records",o:"{a:1,b:{c:333}}"}] }, <skdoc>)
+     examples:[{i:"[{a:1},{b:{c:333}}] | sk_merge_records",o:"{a:1,b:{c:333}}"}] }, "skdoc")
 )
 
 op sk_merge_records: (
@@ -38,6 +39,7 @@ op sk_merge_records: (
 -- ❯ zq '[{a:1},{b:{c:333}}] | (over this with obj={} | flatten(this) | obj[key[0]]:=value )'
 
 -- # this was a better step from Phil, but doesn't work on nested records
+-- # (pre-0.4.0 syntax: flatten() now returns {path,value} and maps are map{...})
 -- over this
 -- | over flatten(this)
 -- | collect_map(|{key[0]:value}|)
@@ -49,7 +51,7 @@ fn skdoc_add_ids(): (
      type:"op",
      desc:"Prepends an incrementing id field to each record. Always returns an array.",
      args:[],
-     examples:[{i:"[{a:3},{b:4}] | sk_add_ids",o:"[{id:1,a:3},{id:2,b:4}]"}] }, <skdoc>)
+     examples:[{i:"[{a:3},{b:4}] | sk_add_ids",o:"[{id:1,a:3},{id:2,b:4}]"}] }, "skdoc")
 )
 
 op sk_add_ids: (

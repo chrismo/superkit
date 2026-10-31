@@ -5,8 +5,8 @@ description: "Parsing Cloudflare edge timestamps, computing request durations, a
 layout: default
 nav_order: 12
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-04-05"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Cloudflare Log Durations
@@ -36,16 +36,20 @@ super -s -c "
   drop Message, Service, Env
   | start := regexp_replace(this['@EdgeStartTimestamp'], '[^A-Z0-9-:]', ''),
     end := regexp_replace(this['@EdgeEndTimestamp'], '[^A-Z0-9-:]', '')
-  | start := start::time, end := end::time
-  | dur := end - start
+  | start := start::timestamp, end := end::timestamp
+  | dur := (end - start)::duration
   | cut start, end, dur
 " cloudflare-extract.csv > cf-durations.sup
 ```
 
 Key techniques:
 - `regexp_replace` strips everything except alphanumerics, hyphens, and colons
-- `::time` casts the cleaned strings to time values
-- Duration is simply `end - start` — SuperDB handles time arithmetic natively
+- `::timestamp` casts the cleaned strings to timestamp values (this type was
+  named `time` before v0.4.0)
+- Duration is `end - start`, cast to `duration`. In v0.4.0, subtracting two
+  timestamps returns a `timestamp` (e.g. `1970-01-01T00:00:04Z`) instead of a
+  `duration` (`4s`), so the explicit `::duration` cast is needed for `bucket()`
+  to produce duration buckets
 
 ## Step 2: Bucket and Analyze
 

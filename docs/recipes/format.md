@@ -84,7 +84,7 @@ fn sk_format_epoch(epoch_ms, tz_offset): (
     sign: tz_offset[0:1],
     hours: tz_offset[1:3]::int64,
     mins: tz_offset[3:5]::int64,
-    base_time: (epoch_ms * 1000000)::time
+    base_time: (epoch_ms * 1000000)::timestamp
   }
   | this.base_time + f'{this.sign == "-" ? "-" : ""}{this.hours}h{this.mins > 0 ? f"{this.mins}m" : ""}'::duration
 )

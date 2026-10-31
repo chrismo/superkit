@@ -5,8 +5,8 @@ description: "Getting raw text safely from Bash into SuperDB without manual esca
 layout: default
 nav_order: 1
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-02-17"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Getting Bash Text into SuperDB
@@ -70,17 +70,22 @@ Combine `-i line` with record construction to safely embed text into `.sup`
 records:
 
 ```bash
-# Single-line field
+# Single-line field: -s emits a quoted, escaped SUP string literal
 msg='User said "goodbye" & left'
-body=$(echo "$msg" | super -f line -i line -c "values this" -)
-echo "{type:'message',body:'$body'}" | super -s -c "values this" -
+body=$(echo "$msg" | super -s -i line -c "values this" -)
+echo "{type:\"message\",body:$body}" | super -s -c "values this" -
+# => {type:"message",body:"User said \"goodbye\" & left"}
 
 # Or build the whole record in one shot
 echo "$msg" | super -s -i line -c "values {type:'message', body: this}" -
+# => {type:"message",body:"User said \"goodbye\" & left"}
 ```
 
 The second form is cleaner — super constructs the full record, so the text never
 passes through Bash string interpolation at all.
+
+Note that single-quoted strings are only valid in queries. SUP data requires
+double quotes, so `echo "{body:'...'}" | super -` fails with a syntax error.
 
 ### Multiline Record Fields
 

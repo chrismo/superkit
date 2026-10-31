@@ -138,6 +138,6 @@ fn sk_last_day_of_month(year, month): (
     nm: month == 12 ? 1 : month + 1,
     ny: month == 12 ? year + 1 : year
   }
-  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::time - 1d)::string)[8:10]::uint8
+  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::timestamp - 1d)::string)[8:10]::uint8
 )
 ```

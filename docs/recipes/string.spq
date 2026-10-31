@@ -9,7 +9,7 @@ op skdoc_slice: (
      args:[{name:"s",desc:"The string to slice."},
            {name:"start",desc:"Starting index, zero-based, inclusive."},
            {name:"end",desc:"Ending index, exclusive."}],
-     examples:[{i:"sk_slice('howdy', 0, 3)",o:"'how'"}] }, <skdoc>)
+     examples:[{i:"sk_slice('howdy', 0, 3)",o:"'how'"}] }, "skdoc")
 )
 
 -- This isn't necessary with zq, but during early releases of super, the
@@ -25,7 +25,7 @@ op skdoc_capitalize: (
      type:"func",
      desc:"Upper the first character of the string, lower the remaining string.",
      args:[{name:"s",desc:"The string to capitalize."}],
-     examples:[{i:"sk_capitalize('hoWDy')",o:"'Howdy'"}] }, <skdoc>)
+     examples:[{i:"sk_capitalize('hoWDy')",o:"'Howdy'"}] }, "skdoc")
 )
 
 fn sk_capitalize(s): (
@@ -38,7 +38,7 @@ op skdoc_titleize: (
      type:"func",
      desc:"Splits string by space and capitalizes each word.",
      args:[{name:"s",desc:"The string to titleize"}],
-     examples:[{i:"sk_titleize('once uPON A TIME')",o:"'Once Upon A Time'"}] }, <skdoc>)
+     examples:[{i:"sk_titleize('once uPON A TIME')",o:"'Once Upon A Time'"}] }, "skdoc")
 )
 
 fn sk_titleize(s): (
@@ -55,7 +55,7 @@ fn skdoc_pad_left(): (
      args:[{name:"s",desc:"The string to pad"},
            {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
-     examples:[{i:"values sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, <skdoc>)
+     examples:[{i:"values sk_pad_left('abc', ' ', 5)",o:"'  abc'"}] }, "skdoc")
 )
 
 fn sk_pad_left(s, pad_char, target_length): (
@@ -70,7 +70,7 @@ fn skdoc_pad_right(): (
      args:[{name:"s",desc:"The string to pad"},
            {name:"pad_char",desc:"The character to pad with"},
            {name:"target_length",desc:"The target length of the string"}],
-     examples:[{i:"values sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, <skdoc>)
+     examples:[{i:"values sk_pad_right('abc', ' ', 5)",o:"'abc  '"}] }, "skdoc")
 )
 
 fn sk_pad_right(s, pad_char, target_length): (
@@ -84,7 +84,7 @@ fn skdoc_left(): (
      desc:"Returns the first n characters of a string.",
      args:[{name:"s",desc:"The string."},
            {name:"n",desc:"Number of characters from the left."}],
-     examples:[{i:"sk_left('hello', 3)",o:"'hel'"}]}, <skdoc>)
+     examples:[{i:"sk_left('hello', 3)",o:"'hel'"}]}, "skdoc")
 )
 
 fn sk_left(s, n): (sk_slice(s, 0, sk_clamp(n, 0, len(s))))
@@ -96,7 +96,7 @@ fn skdoc_right(): (
      desc:"Returns the last n characters of a string.",
      args:[{name:"s",desc:"The string."},
            {name:"n",desc:"Number of characters from the right."}],
-     examples:[{i:"sk_right('hello', 3)",o:"'llo'"}]}, <skdoc>)
+     examples:[{i:"sk_right('hello', 3)",o:"'llo'"}]}, "skdoc")
 )
 
 fn sk_right(s, n): (sk_slice(s, len(s) - sk_clamp(n, 0, len(s)), len(s)))
@@ -109,7 +109,7 @@ fn skdoc_mid(): (
      args:[{name:"s",desc:"The string."},
            {name:"start",desc:"Starting index, zero-based."},
            {name:"n",desc:"Number of characters to return."}],
-     examples:[{i:"sk_mid('hello world', 6, 5)",o:"'world'"}]}, <skdoc>)
+     examples:[{i:"sk_mid('hello world', 6, 5)",o:"'world'"}]}, "skdoc")
 )
 
 fn sk_mid(s, start, n): (sk_slice(s, sk_clamp(start, 0, len(s)), sk_clamp(start, 0, len(s)) + sk_clamp(n, 0, len(s))))
@@ -120,7 +120,7 @@ fn skdoc_urldecode(): (
      type:"op",
      desc:"URL-decodes a percent-encoded string. Splits on %%, decodes each hex-encoded segment, and joins back together.",
      args:[{name:"url",desc:"The URL-encoded string to decode."}],
-     examples:[{i:"'%%2Fhello%%20world' | sk_urldecode this",o:"'/hello world'"}]}, <skdoc>)
+     examples:[{i:"'%%2Fhello%%20world' | sk_urldecode this",o:"'/hello world'"}]}, "skdoc")
 )
 op sk_decode_seg s: (
   len(s) == 0
