@@ -325,10 +325,10 @@ seq 1 1000000 | super -unbuffered -i sup -s -c "
 
 Two flags matter for this demo. `-unbuffered` flushes each result as soon as
 it's ready; without it, `super` buffers stdout and the stderr `debug` line can
-appear first even though it was produced last. `-i sup` names the input
-format: as of v0.4.0, auto-detecting a large stream on stdin can split some
-values at buffer boundaries (the count comes out as 1000010), so name the
-format when you can.
+appear first even though it was produced last. `-i sup` reads the bare
+numbers as SUP. Without it they're detected as JSON, and the v0.4.0 JSON reader
+splits a top-level number that straddles a 512 KiB buffer boundary into two
+values (the count comes out as 1000010).
 
 `fork` also uses O(1) memory for the counting branch (just an integer
 accumulator), while `collect` stores every record in an array (O(n)). The

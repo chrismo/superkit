@@ -688,13 +688,17 @@ unflatten([unnest flatten(r) | {path, value: f(value)}])
 These were observed while updating this guide and may be upstream bugs:
 
 - Subtracting two timestamps returns a `timestamp` (`1970-01-01T00:00:04Z`)
-  instead of a `duration` (`4s`). Cast it: `(end - start)::duration`
+  instead of a `duration` (`4s`), a regression of upstream #1792. Cast it:
+  `(end - start)::duration`
 - A record literal with an untyped optional `none` (`{x:1, y?:none}`) panics.
   Write `y?:none::int64` instead
-- Auto-detecting a large stream on stdin can split values at buffer
-  boundaries (`seq 1 1000000 | super -c 'count()' -` gives 1000010). Pass
-  `-i` (e.g. `-i sup` or `-i line`) for large piped input
+- The JSON reader splits a top-level number that straddles a 512 KiB buffer
+  boundary into two values, in files and on stdin
+  (`seq 1 1000000 | super -c 'count()' -` gives 1000010). JSON objects and
+  strings are fine. For a stream of bare numbers, read it with `-i sup` or
+  `-i line`
 - `full outer join` still behaves like a left join
+  ([#6310](https://github.com/superdb/super/issues/6310))
 
 ## Changes in v0.3.0
 
