@@ -25,6 +25,7 @@ export const SECTION_SLUGS: Record<string, string> = {
   'PostgreSQL Compatibility & Traditional SQL': 'sql',
   'Practical Query Patterns': 'patterns',
   'Advanced SuperDB Features': 'advanced',
+  'Persistent Database (Tables)': 'database',
   'Debugging Tips': 'debugging',
   'Format Conversions': 'formats',
   'Key Differences from SQL': 'differences',

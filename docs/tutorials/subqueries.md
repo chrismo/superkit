@@ -5,8 +5,8 @@ description: "Examples of correlated subqueries and derived table patterns in Su
 layout: default
 nav_order: 7
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-02-15"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Subqueries
@@ -96,7 +96,7 @@ super -s -c '
 `super` also supports SQL syntax, and these subqueries work[^1]:
 
 ```mdtest-command
-super -s -c '
+super -static -s -c '
   select *
   from "data.json"
   where foo in (select max(foo), date
@@ -116,11 +116,12 @@ super -s -c '
   from "data.json"
   group by date' > max.sup
 
-super -s -c '
+super -static -s -c '
   select l.id, l.date, l.foo
   from "data.json" l
     join "max.sup" r
-    on l.foo==r.max_foo'
+    on l.foo==r.max_foo
+  order by l.id'
 ```
 ```mdtest-output
 {id:1,date:"2025-02-27",foo:3}
@@ -198,7 +199,7 @@ also pull in user information from a related table.
 
 First, the basic join returns all records with user names:
 ```mdtest-command
-super -s -c '
+super -static -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join "users.json" u on s.user_id = u.user_id
@@ -213,7 +214,7 @@ super -s -c '
 
 Filtering to top scores per date using a subquery:
 ```mdtest-command
-super -s -c '
+super -static -s -c '
   select *
   from "scores.json"
   where score in (select max(score), date
@@ -228,7 +229,7 @@ super -s -c '
 The "obvious" SQL approach with tuple comparison returns empty — this is a known
 issue ([#6326](https://github.com/brimdata/super/issues/6326)):
 ```mdtest-command
-super -s -c '
+super -static -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join "users.json" u on s.user_id = u.user_id
@@ -242,7 +243,7 @@ super -s -c '
 
 A derived table approach (subquery in FROM) does work:
 ```mdtest-command
-super -s -c '
+super -static -s -c '
   select s.id, s.date, s.score, s.user_id, u.name
   from "scores.json" s
     join (
@@ -281,5 +282,5 @@ super -s -c '
 super --version
 ```
 ```mdtest-output
-Version: v0.2.0
+Version: v0.4.0
 ```

@@ -4,13 +4,13 @@ name: zq-to-super-upgrades
 description: "Migration guide from zq to SuperDB. Covers all breaking changes and syntax updates."
 layout: default
 nav_order: 3
-superdb_version: "0.3.0"
-last_updated: "2026-03-27"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Upgrading zq to super
 
-SuperDB Version 0.3.0
+SuperDB Version 0.4.0
 
 This guide covers all breaking changes between zq and the current SuperDB
 release.
@@ -49,9 +49,27 @@ This table covers ALL breaking changes. Complex items reference detailed section
 | count type       | returns `uint64`            | returns `int64`                          |
 | Dynamic from     | `from pool`                 | `from f'{pool}'` (see section)           |
 | BSUP format      | BSUP v1                     | BSUP v2 (v1 no longer readable)          |
-| collect (empty)  | no output on empty stream   | returns `null` (see section)             |
-| collect/union    | preserves all errors        | drops `error("quiet")` values            |
+| collect (empty)  | no output on empty stream   | returns `[]` (was `null` in 0.1–0.3)     |
 | concat/f-strings | errors propagate            | `null` values ignored                    |
+| Binary formats   | BSUP v2 / CSUP              | unified BSUP (0.4.0 can't read old files)|
+| Database         | pools                       | tables (old databases can't be opened)   |
+| Database         | `db auth`/`login`, `SUPER_DB` | `db attach`/`detach`                   |
+| Input format     | auto-detected               | from file extension, or `-i` (see section)|
+| Missing field    | `error("missing")`          | "no such field" error / `none`           |
+| Function         | `has(x)` / `missing(x)`     | `is_ok(x)` / `not is_ok(x)`              |
+| Function         | `quiet(x)`                  | Removed — use `ok(x)`                    |
+| Function         | `max(a,b)` / `min(a,b)`     | `greatest(a,b)` / `least(a,b)`           |
+| Function         | `fields(r)`                 | `paths(r)` (or `keys(r)` for top level)  |
+| flatten()        | `{key,value}`               | `{path,value}`                           |
+| Type             | `time`                      | `timestamp`                              |
+| Fusion           | `blend` / `unblend()`       | `fuse` / `defuse()`                      |
+| Fusion           | `fuse` / `defuse()`         | `superfuse` / `superdefuse()`            |
+| SUP set/map      | `\|[1,2]\|` / `\|{"a":1}\|`    | `set[1,2]` / `map{"a":1}`                |
+| SUP named type   | `80::(port=uint16)`         | `type port=uint16` then `80::port`       |
+| SUP none         | `_`                         | `none`                                   |
+| SQL joins        | unmatched = `error("missing")` | unmatched = `null`                    |
+| Switches         | `-sam`/`-vam`/`-samplesize`/`-persist`/`-fusemem`/`-bsup.*` | Removed |
+| Formats          | `csup`, `jsup`, `table`     | Removed                                  |
 
 ## CLI Changes
 
@@ -443,6 +461,241 @@ super -s -c "values 1,2,3 | aggregate cnt:=count() | typeof(cnt)"
 <int64>
 ```
 
+## Changes in v0.4.0
+
+v0.4.0 (2026-10-31) is a large release: the vector runtime is now the only
+runtime, the binary formats are unified, and the persistent database is back
+with SQL tables. Expect to regenerate saved binary files and databases, and to
+update some queries. The full list is in the
+[upstream CHANGELOG](https://github.com/superdb/super/blob/main/CHANGELOG.md#040---2026-10-31).
+The GitHub organization moved too: it's now `github.com/superdb/super`.
+
+### Binary files and databases must be regenerated (breaking)
+
+The old column-oriented CSUP format is now called BSUP, and the old
+row-oriented BSUP lives on as row frames inside the new BSUP. v0.4.0 can't read
+BSUP or CSUP files from earlier releases, and can't open databases created by
+them. BSUP output is columnar by default (`-rows` writes row frames).
+
+Convert old files **with the old binary** before upgrading. SUP works as an
+interchange format unless the data uses sets, maps, named types, or `_`, whose
+SUP syntax changed (see below). Arrow IPC or Parquet survive the jump, but sets
+become arrays and named types lose their names:
+
+```bash
+# Plain data: old binary to SUP, new binary back to BSUP
+super-0.3.0 -s data.bsup > data.sup
+super -o data.bsup data.sup
+
+# Data with sets/maps/named types: go through Arrow instead. Arrow needs a
+# single schema, so merge mixed record types with the OLD binary's `blend`
+super-0.3.0 -f arrows -c "blend" data.bsup > data.arrows
+super -o data.bsup data.arrows
+```
+
+Merging types this way makes fields that are absent from some records `null`
+in every record, so prefer the SUP route when it works.
+
+For a database, export each pool with the old binary
+(`super-0.3.0 db -s -c "from mypool" > mypool.sup`), then `super db init` a new
+database and `super db load` the data into new tables.
+
+### Database: pools are now tables
+
+- _Pools_ are now called _tables_ in commands, flags, help text, and queries.
+  `super db create`, `drop`, `rename`, `ls`, and `-use table@branch` keep
+  their names
+- `super db auth` and `super db login` are replaced by `super db attach` and
+  `super db detach`, and the `SUPER_DB` environment variable is gone.
+  Commands use the attached database, or the one named by `-attach`
+- `super db vector` commands were removed
+- Tables are unsorted by default (`-orderby` is optional)
+- New SQL statements: `CREATE TABLE`, `CREATE SUPER TABLE`, `INSERT INTO`, and
+  `DROP TABLE`. A query can be a script of `;`-separated statements
+
+```bash
+# OLD (v0.3.0)
+export SUPER_DB=./lake
+super db init
+super db create -orderby ts:desc logs
+
+# NEW (v0.4.0)
+super db init ./mydb
+super db attach ./mydb
+super db -s -c "CREATE TABLE logs (ts timestamp, msg string) ORDER BY ts DESC"
+```
+
+### Vector runtime only
+
+`-sam`, `-vam`, and the `SUPER_RUNTIME` environment variable were removed.
+Output order of parallel queries can vary from run to run, so add `sort` /
+`order by` where you depend on order.
+
+### Input format comes from the file extension (breaking)
+
+The format of a **local file** is determined by its extension (including
+`.gz`), not by sniffing its contents. A file with a missing or unrecognized
+extension now needs `-i` (use `-i auto` to ask for auto-detection, or
+`format auto` on a `from` operator). Stdin and HTTP/HTTPS/S3 URLs without a
+recognized extension are still auto-detected.
+
+```bash
+# OLD: worked
+super -s data
+# NEW
+super -s -i json data
+super -s -i auto data
+```
+
+The output format now follows the extension given to `-o` when `-f` isn't
+set, and `-i` now takes precedence over a file's extension.
+
+### Static type checking (breaking)
+
+`-samplesize` was removed. BSUP, Parquet, Arrow, and SUP inputs are statically
+type-checked by default; `-static` extends this to all inputs and `-dynamic`
+turns it off. Type checking is strict about unions and possibly missing fields:
+
+```
+values y   -- over static input where y is absent from some values:
+-- error: field may be missing (consider ok())
+```
+
+SQL on JSON (dynamic) input may now fail with `the all-columns (*) pattern
+cannot be used for dynamic inputs` or `join on dynamic column "l" requires
+table-qualified reference`. Add `-static`:
+
+```bash
+super -static -s -c 'select * from "data.json"'
+```
+
+### Missing fields, `has()`, `missing()`, and `quiet()` (breaking)
+
+Referencing a missing field is now a `no such field` error rather than
+`error("missing")`. On statically typed input it's a compile-time error.
+
+| Removed         | Replacement                        |
+|-----------------|------------------------------------|
+| `has(x)`        | `is_ok(x)`                         |
+| `missing(x)`    | `not is_ok(x)`                     |
+| `quiet(x)`      | `ok(x)` (returns `none` on error)  |
+| `error("quiet")`| no special handling any more       |
+
+```
+-- OLD
+where has(a)
+values coalesce(quiet(a.b), "default")
+-- NEW
+where is_ok(a)
+values ok(a.b) ?? "default"
+```
+
+In SQL, a reference to a missing field now evaluates to `null`. This changes
+outer-join results: unmatched columns are `null`, so use `where x is null`
+instead of `where is_error(x)`.
+
+### Option types, `none`, `??`, and `?.` (new)
+
+`none` replaces `error("missing")` as the "no value" value, with option types
+(`option(int64)`) to hold it. `??` replaces `none` or `null` with its
+right-hand side, and `?.` chains through optional values. JSON output omits
+fields whose value is `none`.
+
+```
+values {x:1, y?:2}, {x:1, y?:none::int64} | values y ?? 0
+-- => 2
+-- => 0
+```
+
+### SUP syntax changes (breaking)
+
+| Old SUP                  | New SUP                                 |
+|--------------------------|-----------------------------------------|
+| `80::(port=uint16)`      | `type port=uint16` then `80::port`      |
+| `\|[1,2]\|`                | `set[1,2]`                              |
+| `\|{"a":1}\|`              | `map{"a":1}`                            |
+| `_` (none)               | `none`                                  |
+
+The `-persist` flag was removed, since named types can no longer be redefined.
+Anonymous unions are flat: one can't contain another anonymous union (a named
+union still can). The same set/map syntax applies in queries, e.g.
+`collect_map(map{k:v})`.
+
+### Renamed functions and types (breaking)
+
+- **`max(a,b)` / `min(a,b)`** (non-aggregate) → **`greatest(a,b)` /
+  `least(a,b)`**. The `max()` / `min()` aggregates are unchanged
+- **`time` → `timestamp`.** `x::time` now errors with "type not yet
+  implemented", because `time` now means the SQL time-of-day type
+- **Fusion names swapped:** `blend` → `fuse`, `fuse` → `superfuse`,
+  `unblend()` → `defuse()`, `defuse()` → `superdefuse()`. A query that uses
+  `fuse` or `defuse()` still runs but now does what `blend` / `unblend()` did
+- **`fields()` → `paths()`**, which descends into arrays, sets, and maps.
+  For jq-style top-level keys, use the new `keys()`
+- **`flatten()`** returns `{path,value}` instead of `{key,value}` and descends
+  into arrays, sets, and maps; `unflatten()` takes the new form
+
+```
+-- OLD
+values max(a, b), fields({a:1})
+put ts := ts_str::time
+unflatten([unnest flatten(r) | {key, value: f(value)}])
+-- NEW
+values greatest(a, b), keys({a:1})
+put ts := ts_str::timestamp
+unflatten([unnest flatten(r) | {path, value: f(value)}])
+```
+
+### Other behavior changes
+
+- `collect()` returns `[]` (not `null`) when there's nothing to collect.
+  `collect()`, `array_agg()`, and `union()` keep `null` values, and `collect()`
+  and `array_agg()` preserve input order
+- `join` no longer treats two `null` keys as matching
+- `grep()` and search expressions no longer match field names
+- `typeof()` returns the subtype of a fusion value. Fusion values are
+  auto-defused in every output format except BSUP (use `-fusion` to see them)
+- Type fusion: a field absent from some inputs gets a `T|missing` union
+  instead of becoming optional (`optionize()` converts it). An empty array,
+  set, or map has element type `none` (`typeof([])` is `<[none]>`)
+- `under()` of a type value unwraps one level (`under(<[int64]>)` is `<int64>`)
+- The JSON reader errors on duplicate field names (it used to keep the last)
+- Out-of-range array indexing gives `error({message:"index out of range",...})`
+- File paths in output and messages no longer have a `file://` prefix
+- `AWS_S3_ENDPOINT` is now `AWS_ENDPOINT_URL_S3`
+- Removed: the JSUP format, the `table` output format, and `-fusemem`. The
+  Python client moved to [superdb-python](https://github.com/superdb/superdb-python)
+- Homebrew: `brew install super` (core casks, not the brimdata tap)
+
+### New features in v0.4.0
+
+- Method-style calls: `s.trim().upper()`, `s.split(",")`
+- Shell args after `--` become the `args` string-array constant:
+  `super -c 'values args[0]' -- hello`
+- `array_agg` aggregate, including `distinct`
+- `keys()` and `values()` for records and maps
+- `optionize()` and `sum_type()` type functions
+- Native `uuid` type, recursive types, and the `any` type
+- `type T = (query)` binds a type computed by a query
+- Dot and index navigation into type values: `<{a:{b:string}}>.a.b`
+- `from` can have a parent operator, and expression-based `from` works in
+  `super db` queries
+- `super compile` accepts `-i`
+- Parquet reader supports maps
+
+### Known issues in v0.4.0
+
+These were observed while updating this guide and may be upstream bugs:
+
+- Subtracting two timestamps returns a `timestamp` (`1970-01-01T00:00:04Z`)
+  instead of a `duration` (`4s`). Cast it: `(end - start)::duration`
+- A record literal with an untyped optional `none` (`{x:1, y?:none}`) panics.
+  Write `y?:none::int64` instead
+- Auto-detecting a large stream on stdin can split values at buffer
+  boundaries (`seq 1 1000000 | super -c 'count()' -` gives 1000010). Pass
+  `-i` (e.g. `-i sup` or `-i line`) for large piped input
+- `full outer join` still behaves like a left join
+
 ## Changes in v0.3.0
 
 ### BSUP v2 format (breaking)
@@ -459,7 +712,9 @@ super -f bsup data.sup > data-v2.bsup
 
 ### collect on empty stream returns null
 
-In 0.1.0+, `collect()` on an empty stream returns `null` instead of producing
+> **Superseded in v0.4.0:** `collect()` on an empty stream now returns `[]`.
+
+In 0.1.0 through 0.3.0, `collect()` on an empty stream returns `null` instead of producing
 no output. This can cause subtle downstream bugs — `this in null` drops all
 records instead of preserving them:
 
@@ -480,6 +735,8 @@ values ["a","b","c"] | unnest this
 ```
 
 ### collect and union drop quiet errors
+
+> **Superseded in v0.4.0:** `quiet()` and `error("quiet")` were removed.
 
 In `collect` and `union` aggregate functions, `error("quiet")` values are now
 dropped. `error("missing")` values are still preserved.
@@ -517,6 +774,9 @@ sample size is 100 records; set to 0 to analyze all input.
 
 #### `defuse` and `unblend` functions
 
+> **Renamed in v0.4.0:** these are now `superdefuse()` and `defuse()`
+> respectively (see [Changes in v0.4.0](#changes-in-v040)).
+
 `defuse(val)` reverses the effects of `fuse` — converts fusion types back to
 their original types by downcasting union values to their subtype equivalent.
 
@@ -525,7 +785,7 @@ eliminates optional fields without values from records.
 
 #### Other new features
 
-- **`db vacate` command** — vacate database pools
+- **`db vacate` command** — vacate database pools (tables, as of v0.4.0)
 - **Optional fields in record expressions** — record fields can now be marked
   optional with `?` syntax
 - **Fusion types** — new type system feature for complete type fusion

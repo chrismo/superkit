@@ -13,7 +13,7 @@ op skdoc_clamp: (
            {name:"max",desc:"The maximum value."}],
      examples:[{i:"sk_clamp(1, 2, 3)",o:"2"},
                {i:"sk_clamp(4, 2, 3)",o:"3"},
-               {i:"sk_clamp(2, 2, 3)",o:"2"}]}, <skdoc>)
+               {i:"sk_clamp(2, 2, 3)",o:"2"}]}, "skdoc")
 )
 
 fn sk_clamp(i, min, max): (
@@ -29,7 +29,7 @@ fn skdoc_min(): (
            {name:"b",desc:"The second value."}],
      examples:[{i:"sk_min(1, 2)",o:"1"},
                {i:"sk_min(3, 2)",o:"2"},
-               {i:"sk_min(2, 2)",o:"2"}]}, <skdoc>)
+               {i:"sk_min(2, 2)",o:"2"}]}, "skdoc")
 )
 
 fn sk_min(a, b): (
@@ -45,7 +45,7 @@ fn skdoc_max(): (
            {name:"b",desc:"The second value."}],
      examples:[{i:"sk_max(1, 2)",o:"2"},
                {i:"sk_max(3, 2)",o:"3"},
-               {i:"sk_max(2, 2)",o:"2"}]}, <skdoc>)
+               {i:"sk_max(2, 2)",o:"2"}]}, "skdoc")
 )
 
 fn sk_max(a, b): (
@@ -62,7 +62,7 @@ fn skdoc_last_day_of_month(): (
      examples:[{i:"sk_last_day_of_month(2024, 2)",o:"29"},
                {i:"sk_last_day_of_month(2023, 2)",o:"28"},
                {i:"sk_last_day_of_month(2024, 12)",o:"31"},
-               {i:"sk_last_day_of_month(2024, 4)",o:"30"}]}, <skdoc>)
+               {i:"sk_last_day_of_month(2024, 4)",o:"30"}]}, "skdoc")
 )
 
 fn sk_last_day_of_month(year, month): (
@@ -71,5 +71,5 @@ fn sk_last_day_of_month(year, month): (
     nm: month == 12 ? 1 : month + 1,
     ny: month == 12 ? year + 1 : year
   }
-  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::time - 1d)::string)[8:10]::uint8
+  | ((f'{this.ny}-{this.nm > 9 ? "" : "0"}{this.nm}-01T00:00:00Z'::timestamp - 1d)::string)[8:10]::uint8
 )

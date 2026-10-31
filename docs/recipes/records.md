@@ -16,6 +16,9 @@ Source: `records.spq` (includes `array.spq`)
 Returns the keys of the top-level fields in a record. This does not go deep
 into nested records.
 
+As of SuperDB v0.4.0 this is equivalent to the built-in `keys()` function,
+which also works on maps.
+
 **Type:** operator
 
 ```supersql
@@ -30,7 +33,7 @@ into nested records.
 
 ```supersql
 op sk_keys: (
-  fields(this) | unnest this | values this[0] | uniq | collect(this)
+  values keys(this)
 )
 ```
 

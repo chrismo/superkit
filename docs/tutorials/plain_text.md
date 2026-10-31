@@ -5,8 +5,8 @@ description: "Replacing sed, cut, awk, sort, uniq, and wc with a single super pi
 layout: default
 nav_order: 13
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-08-10"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Plain Text Without the Bashisms
@@ -51,7 +51,7 @@ Use `-s` when you want to see the SUP representation, including types.
 
 ## The Translation Table
 
-Every one of these was run against SuperDB v0.3.0. The recipe functions
+Every one of these was run against SuperDB v0.4.0. The recipe functions
 (`sk_field`, `sk_cut`) come from
 [text.spq]({% link docs/recipes/text.md %}); load them with `-I text.spq`.
 
@@ -101,7 +101,7 @@ type says so. That is the whole thesis in one line.
 
 ## Gotchas
 
-These are the things that will bite you first. All confirmed against v0.3.0.
+These are the things that will bite you first. All confirmed against v0.4.0.
 
 ### Arrays index from 0, but awk and cut count from 1
 
@@ -109,12 +109,12 @@ These are the things that will bite you first. All confirmed against v0.3.0.
 super -s -c 'values ["a","b","c"][0]'    # => "a"
 super -s -c 'values ["a","b","c"][1]'    # => "b"
 super -s -c 'values ["a","b","c"][-1]'   # => "c"
-super -s -c 'values ["a","b"][9]'        # => error("missing")
+super -s -c 'values ["a","b"][9]'        # => error({message:"index out of range",on:9})
 ```
 
-Negative indexing counts from the end, and out-of-range is an `error("missing")`
-value rather than an empty string. `sk_field` and `sk_cut` exist mostly to
-absorb both differences: they take the 1-based number you already know from
+Negative indexing counts from the end, and out-of-range is an error value
+(`error("missing")` before v0.4.0) rather than an empty string. `sk_field` and
+`sk_cut` exist mostly to absorb both differences: they take the 1-based number you already know from
 `awk`/`cut`, and return `""` past the end.
 
 ### split() takes a literal, not a regular expression
@@ -165,7 +165,7 @@ an array whose element 0 is the whole match and whose later elements are the
 capture groups.
 
 Also note that a regex literal — `/[0-9]+/` — is not accepted as a function
-argument in 0.3.0; both of these take the pattern as a plain string.
+argument in 0.4.0; both of these take the pattern as a plain string.
 
 ### grep() is a regex match, not a substring match
 
@@ -259,8 +259,9 @@ Two details worth calling out:
 - `grok` returns every captured field as a **string**, so `status` and `bytes`
   need an explicit `cast` before they can be summed or compared. Skipping the
   cast gives you lexical comparisons — `"99" > "400"` is true.
-- There is no `count(where ...)` in 0.3.0. A conditional count is
-  `sum(cond ? 1 : 0)`, as in `errors` above.
+- There is no `count(where ...)` in 0.4.0. A conditional count is
+  `sum(cond ? 1 : 0)`, as in `errors` above, or the aggregate `filter`
+  clause: `count() filter (status >= 400)`.
 
 The output is structured, so the next step is a pipeline stage rather than
 another parse. Swap `-s` for `-f json` and it feeds a web page; swap it for

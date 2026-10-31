@@ -5,8 +5,8 @@ description: "Using fork as a workaround for window functions to do per-group se
 layout: default
 nav_order: 4
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-02-20"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # Fork as a Window Function Workaround

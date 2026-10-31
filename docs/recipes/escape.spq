@@ -6,7 +6,7 @@ fn skdoc_csv_field(): (
      args:[{name:"s",desc:"The string to escape"}],
      examples:[{i:"sk_csv_field('plain')",o:"'plain'"},
                {i:"sk_csv_field('hello, world')",o:"quoted and wrapped"},
-               {i:"sk_csv_field('has newline')",o:"quoted and wrapped"}] }, <skdoc>)
+               {i:"sk_csv_field('has newline')",o:"quoted and wrapped"}] }, "skdoc")
 )
 
 fn sk_csv_field(s): (
@@ -21,7 +21,7 @@ fn skdoc_csv_row(): (
      type:"func",
      desc:"Builds a CSV row from an array of values. Each element is cast to string and escaped with sk_csv_field, then joined with commas.",
      args:[{name:"arr",desc:"Array of values to format as a CSV row"}],
-     examples:[{i:"sk_csv_row(['a', 'b,c', 'd'])",o:"'a,\"b,c\",d'"}] }, <skdoc>)
+     examples:[{i:"sk_csv_row(['a', 'b,c', 'd'])",o:"'a,\"b,c\",d'"}] }, "skdoc")
 )
 
 fn sk_csv_row(arr): (
@@ -35,7 +35,7 @@ fn skdoc_shell_quote(): (
      desc:"Wraps a string in POSIX shell single quotes. Internal single quotes are escaped so the result is safe for shell interpolation. Protects against injection of $, backticks, and other shell metacharacters.",
      args:[{name:"s",desc:"The string to quote"}],
      examples:[{i:"sk_shell_quote('hello world')",o:"single-quoted string"},
-               {i:"sk_shell_quote('has $var')",o:"single-quoted, $ not expanded"}] }, <skdoc>)
+               {i:"sk_shell_quote('has $var')",o:"single-quoted, $ not expanded"}] }, "skdoc")
 )
 
 -- Brace interpolation is the usual way to build a string, but not here: the
@@ -53,7 +53,7 @@ fn skdoc_tsv_field(): (
      desc:"Escapes a value for use in a TSV field. Casts to string, then replaces literal tab and newline characters with their backslash-escaped forms.",
      args:[{name:"s",desc:"The value to escape"}],
      examples:[{i:"sk_tsv_field('col1\\tcol2')",o:"tabs replaced with literal \\t"},
-               {i:"sk_tsv_field('line1\\nline2')",o:"newlines replaced with literal \\n"}] }, <skdoc>)
+               {i:"sk_tsv_field('line1\\nline2')",o:"newlines replaced with literal \\n"}] }, "skdoc")
 )
 
 fn sk_tsv_field(s): (
@@ -72,7 +72,7 @@ fn skdoc_safe_text_to_record(): (
      desc:"Pipe raw text into super to build a record without string interpolation. The text never passes through shell expansion or manual escaping. Works from any language via subprocess.",
      args:[],
      snippet:'echo "$text" | super -s -i line -c "values {body: this}" -',
-     examples:[{i:"text with quotes and $pecial chars",o:"safely embedded in a .sup record"}] }, <skdoc>)
+     examples:[{i:"text with quotes and $pecial chars",o:"safely embedded in a .sup record"}] }, "skdoc")
 )
 
 fn skdoc_safe_text_to_string(): (
@@ -82,7 +82,7 @@ fn skdoc_safe_text_to_string(): (
      desc:"Pipe raw text through super to get a properly escaped SUP string literal. Useful when you need the escaped value for embedding in other SUP data.",
      args:[],
      snippet:'echo "$text" | super -s -i line -c "values this" -',
-     examples:[{i:"She said hello and backslash",o:"properly escaped SUP string"}] }, <skdoc>)
+     examples:[{i:"She said hello and backslash",o:"properly escaped SUP string"}] }, "skdoc")
 )
 
 fn skdoc_safe_multiline_to_record(): (
@@ -92,7 +92,7 @@ fn skdoc_safe_multiline_to_record(): (
      desc:"Collapse multiline text into a single record field. Each line is collected then joined with newline characters. The text is never interpolated through the shell.",
      args:[],
      snippet:'echo "$text" | super -s -i line -c "aggregate s:=collect(this) | values {body: join(s, \"\\n\")}" -',
-     examples:[{i:"multi-line text with special chars",o:"single record with embedded newlines"}] }, <skdoc>)
+     examples:[{i:"multi-line text with special chars",o:"single record with embedded newlines"}] }, "skdoc")
 )
 
 fn skdoc_safe_append_to_sup_file(): (
@@ -102,5 +102,5 @@ fn skdoc_safe_append_to_sup_file(): (
      desc:"Append a timestamped record with raw text to a .sup file. Common pattern for scripts that log or accumulate structured data from unstructured input.",
      args:[],
      snippet:'echo "$text" | super -s -i line -c "values {ts: now(), body: this}" - >> data.sup',
-     examples:[{i:"arbitrary user input",o:"appended as timestamped record to .sup file"}] }, <skdoc>)
+     examples:[{i:"arbitrary user input",o:"appended as timestamped record to .sup file"}] }, "skdoc")
 )

@@ -43,7 +43,7 @@ function stripSkdocBlocks(content: string): string {
     }
 
     if (inSkdoc) {
-      if (line.includes('<skdoc>)')) {
+      if (line.includes('<skdoc>)') || line.includes('"skdoc")')) {
         inSkdoc = false;
         skipNextClosingParen = true;
       }

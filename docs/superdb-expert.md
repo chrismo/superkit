@@ -4,8 +4,8 @@ name: superdb-expert
 description: "Expert guide for SuperDB queries and data transformations. Covers syntax, patterns, and best practices."
 layout: default
 nav_order: 2
-superdb_version: "0.3.0"
-last_updated: "2026-03-27"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # SuperDB Expert Guide
@@ -35,14 +35,60 @@ binary rather than relying on old Zed/zq examples.
   - `-J` for pretty JSON
   - `-s` for SUP format
   - `-S` for pretty SUP
-  - `-f` for output format (sup, json, bsup, csup, arrows, parquet, csv, etc.)
-  - `-i` for input format
+  - `-f` for output format (sup, json, bsup, arrows, parquet, csv, tsv, line,
+    zeek, db). BSUP output is columnar by default; add `-rows` for row frames
+  - `-i` for input format (`-i auto` requests auto-detection)
+  - `-o file.ext` writes to a file; without `-f`, the output format follows the
+    extension (e.g. `-o out.json`)
   - `-f line` for clean number formatting without type decorators
+  - `-static` statically type-checks all inputs; `-dynamic` turns it off
+  - `-unbuffered` flushes each result as soon as it's ready
+  - `-fusion` shows fusion values in SUP output (otherwise auto-defused)
+
+#### Input format comes from the file extension (v0.4.0+)
+
+The format of a **local file** is determined by its extension (`.json`,
+`.sup`, `.csv`, `.parquet`, `.bsup`, ..., including `.gz`-compressed versions),
+not by sniffing its contents. A file with no extension or an unrecognized one
+needs `-i`:
+
+```bash
+super -s data.json        # JSON, from the extension
+super -s -i json noext    # no extension: format required
+super -s -i auto noext    # ask for auto-detection explicitly
+```
+
+Auto-detection is still the default for stdin (`-`) and for HTTP, HTTPS, and
+S3 URLs without a recognized extension. A format argument on a `from`
+operator takes precedence, then `-i`, then the extension.
+
+#### Static type checking
+
+BSUP, Parquet, Arrow, and SUP inputs are statically type-checked by default.
+JSON, CSV, and stdin inputs are *dynamic* unless you pass `-static`. Some SQL
+features need static types, so on JSON input you may see:
+
+- `the all-columns (*) pattern cannot be used for dynamic inputs`
+- `join on dynamic column "l" requires table-qualified reference`
+
+Add `-static` to fix both:
+
+```bash
+super -static -s -c 'select * from "data.json"'
+super -static -s -c 'select l.id, r.name from "a.json" l join "b.json" r on l.id=r.id'
+```
+
+On statically typed input, referencing a field that may be absent is a
+compile-time error (`field may be missing (consider ok())`); see
+[Missing Fields, `ok()`, and None](#missing-fields-ok-and-none).
 
 #### Removed switches
 
 - `-z` for deprecated ZSON name. **Removed** — no longer accepted.
 - `-Z` for deprecated ZSON name. **Removed** — no longer accepted.
+- `-sam`, `-vam`, and `SUPER_RUNTIME`: **Removed** in v0.4.0 (vector runtime only).
+- `-samplesize`, `-persist`, `-fusemem`, and `-bsup.*`: **Removed** in v0.4.0.
+- `-f csup`, `-f jsup`, and `-f table`: **Removed** in v0.4.0 (CSUP merged into BSUP).
 
 ### Critical Rules
 
@@ -58,6 +104,8 @@ binary rather than relying on old Zed/zq examples.
 - Use `values` instead of `yield`
 - Use `unnest` instead of `over`
 - Type casting: `cast(myvar, <int64>)` may require either `-s` or `-f line` for clean output.
+- Method-style calls work (v0.4.0+): `s.trim().upper()` is `upper(trim(s))`,
+  and `s.split(",")` is `split(s, ",")`
 
 ## Language Syntax Reference
 
@@ -327,8 +375,8 @@ echo '[1, "foo", 2.3, true]' | super -J -c "unnest this" -
 # Type switching - return pretty-printed SuperJSON
 super -S -c '
   switch
-    case typeof(value) == "int64" ( put category:="number" )
-    case typeof(value) == "string" ( put category:="text" )
+    case typeof(value) == <int64> ( put category:="number" )
+    case typeof(value) == <string> ( put category:="text" )
     case true ( put category:="other" )
 ' mixed.json
 ```
@@ -382,20 +430,20 @@ echo '{id:1,person_id:1,exercise:"tango"}
 {id:3,person_id:2,exercise:"jogging"}
 {id:4,person_id:2,exercise:"cooking"}' > exercises.sup
 
-# joins supported: left, right, inner, full outer, anti
-super -s -c "
+# joins supported: left, right, inner, anti (full outer still behaves like left)
+# -static is needed because people.json is a dynamic (JSON) input
+super -static -s -c "
   select * from people.json people
   join exercises.sup exercises
   on people.id=exercises.person_id
 "
 
-# where ... is null not supported yet
-# unless coalesce used in the select clause
-super -s -c "
+# unmatched columns are null (v0.4.0+; earlier releases gave error("missing"))
+super -static -s -c "
   select * from people.json people
   left join exercises.sup exercises
   on people.id=exercises.person_id
-  where is_error(exercises.exercise)
+  where exercises.exercise is null
 "
 ```
 
@@ -491,26 +539,34 @@ unnest [{dir:"out",v:"90"},{dir:"in",v:"561"},{dir:"in",v:"306"}]
 Key distinction between Records and Maps:
 
 - `{a:1}` is a Record (unquoted keys)
-- `|{"a":1}|` is a Map (literal primitive keys, pipe delimiters)
+- `map{"a":1}` is a Map (literal primitive keys). Before v0.4.0 this was
+  written `|{"a":1}|`
+- `set[1,2]` is a Set. Before v0.4.0 this was written `|[1,2]|`
 - `put` and spread only work with Records, not Maps or Unions
 - Map keys must be literal primitive types
-- `collect_map` requires a Map Expression argument — use `|{key:val}|` syntax,
+- `collect_map` requires a Map Expression argument — use `map{key:val}` syntax,
   not a Record expression
+- `keys()` and `values()` return the keys and values of a record or a map
 
 ### Converting Map to Record
 
-Maps and Records are separate types. To convert a `collect_map` result to a
-Record for use with `put`/spread, strip the pipe delimiters and re-parse:
+Maps and Records are separate types. To build a Record from key/value rows,
+collect `{path,value}` pairs and `unflatten` them:
 
 ```
 -- collect_map produces a Map:
-values {k:"a",v:1}, {k:"b",v:2} | collect_map(|{k:v}|)
--- => |{"a":1,"b":2}|
+values {k:"a",v:1}, {k:"b",v:2} | collect_map(map{k:v})
+-- => map{"a":1,"b":2}
 
--- Convert Map to Record:
+-- Build a Record directly:
 values {k:"a",v:1}, {k:"b",v:2}
-| collect_map(|{k:v}|)
-| this::string | this[1:-1] | parse_sup(this)
+| aggregate r:=collect({path:[k],value:v})
+| values unflatten(r)
+-- => {a:1,b:2}
+
+-- Or convert an existing Map by stripping the "map" prefix and re-parsing:
+values map{"a":1,"b":2}
+| values parse_sup((this::string)[3:])
 -- => {a:1,b:2}
 ```
 
@@ -519,10 +575,14 @@ values {k:"a",v:1}, {k:"b",v:2}
 Most aggregate functions need `this` passed in explicitly:
 
 - **Implicit** (no argument): `count()`
-- **Explicit**: `and(this)`, `any(this)`, `avg(this)`, `collect(this)`,
-  `dcount(this)`, `fuse(this)`, `max(this)`, `min(this)`, `or(this)`,
-  `sum(this)`, `union(this)`
-- **Oddball**: `collect_map(|{key:val}|)` — needs a Map Expression, not `this`
+- **Explicit**: `and(this)`, `any(this)`, `array_agg(this)`, `avg(this)`,
+  `collect(this)`, `dcount(this)`, `fuse(this)`, `max(this)`, `min(this)`,
+  `or(this)`, `sum(this)`, `union(this)`
+- **Oddball**: `collect_map(map{key:val})` — needs a Map Expression, not `this`
+
+`collect()`, `array_agg()`, and `union()` keep `null` values, and `collect()`
+and `array_agg()` preserve input order (v0.4.0+). `array_agg(distinct x)` is
+supported.
 
 Functions that changed in 0.1.0 to require explicit `this`:
 - `grep('pattern', this)` (was `grep(/pattern/)`)
@@ -556,6 +616,8 @@ SuperDB uses exclusive end index (like Python):
 
 - `search 'pattern'` — search all fields
 - `where grep('pattern', this)` — filter with regex in where clause
+- As of v0.4.0, `grep()` and search expressions match values only, not field
+  names
 - No `=~` operator exists in SuperDB
 
 ### Deep Walk (Recursive Transformation)
@@ -569,11 +631,23 @@ fn walk(v):
   when "array" then
     [unnest v | walk(this)]
   when "record" then
-    unflatten([unnest flatten(v) | {key,value:walk(value)}])
+    unflatten([unnest flatten(v) | {path,value:walk(value)}])
   else v+1
   end
 values walk([{x:[1,2]},{y:3}])
 -- => [{x:[2,3]},{y:4}]
+```
+
+As of v0.4.0, `flatten()` returns `{path,value}` records (it was
+`{key,value}`) and descends into arrays, sets, and maps, using integer
+positions and map keys as path elements. `paths()` returns just the paths and
+replaces the old `fields()`:
+
+```
+values flatten({x:[1,2],y:{z:3}})
+-- => [{path:["x",0],value:1},{path:["x",1],value:2},{path:["y","z"],value:3}]
+values paths({a:[1,2],b:{c:3}})
+-- => [["a",0],["a",1],["b","c"]]
 ```
 
 ## Advanced SuperDB Features
@@ -584,34 +658,127 @@ values walk([{x:[1,2]},{y:3}])
 - Algebraic types (sum and product types)
 - First-class type values
 - Type representation: `<[int64|string]>` for mixed types
-
-#### Optional fields
-
-Record fields can be marked optional with `?` syntax. Optional fields may be
-absent (null) without changing the record's type:
+- Unions are flat: an anonymous union can't contain another anonymous union
+- Named types are declared with `type` statements, not inline:
 
 ```
-{x:1, y?:null}   # y is optional and absent
-{x:2, y?:3}      # y is optional and present
+type port=uint16
+values 80::port
+-- => 80::port
 ```
+
+- Recursive types: `type JSON=string|float64|bool|null|[JSON]|map{string:JSON}`
+- Native `uuid` type: `'0190a6d4-3e2b-7b3c-8f2a-0a1b2c3d4e5f'::uuid`
+- `any` is a type that any value can be cast to (it becomes a `fusion(all)`)
+- Reserved SQL types (`date`, `time`, `interval`, `decimal`, `int128`,
+  `geometry`, `geography`) exist but casting to them errors with
+  "type not yet implemented"
+- A type declaration can bind a name to a type computed by a query:
+  `type T = (from data.sup | fuse(this))`
+- The dot operator navigates into type values: `<{a:{b:string}}>.a.b` is
+  `<string>`
+- `sum_type(map{"Cat":<{meow:bool}>,"Dog":<{woof:int64}>})` builds a union of
+  named types
+
+#### Option types and `none`
+
+v0.4.0 adds option types (`option(int64)`) and the `none` value, which replace
+the old `error("missing")`. Optional record fields use `?`, and an absent
+optional field holds a *typed* `none`:
+
+```
+{x:1, y?:2}               # y is optional and present: option(int64)
+{x:1, y?:none::int64}     # y is optional and absent
+```
+
+A bare `y?:none` in a record literal crashes v0.4.0 (`panic: (*super.TypeOfNone)`),
+so always give `none` a type.
+
+An option value must be unwrapped before you use it. Arithmetic on it fails
+with `none not handled (consider ?? or ?.)`. Use `??` (none coalescing) and
+`?.` (optional chaining):
+
+```
+values {x:1, y?:2}, {x:1, y?:none::int64} | values y ?? 0
+-- => 2
+-- => 0
+
+values {x:1, y?:{z:1}}, {x:2, y?:none::{z:int64}} | values y?.z ?? -1
+-- => 1
+-- => -1
+```
+
+`??` also replaces `null`: `null ?? 5` is `5`. JSON output omits fields whose
+value is `none`.
+
+#### Missing Fields, `ok()`, and None
+
+Referencing a field that doesn't exist is now a `no such field` error, not
+`error("missing")`. On statically typed input it's a compile-time error. The
+`has()`, `missing()`, and `quiet()` functions are gone. Use:
+
+- `ok(x)`: returns `none` if `x` is an error or `none`, otherwise `x`
+- `is_ok(x)`: `true` if `x` exists and isn't an error or `none` (replaces `has()`)
+- `not is_ok(x)` replaces `missing(x)`
+
+```
+echo '{"a":1}' | super -s -c 'values {has_a:is_ok(a), has_b:is_ok(b)}' -
+-- => {has_a:true,has_b:false}
+
+echo '{"user":{}}' | super -s -c 'values ok(user.profile.name) ?? "anon"' -
+-- => "anon"
+```
+
+`?.` doesn't save you from a missing field: `user?.profile` still errors when
+`profile` doesn't exist. Wrap the whole path in `ok()` instead.
+
+In SQL, a reference to a missing field evaluates to `null`.
 
 #### Fusion types
 
-`fuse` merges heterogeneous record types into a common schema using union types
-and optional fields. `defuse` reverses this:
+The fusion names were swapped in v0.4.0, restoring what `fuse` meant before
+v0.3.0:
+
+| v0.4.0           | v0.3.0 name  | What it does                                     |
+|------------------|--------------|--------------------------------------------------|
+| `fuse`           | `blend`      | merges types into one common type (unions)       |
+| `defuse()`       | `unblend()`  | reverses `fuse`                                  |
+| `superfuse`      | `fuse`       | produces fusion values (value + original type)   |
+| `superdefuse()`  | `defuse()`   | reverses `superfuse`                             |
+
+A query that still uses `fuse` or `defuse()` runs, but now does what `blend`
+and `unblend()` did.
 
 ```
 values {a:1}, {a:2, b:"hello"} | fuse
-# => fusion({a:1,b?:_::string},<{a:int64}>)
-# => fusion({a:2,b?:"hello"},<{a:int64,b:string}>)
+-- => {a:1,b:missing::(string|missing)}
+-- => {a:2,b:"hello"::(string|missing)}
 
 values {a:1}, {a:2, b:"hello"} | fuse | defuse(this)
-# => {a:1}
-# => {a:2,b:"hello"}
+-- => {a:1}
+-- => {a:2,b:"hello"}
 ```
 
-Similarly, `blend` creates a common type using optional fields and unions, and
-`unblend` reverses it.
+A field absent from some inputs gets a union with `missing` (`string|missing`)
+rather than becoming an optional field. `optionize()` converts such a type to
+one with optional fields:
+
+```
+values optionize(<{a:int64,b:string|missing}>)
+-- => <{a:int64,b?:string}>
+```
+
+Fusion values are auto-defused in every output format except BSUP, so
+`superfuse` output looks like its input unless you pass `-fusion`:
+
+```bash
+super -fusion -s -c 'values {a:1}, {a:2, b:"hello"} | superfuse'
+# => {a:1,b:fusion(missing::(string|missing),<missing>)}
+# => {a:2,b:fusion("hello"::(string|missing),<string>)}
+```
+
+An empty array, set, or map now has element type `none` (`typeof([])` is
+`<[none]>`).
 
 ### Nested Field Access
 
@@ -619,15 +786,16 @@ Similarly, `blend` creates a common type using optional fields and unions, and
 # Access nested fields
 cut user.profile.name, user.settings.theme
 
-# Conditional nested access
-put display_name:=user?.profile?.name ?? "Anonymous"
+# Nested access that tolerates missing fields
+put display_name:=ok(user.profile.name) ?? "Anonymous"
 ```
 
 ### Time Operations
 
 **Type representation:**
 
-- `time`: signed 64-bit integer as nanoseconds from epoch
+- `timestamp`: signed 64-bit integer as nanoseconds from epoch (called `time`
+  before v0.4.0; `x::time` now errors with "type not yet implemented")
 - `duration`: signed 64-bit integer as nanoseconds
 
 ```
@@ -639,7 +807,17 @@ where ts > 2024-01-01T00:00:00Z
 
 # Time formatting
 put formatted:=strftime("%Y-%m-%d", ts)
+
+# Parse a string into a timestamp
+put ts:=ts_str::timestamp
+
+# Difference between two timestamps: cast to duration
+put elapsed:=(end - start)::duration
 ```
+
+In v0.4.0, subtracting two timestamps returns a `timestamp` (e.g.
+`1970-01-01T00:00:04Z`) instead of a `duration` (`4s`). Cast the result with
+`::duration` to get a duration.
 
 ### Grok Pattern Parsing
 
@@ -693,6 +871,77 @@ super -s -c "{a:{c:1}, b:{}} | [...a, ...b]" # => {c:1}
 super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
 ```
 
+### Method-Style Calls
+
+As of v0.4.0, the value before a dot becomes a function's first argument, and
+calls can be chained:
+
+```
+values " a,b ".trim().upper().split(",")
+-- => ["A","B"]
+values "a b c".split(" ").join("-")
+-- => "a-b-c"
+```
+
+### Passing Shell Arguments
+
+Arguments after `--` are passed to the query as a string array constant named
+`args`. This avoids quoting shell values into the query text:
+
+```bash
+super -s -c 'values args, args[0]::int64 + 1' -- 41 "hello world"
+# => ["41","hello world"]
+# => 42
+```
+
+## Persistent Database (Tables)
+
+v0.4.0 renamed database _pools_ to _tables_ and added SQL DDL. Databases from
+earlier releases can't be opened.
+
+```bash
+super db init ./mydb          # create a database
+super db attach ./mydb        # make it the default for later commands
+                              # (replaces `super db auth`/`login` and SUPER_DB)
+
+# SQL DDL and DML; statements separated by ; share declarations
+super db -s -c "
+  CREATE TABLE readings (id int64 NOT NULL, foo int64, ts timestamp);
+  INSERT INTO readings VALUES (1, 10, '2025-01-01T00:00:00Z'::timestamp)
+"
+
+echo '{id:2,foo:20,ts:2025-01-02T00:00:00Z}' | super db load -use readings -
+super db -s -c "from readings | sort id"
+super db delete -use readings -where 'id==1'
+super db ls
+super db -attach ./otherdb -s -c "from t"   # one-off database for one command
+```
+
+- Each SQL statement outputs a status record (`kind`, `stmt`, `info`, `error`, ...)
+- `CREATE TABLE ... ORDER BY col` sets a sort key; tables are unsorted by default
+- Values loaded into a typed table are cast to its type, and nothing is
+  committed if any value can't be cast
+- `CREATE SUPER TABLE` makes a table of any SuperSQL type, such as a sum type
+  computed from the data. `super db create -type '{a:int64}' name` does the
+  same from the command line:
+
+```bash
+super db -s -c "
+  type Event = (
+    from raw
+    | fuse(this) by type
+    | collect_map(map{type:optionize(fuse)})
+    | sum_type(this)
+  )
+  create super table events Event;
+  insert into events from raw
+"
+```
+- `DROP TABLE` removes a table. `UPDATE` and `DELETE` statements aren't
+  supported yet, so use `super db delete -where` (see the
+  [Updating Data tutorial](tutorials/super_db_update))
+- `super db vector` commands were removed
+
 ## Debugging Tips
 
 ### Common Issues and Solutions
@@ -706,7 +955,8 @@ super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
   pipe. Drop the `-` if the command doesn't need stdin input.
 - Verify field names match exactly (case-sensitive)
 - Check type mismatches in comparisons
-- `collect()` on empty stream returns `null` (not empty) — guard with `coalesce(result, [])`
+- `collect()` on an empty stream returns `[]` as of v0.4.0 (it returned `null`
+  before)
 
 2. **Type Errors**
 
@@ -718,13 +968,16 @@ super -s -c "{a:{c:1}, b:{d:'foo'}} | {...a, ...b}" # => {c:1, d:'foo'}
 
 - Use `head` early in pipeline to limit data
 - Aggregate before sorting when possible
-- Use vectorized operations (vector: true in tests)
+- Store data you query repeatedly as BSUP (columnar by default) or Parquet;
+  every query runs in the vector runtime as of v0.4.0
 
 4. **Complex Queries**
 
 - Break into smaller pipelines for debugging
 - Use `super -s -c "values this"` to inspect intermediate data
 - Add `| head 5` to preview results during development
+- Large output may come out in a different order across runs (parallel vector
+  runtime). Add an explicit `sort` / `order by` when order matters
 
 ### The `debug` operator
 
@@ -766,8 +1019,8 @@ echo "$data" | super -s -c "put types:=typeof(this)" -
 super -s -c "query | aggregate count:=count()" data.json
 super -s -c "query | filter | aggregate count:=count()" data.json
 
-# Validate syntax without execution
-super -s -c "your query" -n
+# Validate syntax without execution (prints the parsed query)
+super compile -C -c "your query"
 ```
 
 ## Format Conversions
@@ -781,8 +1034,8 @@ super -f parquet data.json >data.parquet
 # CSV to JSON with pretty print
 super -J data.csv
 
-# Multiple formats to Arrow
-super -f arrows file1.json file2.parquet file3.csv >combined.arrows
+# Multiple formats to Arrow (Arrow needs one schema, so fuse mixed types first)
+super -f arrows -c "fuse" file1.json file2.parquet file3.csv >combined.arrows
 
 # SUP format (self-describing)
 super -s mixed-data.json >structured.sup
@@ -793,7 +1046,8 @@ super -s mixed-data.json >structured.sup
 1. **Pipe syntax** instead of nested queries
 2. **Polymorphic operators** work across types
 3. **First-class arrays** and nested data
-4. **No NULL** - use error values or missing fields
+4. **`none` alongside `NULL`** - missing values are `none` (option types), not
+   errors
 5. **Type-aware operations** with automatic handling
 6. **Streaming architecture** for large datasets
 
@@ -843,7 +1097,7 @@ super -s -c "values 1234.56::int64" # outputs: 1234
 super -s -c "values 42::string" # outputs: "42"
 
 # Float conversion
-super -s -c "values 100::float64" # outputs: 100.0
+super -s -c "values 100::float64" # outputs: 100.
 
 # Chaining casts
 super -s -c "values (123.45::int64)::string" # outputs: "123"
@@ -868,17 +1122,18 @@ echo '{"port":"80","active":"true","ts":"Jun 1, 2025"}' |
 # => {port:80,active:true,ts:2025-06-01T00:00:00Z}
 ```
 
-Candidate types: `int64`, `float64`, `ip`, `net`, `time`, `bool`. Default
+Candidate types: `int64`, `float64`, `ip`, `net`, `timestamp`, `bool`. Default
 sample size is 100 records; `infer 0` analyzes all input.
 
-### `defuse` and `unblend` functions
+### `defuse` and `superdefuse` functions
 
-These reverse the effects of `fuse` and `blend`:
+These reverse the effects of `fuse` and `superfuse` (the names swapped in
+v0.4.0; see [Fusion types](#fusion-types)):
 
-- `defuse(val)` — reverses `fuse` by converting fusion types back to original
-  types, downcasting union values to their subtype equivalent
-- `unblend(val)` — reverses `blend` by removing union types and eliminating
-  optional fields without values
+- `defuse(val)` — reverses `fuse` (formerly `unblend()`) by removing union
+  types and eliminating optional fields without values
+- `superdefuse(val)` — reverses `superfuse` (formerly `defuse()`) by converting
+  fusion values back to their original types
 
 ### Rounding Numbers
 
@@ -886,9 +1141,9 @@ SuperDB has a `round()` function that rounds to the nearest integer:
 
 ```bash
 # Round to nearest integer (single argument only)
-super -s -c "values round(3.14)" # outputs: 3.0
-super -s -c "values round(-1.5)" # outputs: -2.0
-super -s -c "values round(1234.567)" # outputs: 1235.0
+super -s -c "values round(3.14)" # outputs: 3.
+super -s -c "values round(-1.5)" # outputs: -2.
+super -s -c "values round(1234.567)" # outputs: 1235.
 
 # For rounding to specific decimal places, use the multiply-cast-divide pattern
 super -s -c "values ((1234.567 * 100)::int64 / 100.0)" # outputs: 1234.56 (2 decimals)
@@ -972,6 +1227,10 @@ Follow these quoting rules when calling `super` from bash:
 - Use single quotes inside SuperDB queries: `{type:10, content:'$variable'}`
 - Avoid escaping double quotes inside SuperDB — use single quotes instead
 - This allows bash interpolation while avoiding quote escaping issues
+- Single quotes are only valid in *queries*. SUP *data* (files, stdin) must use
+  double-quoted strings: `echo "{a:'x'}" | super -` is a syntax error
+- To pass shell values without quoting them into the query at all, use
+  [`-- args`](#passing-shell-arguments)
 
 **Examples:**
 
@@ -1020,7 +1279,11 @@ super -s -c "unnest this | where this != null"
 ## Aggregate Functions
 
 Aggregate functions (`count()`, `sum()`, `avg()`, `min()`, `max()`, `collect()`,
-etc.) can **only** be used inside `aggregate`/`summarize` operators. Using them
+etc.) can **only** be used inside `aggregate`/`summarize` operators.
+
+For the largest or smallest of several values in one expression, use
+`greatest(a, b, ...)` and `least(a, b, ...)`. These were the non-aggregate
+`max()` and `min()` before v0.4.0. Using them
 in expression context (e.g., `put row:=count()`) is an error:
 
 ```

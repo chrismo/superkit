@@ -5,8 +5,8 @@ description: "Guide to the debug operator for tapping pipelines and inspecting i
 layout: default
 nav_order: 3
 parent: Tutorials
-superdb_version: "0.3.0"
-last_updated: "2026-03-28"
+superdb_version: "0.4.0"
+last_updated: "2026-10-31"
 ---
 
 # debug
@@ -286,7 +286,7 @@ You can see this with a large input — pipe a million numbers in, fork into a
 debug count and a main branch that filters to milestones:
 
 ```mdtest-command
-seq 1 1000000 | super -s -c "
+seq 1 1000000 | super -unbuffered -i sup -s -c "
   fork
     (count() | debug f'{this} total records' | where false)
     (where this % 100000 = 0 | head 5)
@@ -298,7 +298,7 @@ seq 1 1000000 | super -s -c "
 300000
 400000
 500000
-"1000001 total records"
+"1000000 total records"
 ```
 
 The milestones appear **before** the debug count — they streamed through as the
@@ -306,7 +306,7 @@ data flowed. Compare with `collect`/`unnest`, where the count appears **first**
 because everything must be buffered before any output:
 
 ```mdtest-command
-seq 1 1000000 | super -s -c "
+seq 1 1000000 | super -unbuffered -i sup -s -c "
   collect(this)
   | debug (unnest this | count() | values f'{this} total records')
   | unnest this
@@ -315,13 +315,20 @@ seq 1 1000000 | super -s -c "
 " -
 ```
 ```mdtest-output
-"1000001 total records"
+"1000000 total records"
 100000
 200000
 300000
 400000
 500000
 ```
+
+Two flags matter for this demo. `-unbuffered` flushes each result as soon as
+it's ready; without it, `super` buffers stdout and the stderr `debug` line can
+appear first even though it was produced last. `-i sup` names the input
+format: as of v0.4.0, auto-detecting a large stream on stdin can split some
+values at buffer boundaries (the count comes out as 1000010), so name the
+format when you can.
 
 `fork` also uses O(1) memory for the counting branch (just an integer
 accumulator), while `collect` stores every record in an array (O(n)). The
@@ -435,5 +442,5 @@ cat /tmp/scores.sup
 super --version
 ```
 ```mdtest-output
-Version: v0.3.0
+Version: v0.4.0
 ```
