@@ -1,0 +1,44 @@
+name: Test
+
+# Runs the TypeScript build, the recipe tests, and every mdtest example in the
+# docs against the SuperDB release pinned in .superdb-version. To move to a new
+# SuperDB release, bump that file and fix whatever fails.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install SuperDB
+        run: |
+          scripts/install-super.sh "" "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Recipe tests
+        run: npm test
+
+      - name: Doc examples (mdtest)
+        run: npm run test:docs

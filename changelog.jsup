@@ -10,6 +10,8 @@
         "docs: rewrite super_db_update tutorial as a tested walkthrough of tables, load-then-delete, and typed tables",
         "fix: recipes use ::timestamp (sk_format_epoch, sk_last_day_of_month), sk_keys uses keys(), sk_array_append handles [] without a none-typed union",
         "fix: skdoc metadata uses cast(..., \"skdoc\") since <skdoc> is no longer an implicit named type",
+        "fix: skdoc parser dropped examples containing brackets/braces (11 recipes showed no examples in skops/MCP) and truncated descriptions at escaped quotes; now a real SUP-subset parser checked against super",
+        "infra: CI workflow runs typecheck, recipe tests, and all doc mdtests against the SuperDB release pinned in .superdb-version (scripts/install-super.sh, scripts/mdtest.mjs)",
         "fix: pre-existing doc bugs (moar_subqueries collect-first query, sup_to_bash IFS output, bash_to_sup single-quoted SUP, typeof() comparisons, round() output)"
     ]
 }

@@ -36,6 +36,25 @@ other integrations:
 import { superHelp, superRecipes, superGrokPatterns } from '@chrismo/superkit';
 ```
 
+## Development
+
+The docs and recipes are tested against the SuperDB release pinned in
+`.superdb-version`:
+
+```bash
+npm ci
+scripts/install-super.sh          # installs the pinned `super` to ~/.local/bin
+npm test                          # recipe skdoc examples + parser checks
+npm run test:docs                 # every mdtest example in docs/
+npm run test:docs -- --skip lichess.org docs/tutorials   # options
+```
+
+CI runs all of this on every push and pull request.
+
+To move to a new SuperDB release, bump `.superdb-version`, then fix whatever
+fails: the `superdb_version` front matter in each doc, `super --version`
+outputs, and any examples whose behavior changed.
+
 ## Upgrading from pre-npm SuperKit
 
 If you previously installed SuperKit via the old `install.sh` script, remove

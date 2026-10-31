@@ -153,7 +153,7 @@ super -s -c "
   | debug f'FAIL: {name} ({score})' filter (score < 70)
   | put pass:=score >= 70
   | sort name
-" > /tmp/scores.sup
+" > scores.sup
 ```
 ```mdtest-output
 "FAIL: bob (42)"
@@ -164,7 +164,7 @@ The failures showed up on your terminal while the results went to the file.
 Every student has the new `pass` field:
 
 ```mdtest-command
-cat /tmp/scores.sup
+cat scores.sup
 ```
 ```mdtest-output
 {name:"alice",score:85,pass:true}
@@ -203,13 +203,19 @@ super -s -c "
            | values f'{this} student(s) failed')
   | unnest this
   | sort name
-" > /tmp/scores.sup
+" 2>&1 > scores.sup | sort
 ```
 ```mdtest-output
+"2 student(s) failed"
 "FAIL: bob (42)"
 "FAIL: dave (67)"
-"2 student(s) failed"
 ```
+
+The `2>&1 > scores.sup | sort` sends the results to `scores.sup` and pipes
+only the debug output through `sort`. As of v0.4.0, separate `debug` operators
+write to stderr independently, so their lines can arrive in a different order
+from run to run. Sorting keeps the example's output stable; at a terminal
+you'd just leave it off.
 
 The first `debug` fires per-record, flagging each failure. Then after `collect`
 gathers everything into a single array, the second `debug` runs a `(...)`
@@ -219,7 +225,7 @@ a summary.
 The file still has the same clean output:
 
 ```mdtest-command
-cat /tmp/scores.sup
+cat scores.sup
 ```
 ```mdtest-output
 {name:"alice",score:85,pass:true}
@@ -249,16 +255,16 @@ super -s -c "
      | debug f'{this} student(s) failed'
      | where false)
     (sort name)
-" > /tmp/scores.sup
+" 2>&1 > scores.sup | sort
 ```
 ```mdtest-output
+"2 student(s) failed"
 "FAIL: bob (42)"
 "FAIL: dave (67)"
-"2 student(s) failed"
 ```
 
 ```mdtest-command
-cat /tmp/scores.sup
+cat scores.sup
 ```
 ```mdtest-output
 {name:"alice",score:85,pass:true}
@@ -356,16 +362,16 @@ super -s -c "
      | debug f'{this} student(s) failed'
      | where false)
     (sort name)
-" > /tmp/scores.sup
+" 2>&1 > scores.sup | sort
 ```
 ```mdtest-output
+"2 student(s) failed"
 "FAIL: bob (42)"
 "FAIL: dave (67)"
-"2 student(s) failed"
 ```
 
 ```mdtest-command
-cat /tmp/scores.sup
+cat scores.sup
 ```
 ```mdtest-output
 {name:"alice",score:85,pass:true}
@@ -408,7 +414,7 @@ super -s -c "
   )
   values {name:\"alice\",score:85},{name:\"bob\",score:42},{name:\"carol\",score:91},{name:\"dave\",score:67}
   | grade_report
-" > /tmp/scores.sup
+" > scores.sup
 ```
 ```mdtest-output
 "FAIL: bob (42)"
@@ -416,7 +422,7 @@ super -s -c "
 ```
 
 ```mdtest-command
-cat /tmp/scores.sup
+cat scores.sup
 ```
 ```mdtest-output
 {name:"alice",score:85,pass:true}

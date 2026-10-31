@@ -30,93 +30,196 @@ export interface RecipesResult {
   error: string | null;
 }
 
+type SupValue = string | SupValue[] | { [key: string]: SupValue };
+
+const SUP_ESCAPES: Record<string, string> = {
+  '"': '"', "'": "'", '\\': '\\', '/': '/',
+  b: '\b', f: '\f', n: '\n', r: '\r', t: '\t',
+};
+
 /**
- * Parse skdoc metadata from a .spq file.
+ * Minimal parser for the SUP subset used in skdoc metadata: records with bare
+ * or quoted keys, arrays, and single- or double-quoted strings with escapes.
+ * Any other scalar (numbers, null, ...) is returned as its raw source text.
+ *
+ * A real parser (rather than regexes) matters because example text routinely
+ * contains brackets, braces, and escaped quotes, e.g. `{a:1} | sk_keys` or
+ * `sk_array_append([], \"a\")`.
  */
-function parseSkdocFromFile(filepath: string): RecipeFunction[] {
-  const content = readFileSync(filepath, 'utf-8');
-  const sourceFile = basename(filepath, '.spq');
-  const recipes: RecipeFunction[] = [];
+class SupSubsetParser {
+  pos: number;
 
-  const skdocPattern = /fn\s+skdoc_\w+\(\):\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*(?:<skdoc>|"skdoc")\)/g;
-  const skdocOpPattern = /op\s+skdoc_\w+:\s*\(\s*cast\(\s*(\{[\s\S]*?\}),\s*(?:<skdoc>|"skdoc")\)/g;
+  constructor(private readonly src: string, start: number) {
+    this.pos = start;
+  }
 
-  for (const pattern of [skdocPattern, skdocOpPattern]) {
-    let match;
-    while ((match = pattern.exec(content)) !== null) {
-      try {
-        const raw = match[1];
-        const recipe = parseSkdocObject(raw, sourceFile);
-        if (recipe) {
-          recipes.push(recipe);
-        }
-      } catch {
-        // Skip malformed skdoc entries
+  private fail(msg: string): never {
+    throw new Error(`${msg} at offset ${this.pos}`);
+  }
+
+  private skipSpace(): void {
+    while (this.pos < this.src.length) {
+      if (/\s/.test(this.src[this.pos])) {
+        this.pos++;
+      } else if (this.src.startsWith('--', this.pos)) {
+        while (this.pos < this.src.length && this.src[this.pos] !== '\n') this.pos++;
+      } else {
+        break;
       }
     }
   }
 
-  return recipes;
+  value(): SupValue {
+    this.skipSpace();
+    const ch = this.src[this.pos];
+    if (ch === '{') return this.record();
+    if (ch === '[') return this.array();
+    if (ch === '"' || ch === "'") return this.string();
+    return this.bare();
+  }
+
+  private record(): { [key: string]: SupValue } {
+    const out: { [key: string]: SupValue } = {};
+    this.pos++; // {
+    this.skipSpace();
+    if (this.src[this.pos] === '}') { this.pos++; return out; }
+    for (;;) {
+      this.skipSpace();
+      const ch = this.src[this.pos];
+      let key: string;
+      if (ch === '"' || ch === "'") {
+        key = this.string();
+      } else {
+        const m = /^[A-Za-z_$][\w$]*/.exec(this.src.slice(this.pos));
+        if (!m) this.fail('expected field name');
+        key = m[0];
+        this.pos += key.length;
+      }
+      this.skipSpace();
+      if (this.src[this.pos] === '?') this.pos++; // optional field marker
+      if (this.src[this.pos] !== ':') this.fail('expected ":"');
+      this.pos++;
+      out[key] = this.value();
+      this.skipSpace();
+      const sep = this.src[this.pos++];
+      if (sep === '}') return out;
+      if (sep !== ',') this.fail('expected "," or "}"');
+    }
+  }
+
+  private array(): SupValue[] {
+    const out: SupValue[] = [];
+    this.pos++; // [
+    this.skipSpace();
+    if (this.src[this.pos] === ']') { this.pos++; return out; }
+    for (;;) {
+      out.push(this.value());
+      this.skipSpace();
+      const sep = this.src[this.pos++];
+      if (sep === ']') return out;
+      if (sep !== ',') this.fail('expected "," or "]"');
+    }
+  }
+
+  private string(): string {
+    const quote = this.src[this.pos++];
+    let out = '';
+    while (this.pos < this.src.length) {
+      const ch = this.src[this.pos++];
+      if (ch === quote) return out;
+      if (ch !== '\\') { out += ch; continue; }
+      const esc = this.src[this.pos++];
+      if (esc === 'u') {
+        out += String.fromCharCode(parseInt(this.src.slice(this.pos, this.pos + 4), 16));
+        this.pos += 4;
+      } else if (esc in SUP_ESCAPES) {
+        out += SUP_ESCAPES[esc];
+      } else {
+        out += '\\' + esc;
+      }
+    }
+    this.fail('unterminated string');
+  }
+
+  private bare(): string {
+    const m = /^[^,\]}\s]+/.exec(this.src.slice(this.pos));
+    if (!m) this.fail('unexpected character');
+    this.pos += m[0].length;
+    return m[0];
+  }
+}
+
+function asString(v: SupValue | undefined): string | undefined {
+  return typeof v === 'string' ? v : undefined;
+}
+
+function asRecords(v: SupValue | undefined): { [key: string]: SupValue }[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((x): x is { [key: string]: SupValue } =>
+    typeof x === 'object' && x !== null && !Array.isArray(x));
 }
 
 /**
- * Parse a SUP-format skdoc object into a RecipeFunction.
+ * Parse skdoc metadata from .spq source text. Each recipe documents itself
+ * with a `fn skdoc_<name>(): (cast({...}, "skdoc"))` (or `op skdoc_<name>:`)
+ * declaration whose record holds the metadata.
  */
-function parseSkdocObject(raw: string, sourceFile: string): RecipeFunction | null {
-  const nameMatch = raw.match(/name:"([^"]+)"/);
-  const typeMatch = raw.match(/type:"([^"]+)"/);
-  const descMatch = raw.match(/desc:"([^"]+)"/);
-
-  if (!nameMatch || !typeMatch || !descMatch) {
-    return null;
+export function parseSkdoc(content: string, sourceFile: string): RecipeFunction[] {
+  const recipes: RecipeFunction[] = [];
+  const header = /^(?:fn\s+skdoc_\w+\(\)|op\s+skdoc_\w+)\s*:\s*\(\s*cast\(\s*(?=\{)/gm;
+  let match;
+  while ((match = header.exec(content)) !== null) {
+    try {
+      const parsed = new SupSubsetParser(content, header.lastIndex).value();
+      if (typeof parsed !== 'object' || Array.isArray(parsed)) continue;
+      const recipe = toRecipe(parsed, sourceFile);
+      if (recipe) recipes.push(recipe);
+    } catch {
+      // Skip malformed skdoc entries
+    }
   }
+  return recipes;
+}
+
+function parseSkdocFromFile(filepath: string): RecipeFunction[] {
+  return parseSkdoc(readFileSync(filepath, 'utf-8'), basename(filepath, '.spq'));
+}
+
+function toRecipe(raw: { [key: string]: SupValue }, sourceFile: string): RecipeFunction | null {
+  const name = asString(raw.name);
+  const type = asString(raw.type);
+  const description = asString(raw.desc);
+  if (!name || !type || !description) return null;
 
   const args: RecipeArg[] = [];
-  const argsMatch = raw.match(/args:\[([\s\S]*?)\]/);
-  if (argsMatch) {
-    const argsContent = argsMatch[1];
-    const argPattern = /\{([^}]+)\}/g;
-    let argMatch;
-    while ((argMatch = argPattern.exec(argsContent)) !== null) {
-      const argObj = argMatch[1];
-      const argName = argObj.match(/name:"([^"]+)"/);
-      const argDesc = argObj.match(/desc:"([^"]+)"/);
-      const argValue = argObj.match(/value:"([^"]+)"/);
-      if (argName) {
-        args.push({
-          name: argName[1],
-          ...(argDesc && { desc: argDesc[1] }),
-          ...(argValue && { value: argValue[1] }),
-        });
-      }
-    }
+  for (const a of asRecords(raw.args)) {
+    const argName = asString(a.name);
+    if (!argName) continue;
+    const desc = asString(a.desc);
+    const value = asString(a.value);
+    args.push({
+      name: argName,
+      ...(desc !== undefined && { desc }),
+      ...(value !== undefined && { value }),
+    });
   }
 
   const examples: RecipeExample[] = [];
-  const examplesMatch = raw.match(/examples:\[([\s\S]*?)\]/);
-  if (examplesMatch) {
-    const exContent = examplesMatch[1];
-    const exPattern = /\{([^}]+)\}/g;
-    let exMatch;
-    while ((exMatch = exPattern.exec(exContent)) !== null) {
-      const exObj = exMatch[1];
-      const iMatch = exObj.match(/i:"([^"]+)"/);
-      const oMatch = exObj.match(/o:"([^"]+)"/);
-      if (iMatch && oMatch) {
-        examples.push({ i: iMatch[1], o: oMatch[1] });
-      }
-    }
+  for (const e of asRecords(raw.examples)) {
+    const i = asString(e.i);
+    const o = asString(e.o);
+    if (i !== undefined && o !== undefined) examples.push({ i, o });
   }
 
-  const snippetMatch = raw.match(/snippet:'([^']+)'/);
+  const snippet = asString(raw.snippet);
 
   return {
-    name: nameMatch[1],
-    type: typeMatch[1],
-    description: descMatch[1],
+    name,
+    type,
+    description,
     args,
     examples,
-    ...(snippetMatch && { snippet: snippetMatch[1] }),
+    ...(snippet !== undefined && { snippet }),
     source_file: sourceFile,
   };
 }
