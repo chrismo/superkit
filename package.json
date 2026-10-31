@@ -18,6 +18,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run",
+    "test:docs": "node scripts/mdtest.mjs",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },

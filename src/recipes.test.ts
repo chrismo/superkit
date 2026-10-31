@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { execFileSync } from 'child_process';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execFileAsync = promisify(execFile);
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { superRecipes } from './lib/recipes.js';
+import { superRecipes, parseSkdoc } from './lib/recipes.js';
 
 const recipesDir = join(import.meta.dirname, '..', 'docs', 'recipes');
 
@@ -112,12 +115,12 @@ function normalizeOutput(s: string): string {
 const defsFile = join(tmpdir(), `superkit-test-defs-${process.pid}.spq`);
 writeFileSync(defsFile, allDefinitions);
 
-function runSuper(query: string): string {
-  const result = execFileSync('super', ['-I', defsFile, '-s', '-c', query], {
+async function runSuper(query: string): Promise<string> {
+  const { stdout } = await execFileAsync('super', ['-I', defsFile, '-s', '-c', query], {
     encoding: 'utf-8',
     timeout: 10_000,
   });
-  return result.trim();
+  return stdout.trim();
 }
 
 // Functions with no assertable examples: those stripped from the defs file,
@@ -136,7 +139,19 @@ function isExecutableExample(example: { i: string; o: string }): boolean {
   return !nonExecutable.some(s => example.o.toLowerCase().includes(s));
 }
 
-describe('recipe skdoc examples', () => {
+// Expected outputs in skdoc examples are written loosely (single-quoted
+// strings, extra spaces). Let super canonicalize them so the comparison is
+// exact; fall back to light normalization for anything super can't parse.
+async function canonicalExpected(o: string): Promise<string> {
+  try {
+    return await runSuper(`values ${o}`);
+  } catch {
+    return normalizeOutput(o);
+  }
+}
+
+// Each example spawns super, so run them concurrently.
+describe.concurrent('recipe skdoc examples', () => {
   for (const recipe of recipes) {
     if (SKIPPED_FNS.has(recipe.name)) continue;
     // Skip shell-pattern recipes (type: "shell") — not SuperDB functions
@@ -145,17 +160,70 @@ describe('recipe skdoc examples', () => {
     for (const example of recipe.examples) {
       if (!isExecutableExample(example)) continue;
 
-      it(`${recipe.name}: ${example.i}`, () => {
+      it(`${recipe.name}: ${example.i}`, async ({ expect }) => {
         // Some examples already include "values", don't double-prefix
         const query = example.i.startsWith('values ')
           ? example.i
           : `values ${example.i}`;
-        const actual = runSuper(query);
-        const expected = normalizeOutput(example.o);
-        // Strip type decorators (e.g., "29::uint8" → "29") for comparison
+        const [actual, expected] = await Promise.all([
+          runSuper(query),
+          canonicalExpected(example.o),
+        ]);
+        // Allow type decorators the example omits (e.g., "29::uint8" vs "29")
         const actualClean = actual.replace(/::\w+$/, '');
-        expect(actualClean).toBe(expected);
+        expect([actual, actualClean]).toContain(expected);
       });
     }
+  }
+
+  it('covers every recipe that has examples', ({ expect }) => {
+    // Guards against the parser silently dropping examples again.
+    const withExamples = recipes.filter(r => r.examples.length > 0).length;
+    expect(withExamples).toBe(recipes.length - 1); // sk_hex_digits has none
+  });
+});
+
+// The TypeScript parser feeds skops and the MCP server. Check it against
+// super's own evaluation of each skdoc record, so escapes, brackets, and
+// quotes inside example text are always read the way super reads them.
+describe.concurrent('skdoc parser matches super', () => {
+  const rawFile = join(tmpdir(), `superkit-test-raw-${process.pid}.spq`);
+  const rawDefs = allSpqFiles
+    .map(f => readFileSync(join(recipesDir, f), 'utf-8'))
+    .join('\n');
+  writeFileSync(rawFile, rawDefs);
+
+  const parsed = new Map(
+    allSpqFiles.flatMap(f =>
+      parseSkdoc(readFileSync(join(recipesDir, f), 'utf-8'), f.replace(/\.spq$/, ''))
+    ).map(r => [r.name, r]),
+  );
+
+  const headers = [...rawDefs.matchAll(/^(fn|op)\s+(skdoc_\w+)/gm)];
+
+  it('parses every skdoc declaration', ({ expect }) => {
+    expect(parsed.size).toBe(headers.length);
+  });
+
+  for (const [, kind, fn] of headers) {
+    it(fn, async ({ expect }) => {
+      const query = kind === 'fn' ? `values ${fn}()` : `values null | ${fn}`;
+      const { stdout: out } = await execFileAsync('super', ['-I', rawFile, '-j', '-c', query], {
+        encoding: 'utf-8',
+        timeout: 10_000,
+      });
+      const truth = JSON.parse(out);
+      const mine = parsed.get(truth.name);
+      expect(mine, `parser missed ${truth.name}`).toBeDefined();
+      expect(mine!.description).toBe(truth.desc);
+      expect(mine!.examples).toEqual(
+        (truth.examples ?? []).map((e: { i: string; o: string }) => ({ i: e.i, o: e.o })),
+      );
+      expect(mine!.args).toEqual(
+        (truth.args ?? []).map((a: Record<string, string | null>) =>
+          Object.fromEntries(Object.entries(a).filter(([, v]) => v !== null))),
+      );
+      expect(mine!.snippet ?? null).toBe(truth.snippet ?? null);
+    });
   }
 });

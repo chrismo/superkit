@@ -14,7 +14,7 @@ fn skdoc_fields(): (
      type:"func",
      desc:"Splits a line into fields on runs of whitespace, the way awk does. Leading and trailing whitespace is ignored, and repeated spaces or tabs collapse into a single separator. Returns an empty array for a blank line. Use this instead of split(s, \" \"), which treats every space as its own separator and yields empty strings.",
      args:[{name:"s",desc:"The line to split"}],
-     examples:[{i:"join(sk_fields('  alpha   beta\tgamma  '), '|')",o:"'alpha|beta|gamma'"},
+     examples:[{i:"join(sk_fields('  alpha   beta\\tgamma  '), '|')",o:"'alpha|beta|gamma'"},
                {i:"join(sk_fields('one   two'), '|')",o:"'one|two'"},
                {i:"len(sk_fields('   '))",o:"0"}] }, "skdoc")
 )
