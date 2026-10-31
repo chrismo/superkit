@@ -59,7 +59,7 @@ super -s -c "select * from za.sup as za
 {id:3,name:"qux",src:"za",id_1:null,name_1:null,src_1:null}
 ```
 
-Full Outer (Left Only + Right Only + Inner Joins) - _BUG: Still behaves like Left Join — only returns left-side rows_
+Full Outer (Left Only + Right Only + Inner Joins) - _BUG: Still behaves like Left Join — only returns left-side rows ([#6310](https://github.com/superdb/super/issues/6310))_
 ```mdtest-command
 super -s -c "select * from za.sup as za
              full outer join zb.sup as zb
