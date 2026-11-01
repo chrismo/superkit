@@ -694,7 +694,7 @@ These were observed while updating this guide and may be upstream bugs:
   Write `y?:none::int64` instead
 - The JSON reader splits a top-level number that straddles a 512 KiB buffer
   boundary into two values, in files and on stdin
-  (`seq 1 1000000 | super -c 'count()' -` gives 1000010). JSON objects and
+  (`seq -f %.0f 1 1000000 | super -c 'count()' -` gives 1000010). JSON objects and
   strings are fine. For a stream of bare numbers, read it with `-i sup` or
   `-i line`
 - `full outer join` still behaves like a left join
