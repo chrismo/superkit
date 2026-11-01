@@ -12,7 +12,9 @@
         "fix: skdoc metadata uses cast(..., \"skdoc\") since <skdoc> is no longer an implicit named type",
         "fix: skdoc parser dropped examples containing brackets/braces (11 recipes showed no examples in skops/MCP) and truncated descriptions at escaped quotes; now a real SUP-subset parser checked against super",
         "infra: CI workflow runs typecheck, recipe tests, and all doc mdtests against the SuperDB release pinned in .superdb-version (scripts/install-super.sh, scripts/mdtest.mjs)",
-        "fix: pre-existing doc bugs (moar_subqueries collect-first query, sup_to_bash IFS output, bash_to_sup single-quoted SUP, typeof() comparisons, round() output)"
+        "fix: pre-existing doc bugs (moar_subqueries collect-first query, sup_to_bash IFS output, bash_to_sup single-quoted SUP, typeof() comparisons, round() output)",
+        "fix: debug tutorial seq examples count correctly on macOS (seq -f %.0f)",
+        "infra: update superdb-mcp to v1.8.0 targeting SuperDB v0.4.0"
     ]
 }
 {
