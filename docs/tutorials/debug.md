@@ -292,7 +292,7 @@ You can see this with a large input — pipe a million numbers in, fork into a
 debug count and a main branch that filters to milestones:
 
 ```mdtest-command
-seq 1 1000000 | super -unbuffered -i sup -s -c "
+seq -f %.0f 1 1000000 | super -unbuffered -i sup -s -c "
   fork
     (count() | debug f'{this} total records' | where false)
     (where this % 100000 = 0 | head 5)
@@ -312,7 +312,7 @@ data flowed. Compare with `collect`/`unnest`, where the count appears **first**
 because everything must be buffered before any output:
 
 ```mdtest-command
-seq 1 1000000 | super -unbuffered -i sup -s -c "
+seq -f %.0f 1 1000000 | super -unbuffered -i sup -s -c "
   collect(this)
   | debug (unnest this | count() | values f'{this} total records')
   | unnest this
@@ -335,6 +335,9 @@ appear first even though it was produced last. `-i sup` reads the bare
 numbers as SUP. Without it they're detected as JSON, and the v0.4.0 JSON reader
 splits a top-level number that straddles a 512 KiB buffer boundary into two
 values (the count comes out as 1000010).
+
+The `-f %.0f` on `seq` is for macOS: its default format writes 1000000 as
+`1e+06`, and prints it twice, so the count comes out as 1000001.
 
 `fork` also uses O(1) memory for the counting branch (just an integer
 accumulator), while `collect` stores every record in an array (O(n)). The
