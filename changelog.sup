@@ -14,7 +14,9 @@
         "infra: CI workflow runs typecheck, recipe tests, and all doc mdtests against the SuperDB release pinned in .superdb-version (scripts/install-super.sh, scripts/mdtest.mjs)",
         "fix: pre-existing doc bugs (moar_subqueries collect-first query, sup_to_bash IFS output, bash_to_sup single-quoted SUP, typeof() comparisons, round() output)",
         "fix: debug tutorial seq examples count correctly on macOS (seq -f %.0f)",
-        "infra: update superdb-mcp to v1.8.0 targeting SuperDB v0.4.0"
+        "infra: update superdb-mcp to v1.8.0 targeting SuperDB v0.4.0",
+        "docs: upgrade guide covers more v0.4.0 changes: missing fields on JSON/stdin input exit 0 with an error value, typeof() == <time> is silently false, exists() is not a has() replacement, old JSUP files read without error, file format required error text, super db status records, Go module path and Go 1.27, bucket() on constants (known issue)",
+        "fix: debug tutorial no longer says unordered debug output is new in v0.4.0"
     ]
 }
 {

@@ -5,7 +5,7 @@ description: "Migration guide from zq to SuperDB. Covers all breaking changes an
 layout: default
 nav_order: 3
 superdb_version: "0.4.0"
-last_updated: "2026-10-31"
+last_updated: "2026-11-01"
 ---
 
 # Upgrading zq to super
@@ -69,7 +69,8 @@ This table covers ALL breaking changes. Complex items reference detailed section
 | SUP none         | `_`                         | `none`                                   |
 | SQL joins        | unmatched = `error("missing")` | unmatched = `null`                    |
 | Switches         | `-sam`/`-vam`/`-samplesize`/`-persist`/`-fusemem`/`-bsup.*` | Removed |
-| Formats          | `csup`, `jsup`, `table`     | Removed                                  |
+| Formats          | `csup`, `jsup`, `table`     | Removed (convert `.jsup` files first)    |
+| Go module        | `github.com/brimdata/super` | `github.com/superdb/super` (Go 1.27+)    |
 
 ## CLI Changes
 
@@ -468,7 +469,13 @@ runtime, the binary formats are unified, and the persistent database is back
 with SQL tables. Expect to regenerate saved binary files and databases, and to
 update some queries. The full list is in the
 [upstream CHANGELOG](https://github.com/superdb/super/blob/main/CHANGELOG.md#040---2026-10-31).
-The GitHub organization moved too: it's now `github.com/superdb/super`.
+The GitHub organization moved too: it's now `github.com/superdb/super`. That
+is also the new Go module path, and building from source needs Go 1.27 or
+later (v0.3.0 needed 1.24):
+
+```bash
+go install github.com/superdb/super/cmd/super@v0.4.0
+```
 
 ### Binary files and databases must be regenerated (breaking)
 
@@ -525,6 +532,15 @@ super db attach ./mydb
 super db -s -c "CREATE TABLE logs (ts timestamp, msg string) ORDER BY ts DESC"
 ```
 
+Each statement in a `super db -c` script outputs a status record, so scripts
+that expected no output need to discard it:
+
+```
+$ super db -s -c "CREATE TABLE t (x int64); INSERT INTO t VALUES (1)"
+{kind:"create_table",stmt:"CREATE TABLE t (x int64)",start:...,end:...,info:{table:"t",id:...,created:true},error:null}
+{kind:"insert",stmt:"INSERT INTO t VALUES (1)",start:...,end:...,info:{table:"t",values:1::uint64,commit:...},error:null}
+```
+
 ### Vector runtime only
 
 `-sam`, `-vam`, and the `SUPER_RUNTIME` environment variable were removed.
@@ -547,8 +563,27 @@ super -s -i json data
 super -s -i auto data
 ```
 
+The error is `file format required`, or `file format required at line N`
+when the file is named in a `from`:
+
+```
+$ super -s data
+data: file format required
+```
+
 The output format now follows the extension given to `-o` when `-f` isn't
 set, and `-i` now takes precedence over a file's extension.
+
+**Convert JSUP files before upgrading.** The JSUP format was removed, and
+v0.4.0 doesn't reject old JSUP data: read with `-i json` or `-i auto`, it comes
+back as the raw `{type:{kind:"record",...},value:[...]}` envelope, with no
+error. Convert with the old binary:
+
+```bash
+super-0.3.0 -s data.jsup > data.sup
+```
+
+(A `.jsup` file that actually holds SUP can just be renamed to `.sup`.)
 
 ### Static type checking (breaking)
 
@@ -572,7 +607,22 @@ super -static -s -c 'select * from "data.json"'
 ### Missing fields, `has()`, `missing()`, and `quiet()` (breaking)
 
 Referencing a missing field is now a `no such field` error rather than
-`error("missing")`. On statically typed input it's a compile-time error.
+`error("missing")`. On statically typed input (SUP, BSUP, literals) it's a
+compile-time error and `super` exits 1.
+
+On **dynamic input (JSON files, stdin)** the error is a value, and `super`
+**exits 0**. v0.3.0 failed with exit 1 when no input had the field; v0.4.0
+writes the error into the output as if it were data:
+
+```bash
+echo '{"a":1}' | super -s -c 'values b' -
+# v0.3.0: no such field "b" ... (exit 1)
+# v0.4.0: error("no such field b")  (exit 0)
+```
+
+Shell fallbacks like `|| default` or `2>/dev/null` no longer catch this, and a
+`where` on the error value silently drops the row. Use `ok(x) ?? default`, or
+filter with `where is_ok(x)`.
 
 | Removed         | Replacement                        |
 |-----------------|------------------------------------|
@@ -580,6 +630,12 @@ Referencing a missing field is now a `no such field` error rather than
 | `missing(x)`    | `not is_ok(x)`                     |
 | `quiet(x)`      | `ok(x)` (returns `none` on error)  |
 | `error("quiet")`| no special handling any more       |
+| `['x'] in fields(this)` | `is_ok(x)`                  |
+| `grep('x', typeof(this)::string) ? x : d` | `coalesce(ok(x), d)` |
+
+`exists()` is not a replacement for `has()`: it returns `true` for a missing
+field, and even for `exists(error("x"))`. For "missing or empty string", use
+`coalesce(nullif(ok(x), ''), 'default')`.
 
 ```
 -- OLD
@@ -626,7 +682,12 @@ union still can). The same set/map syntax applies in queries, e.g.
 - **`max(a,b)` / `min(a,b)`** (non-aggregate) → **`greatest(a,b)` /
   `least(a,b)`**. The `max()` / `min()` aggregates are unchanged
 - **`time` → `timestamp`.** `x::time` now errors with "type not yet
-  implemented", because `time` now means the SQL time-of-day type
+  implemented", because `time` now means the SQL time-of-day type. Type
+  comparisons fail with no error: `typeof(now()) == <time>` is `true` on
+  v0.3.0 and `false` on v0.4.0. No single cast works on both versions (v0.3.0
+  doesn't know `timestamp`), so rather than detect the version at runtime,
+  pin each script to one, e.g. `export ASDF_SUPERDB_VERSION=0.4.0` with
+  asdf-superdb
 - **Fusion names swapped:** `blend` → `fuse`, `fuse` → `superfuse`,
   `unblend()` → `defuse()`, `defuse()` → `superdefuse()`. A query that uses
   `fuse` or `defuse()` still runs but now does what `blend` / `unblend()` did
@@ -697,6 +758,9 @@ These were observed while updating this guide and may be upstream bugs:
   (`seq -f %.0f 1 1000000 | super -c 'count()' -` gives 1000010). JSON objects and
   strings are fine. For a stream of bare numbers, read it with `-i sup` or
   `-i line`
+- `bucket()` doesn't round when both arguments are constants:
+  `values bucket(2026-01-01T01:45:30Z, 1h)` returns the timestamp unchanged.
+  On field values it works (`count() by bucket(ts, 1h)`)
 - `full outer join` still behaves like a left join
   ([#6310](https://github.com/superdb/super/issues/6310))
 

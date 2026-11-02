@@ -6,7 +6,7 @@ layout: default
 nav_order: 3
 parent: Tutorials
 superdb_version: "0.4.0"
-last_updated: "2026-10-31"
+last_updated: "2026-11-01"
 ---
 
 # debug
@@ -212,10 +212,10 @@ super -s -c "
 ```
 
 The `2>&1 > scores.sup | sort` sends the results to `scores.sup` and pipes
-only the debug output through `sort`. As of v0.4.0, separate `debug` operators
-write to stderr independently, so their lines can arrive in a different order
-from run to run. Sorting keeps the example's output stable; at a terminal
-you'd just leave it off.
+only the debug output through `sort`. Separate `debug` operators write to
+stderr independently, so their lines can arrive in a different order from run
+to run. Sorting keeps the example's output stable; at a terminal you'd just
+leave it off.
 
 The first `debug` fires per-record, flagging each failure. Then after `collect`
 gathers everything into a single array, the second `debug` runs a `(...)`
